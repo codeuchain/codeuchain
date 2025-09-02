@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codeuchain"
+version = "0.1.0"
+description = "Agape-optimized Python implementation of CodeUChain"
+authors = [{name = "CodeUChain Team"}]
+dependencies = []  # Pure Python - zero external dependencies!
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["codeuchain*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = ["-v", "--tb=short"]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "core: Core functionality tests",
+    "utils: Utility tests"
+]

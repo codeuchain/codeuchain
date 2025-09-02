@@ -1,0 +1,53 @@
+{
+  "name": "@codeuchain/javascript",
+  "version": "0.1.0",
+  "description": "CodeUChain JavaScript implementation - Interactive playground with event-driven, ubiquitous patterns",
+  "main": "core/index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "example": "node examples/simple_chain.js",
+    "lint": "eslint core/**/*.js examples/**/*.js",
+    "format": "prettier --write core/**/*.js examples/**/*.js"
+  },
+  "keywords": [
+    "codeuchain",
+    "chain",
+    "context",
+    "middleware",
+    "functional",
+    "async",
+    "javascript",
+    "agape"
+  ],
+  "author": "CodeUChain Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orchestrate-solutions/codeuchain",
+    "directory": "packages/javascript"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "files": [
+    "core/",
+    "index.d.ts",
+    "types.d.ts",
+    "README.md"
+  ],
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0",
+    "prettier": "^2.0.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {},
+  "optionalDependencies": {},
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/orchestrate-solutions"
+  }
+}

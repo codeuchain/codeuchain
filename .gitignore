@@ -1,0 +1,79 @@
+# Build outputs
+**/bin/
+**/obj/
+**/target/
+**/build/
+**/dist/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# .NET
+*.user
+*.suo
+*.cache
+*.log
+*.tmp
+*.temp
+!packages/
+!**/!packages/**
+
+# Rust
+target/
+Cargo.lock
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+
+# C/C++
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+
+# Package files
+*.nupkg
+*.snupkg
