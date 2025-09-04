@@ -1,0 +1,3 @@
+[0000]  WARN no explicit name and version provided for directory source, deriving artifact ID from the given path (which is not ideal)
+NAME        VERSION  TYPE     
+codeuchain  0.1.0    python

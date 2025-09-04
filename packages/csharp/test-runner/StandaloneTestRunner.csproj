@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,11 +14,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="../src/**" />
+    <Compile Include="../src/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="**/src/**" />
     <Compile Remove="TypedFeaturesTestRunner.cs" />
     <Compile Remove="backup/**" />
+    <Compile Remove="../backup_old/**" />
     <Compile Remove="StandaloneTestRunner.cs.backup" />
+    <Compile Remove="**/backup/**" />
   </ItemGroup>
 
 </Project>
