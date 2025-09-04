@@ -125,18 +125,14 @@
             display: inline-block;
         }
 
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2.5rem;
-            }
+        .center-section {
+            text-align: center;
+            margin: 40px 0;
+        }
 
-            .grid {
-                grid-template-columns: 1fr;
-            }
-
-            .card {
-                padding: 20px;
-            }
+        .footer p:last-child {
+            margin-top: 10px;
+            opacity: 0.8;
         }
     </style>
 </head>
@@ -153,11 +149,11 @@
                 <h3>🎯 Core Concepts</h3>
                 <p>The fundamental building blocks of CodeUChain's philosophy</p>
                 <ul>
-                    <li><a href="core/context.html">Context</a> - Immutable data flow</li>
-                    <li><a href="core/link.html">Link</a> - Processing units</li>
-                    <li><a href="core/chain.html">Chain</a> - Orchestration engine</li>
-                    <li><a href="core/middleware.html">Middleware</a> - Cross-cutting concerns</li>
-                    <li><a href="core/error_handling.html">Error Handling</a> - Compassionate recovery</li>
+                    <li><a href="pseudo/core/context.md">Context</a> - Immutable data flow</li>
+                    <li><a href="pseudo/core/link.md">Link</a> - Processing units</li>
+                    <li><a href="pseudo/core/chain.md">Chain</a> - Orchestration engine</li>
+                    <li><a href="pseudo/core/middleware.md">Middleware</a> - Cross-cutting concerns</li>
+                    <li><a href="pseudo/core/error_handling.md">Error Handling</a> - Compassionate recovery</li>
                 </ul>
             </div>
 
@@ -165,10 +161,10 @@
                 <h3>📚 Documentation</h3>
                 <p>Comprehensive guides and foundational principles</p>
                 <ul>
-                    <li><a href="docs/universal_foundation.html">Universal Foundation</a></li>
-                    <li><a href="docs/agape_philosophy.html">Agape Philosophy</a></li>
-                    <li><a href="docs/translation_guide.html">Translation Guide</a></li>
-                    <li><a href="docs/language_strengths.html">Language Strengths</a></li>
+                    <li><a href="pseudo/docs/universal_foundation.md">Universal Foundation</a></li>
+                    <li><a href="pseudo/docs/agape_philosophy.md">Agape Philosophy</a></li>
+                    <li><a href="pseudo/docs/translation_guide.md">Translation Guide</a></li>
+                    <li><a href="pseudo/docs/language_strengths.md">Language Strengths</a></li>
                 </ul>
             </div>
 
@@ -194,15 +190,16 @@
             </div>
         </section>
 
-        <div style="text-align: center; margin: 40px 0;">
+        <div class="center-section">
             <a href="https://github.com/codeuchain/codeuchain" class="btn">View on GitHub</a>
             <a href="https://github.com/codeuchain/codeuchain/tree/main/packages" class="btn">Language Implementations</a>
+            <a href="pseudo/" class="btn">📚 Pseudocode Docs</a>
             <a href="README.html" class="btn">Project README</a>
         </div>
 
         <footer class="footer">
             <p>© 2025 CodeUChain. Built with ❤️ using universal patterns that transcend languages.</p>
-            <p style="margin-top: 10px; opacity: 0.8;">
+            <p>
                 "Code that you chain, creating beautiful systems from simple, elegant parts."
             </p>
         </footer>
