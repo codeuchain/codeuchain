@@ -2,14 +2,20 @@
  * Chain: The Harmonious Connector
  *
  * With agape harmony, the Chain orchestrates link execution with conditional flows and middleware.
+ * Enhanced with generic typing for type-safe workflows.
  */
 
 const { Context } = require('./context');
 const { Link } = require('./link');
 
+/**
+ * @template TInput
+ * @template TOutput
+ */
 class Chain {
   /**
    * Loving weaver of links—connects with conditions, runs with selfless execution.
+   * Enhanced with generic typing for type-safe workflows.
    */
   constructor() {
     this._links = new Map(); // name -> link
@@ -20,9 +26,9 @@ class Chain {
 
   /**
    * With gentle inclusion, store the link.
-   * @param {Link} link - The link instance
+   * @param {Link<TInput, TOutput>} link - The link instance
    * @param {string} [name] - Optional unique name for the link (defaults to class name)
-   * @returns {Chain} This chain for chaining
+   * @returns {Chain<TInput, TOutput>} This chain for chaining
    */
   addLink(link, name = null) {
     if (!(link instanceof Link)) {
@@ -40,7 +46,7 @@ class Chain {
    * @param {string} source - Source link name
    * @param {string} target - Target link name
    * @param {Function} condition - Function that takes context and returns boolean
-   * @returns {Chain} This chain for chaining
+   * @returns {Chain<TInput, TOutput>} This chain for chaining
    */
   connect(source, target, condition = () => true) {
     if (!this._links.has(source)) {
@@ -61,7 +67,7 @@ class Chain {
   /**
    * Lovingly attach middleware.
    * @param {Middleware} middleware - The middleware instance
-   * @returns {Chain} This chain for chaining
+   * @returns {Chain<TInput, TOutput>} This chain for chaining
    */
   useMiddleware(middleware) {
     this._middleware.push(middleware);
@@ -71,7 +77,7 @@ class Chain {
   /**
    * Add an error handler for the entire chain.
    * @param {Function} handler - Function that takes (error, context, linkName)
-   * @returns {Chain} This chain for chaining
+   * @returns {Chain<TInput, TOutput>} This chain for chaining
    */
   onError(handler) {
     this._errorHandlers.push(handler);
@@ -82,7 +88,7 @@ class Chain {
    * Find the next link index based on connections and conditions (index-based).
    * @param {number} currentIndex - Current link index
    * @param {Array} linksArray - Array of [name, link] entries
-   * @param {Context} ctx - Current context
+   * @param {Context<TInput>} ctx - Current context
    * @returns {number} Next link index, or -1 if none found
    * @private
    */
@@ -110,8 +116,8 @@ class Chain {
 
   /**
    * With selfless execution, flow through links.
-   * @param {Context} initialCtx - The initial context
-   * @returns {Promise<Context>} The final context after processing
+   * @param {Context<TInput>} initialCtx - The initial context
+   * @returns {Promise<Context<TOutput>>} The final context after processing
    */
   async run(initialCtx) {
     let ctx = initialCtx;
@@ -149,7 +155,7 @@ class Chain {
         // Run middleware before
         for (const middleware of this._middleware) {
           if (middleware.before) {
-            await middleware.before(link, ctx, currentLinkName);
+            ctx = await middleware.before(link, ctx, currentLinkName) || ctx;
           }
         }
 
@@ -159,7 +165,7 @@ class Chain {
         // Run middleware after
         for (const middleware of this._middleware) {
           if (middleware.after) {
-            await middleware.after(link, ctx, currentLinkName);
+            ctx = await middleware.after(link, ctx, currentLinkName) || ctx;
           }
         }
 
@@ -184,10 +190,20 @@ class Chain {
     }
 
     return ctx;
-  }  /**
+  }
+
+  /**
+   * Get all link names in the chain.
+   * @returns {string[]} Array of link names
+   */
+  getLinkNames() {
+    return Array.from(this._links.keys());
+  }
+
+  /**
    * Create a simple linear chain (convenience method).
    * @param {...Link} links - Link instances (names will be auto-generated)
-   * @returns {Chain} A new linear chain
+   * @returns {Chain<TInput, TOutput>} A new linear chain
    */
   static createLinear(...links) {
     const chain = new Chain();

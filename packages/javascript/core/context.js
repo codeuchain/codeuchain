@@ -3,11 +3,16 @@
  *
  * With agape compassion, the Context holds data tenderly, immutable by default for safety, mutable for flexibility.
  * Optimized for JavaScript's dynamism—embracing object-like interface with ecosystem integrations.
+ * Enhanced with generic typing for type-safe workflows.
  */
 
+/**
+ * @template T
+ */
 class Context {
   /**
    * Immutable context with selfless love—holds data without judgment, returns fresh copies for changes.
+   * Enhanced with generic typing for type-safe workflows.
    * @param {Object} data - Initial data object
    */
   constructor(data = {}) {
@@ -37,7 +42,7 @@ class Context {
 
   /**
    * Create an empty context
-   * @returns {Context} An empty context
+   * @returns {Context<T>} An empty context
    */
   static empty() {
     return new Context({});
@@ -74,7 +79,7 @@ class Context {
    * With selfless safety, return a fresh context with the addition.
    * @param {string} key - The key to insert
    * @param {*} value - The value to insert
-   * @returns {Context} A new Context with the addition
+   * @returns {Context<T>} A new Context with the addition
    */
   insert(key, value) {
     const newData = { ...this._data, [key]: value };
@@ -82,8 +87,20 @@ class Context {
   }
 
   /**
+   * Create a new Context with type evolution, allowing clean transformation
+   * between data shapes without explicit casting.
+   * @param {string} key - The key to insert
+   * @param {*} value - The value to insert
+   * @returns {Context} A new Context with type evolution
+   */
+  insertAs(key, value) {
+    const newData = { ...this._data, [key]: value };
+    return new Context(newData);
+  }
+
+  /**
    * For those needing change, provide a mutable sibling.
-   * @returns {MutableContext} A mutable version of this context
+   * @returns {MutableContext<T>} A mutable version of this context
    */
   withMutation() {
     return new MutableContext({ ...this._data });
@@ -91,8 +108,8 @@ class Context {
 
   /**
    * Lovingly combine contexts, favoring the other with compassion.
-   * @param {Context} other - The other context to merge
-   * @returns {Context} A new Context with merged data
+   * @param {Context<T>} other - The other context to merge
+   * @returns {Context<T>} A new Context with merged data
    */
   merge(other) {
     const newData = { ...this._data, ...other._data };
@@ -129,9 +146,13 @@ class Context {
   }
 }
 
+/**
+ * @template T
+ */
 class MutableContext {
   /**
    * Mutable context for performance-critical sections—use with care, but forgiven.
+   * Enhanced with generic typing for type-safe workflows.
    * @param {Object} data - Initial data object
    */
   constructor(data = {}) {
@@ -158,7 +179,7 @@ class MutableContext {
 
   /**
    * Return to safety with a fresh immutable copy.
-   * @returns {Context} An immutable Context
+   * @returns {Context<T>} An immutable Context
    */
   toImmutable() {
     return new Context(this._data);
