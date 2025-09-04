@@ -3,19 +3,28 @@
  *
  * With agape harmony, the Chain orchestrates link execution with conditional flows and middleware.
  * Enhanced with generic typing for type-safe workflows.
+ *
+ * @since 1.0.0
  */
 
 const { Context } = require('./context');
 const { Link } = require('./link');
 
 /**
- * @template TInput
- * @template TOutput
+ * @template TInput - The input context type for the chain
+ * @template TOutput - The output context type for the chain
  */
 class Chain {
   /**
    * Loving weaver of links—connects with conditions, runs with selfless execution.
    * Enhanced with generic typing for type-safe workflows.
+   *
+   * @example
+   * const chain = new Chain();
+   * chain.addLink(new ValidationLink());
+   * chain.addLink(new ProcessingLink());
+   * chain.connect('ValidationLink', 'ProcessingLink');
+   * const result = await chain.run(initialContext);
    */
   constructor() {
     this._links = new Map(); // name -> link
@@ -25,10 +34,18 @@ class Chain {
   }
 
   /**
-   * With gentle inclusion, store the link.
-   * @param {Link<TInput, TOutput>} link - The link instance
+   * With gentle inclusion, store the link in the chain.
+   * Links are stored by name for easy reference and connection.
+   *
+   * @param {Link<TInput, TOutput>} link - The link instance to add
    * @param {string} [name] - Optional unique name for the link (defaults to class name)
-   * @returns {Chain<TInput, TOutput>} This chain for chaining
+   * @returns {Chain<TInput, TOutput>} This chain for method chaining
+   * @throws {Error} If link is not an instance of Link class
+   * @throws {Error} If a link with the same name already exists
+   * @example
+   * const chain = new Chain();
+   * chain.addLink(new ValidationLink(), 'validator');
+   * chain.addLink(new ProcessingLink()); // Uses class name
    */
   addLink(link, name = null) {
     if (!(link instanceof Link)) {
@@ -43,10 +60,16 @@ class Chain {
 
   /**
    * With compassionate logic, add a connection between links.
-   * @param {string} source - Source link name
-   * @param {string} target - Target link name
-   * @param {Function} condition - Function that takes context and returns boolean
-   * @returns {Chain<TInput, TOutput>} This chain for chaining
+   * Connections define the flow of execution through the chain.
+   *
+   * @param {string} source - Name of the source link
+   * @param {string} target - Name of the target link
+   * @param {Function} [condition] - Function that takes context and returns boolean (defaults to always true)
+   * @returns {Chain<TInput, TOutput>} This chain for method chaining
+   * @throws {Error} If source or target link doesn't exist
+   * @example
+   * chain.connect('ValidationLink', 'ProcessingLink', (ctx) => ctx.get('isValid'));
+   * chain.connect('ValidationLink', 'ErrorHandler', (ctx) => !ctx.get('isValid'));
    */
   connect(source, target, condition = () => true) {
     if (!this._links.has(source)) {
@@ -65,9 +88,14 @@ class Chain {
   }
 
   /**
-   * Lovingly attach middleware.
-   * @param {Middleware} middleware - The middleware instance
-   * @returns {Chain<TInput, TOutput>} This chain for chaining
+   * Lovingly attach middleware to enhance chain execution.
+   * Middleware can observe and modify execution flow.
+   *
+   * @param {Middleware} middleware - The middleware instance to attach
+   * @returns {Chain<TInput, TOutput>} This chain for method chaining
+   * @example
+   * chain.useMiddleware(new LoggingMiddleware());
+   * chain.useMiddleware(new TimingMiddleware());
    */
   useMiddleware(middleware) {
     this._middleware.push(middleware);
@@ -76,8 +104,15 @@ class Chain {
 
   /**
    * Add an error handler for the entire chain.
+   * Error handlers are called when any link in the chain throws an error.
+   *
    * @param {Function} handler - Function that takes (error, context, linkName)
-   * @returns {Chain<TInput, TOutput>} This chain for chaining
+   * @returns {Chain<TInput, TOutput>} This chain for method chaining
+   * @example
+   * chain.onError((error, ctx, linkName) => {
+   *   console.error(`Error in ${linkName}:`, error.message);
+   *   // Handle error appropriately
+   * });
    */
   onError(handler) {
     this._errorHandlers.push(handler);
@@ -86,11 +121,13 @@ class Chain {
 
   /**
    * Find the next link index based on connections and conditions (index-based).
-   * @param {number} currentIndex - Current link index
-   * @param {Array} linksArray - Array of [name, link] entries
-   * @param {Context<TInput>} ctx - Current context
-   * @returns {number} Next link index, or -1 if none found
+   * Internal method used by run() to determine execution flow.
+   *
    * @private
+   * @param {number} currentIndex - Current link index in the execution array
+   * @param {Array} linksArray - Array of [name, link] entries
+   * @param {Context<TInput>} ctx - Current context for condition evaluation
+   * @returns {number} Next link index, or -1 if none found
    */
   _findNextLinkIndex(currentIndex, linksArray, ctx) {
     const [currentName] = linksArray[currentIndex];
@@ -115,9 +152,16 @@ class Chain {
   }
 
   /**
-   * With selfless execution, flow through links.
-   * @param {Context<TInput>} initialCtx - The initial context
-   * @returns {Promise<Context<TOutput>>} The final context after processing
+   * With selfless execution, flow through links according to connections.
+   * Executes the chain starting from links with no incoming connections.
+   *
+   * @param {Context<TInput>} initialCtx - The initial context to process
+   * @returns {Promise<Context<TOutput>>} The final context after all processing
+   * @throws {Error} If any link in the chain throws an error (after error handlers)
+   * @example
+   * const initialCtx = new Context({ userId: 123 });
+   * const resultCtx = await chain.run(initialCtx);
+   * console.log('Processing complete:', resultCtx.toObject());
    */
   async run(initialCtx) {
     let ctx = initialCtx;
@@ -193,8 +237,15 @@ class Chain {
   }
 
   /**
-   * Get all link names in the chain.
-   * @returns {string[]} Array of link names
+   * Get all link names currently in the chain.
+   * Useful for debugging and introspection.
+   *
+   * @returns {string[]} Array of all link names in the chain
+   * @example
+   * const chain = new Chain();
+   * chain.addLink(new ValidationLink());
+   * chain.addLink(new ProcessingLink());
+   * console.log(chain.getLinkNames()); // ['ValidationLink', 'ProcessingLink']
    */
   getLinkNames() {
     return Array.from(this._links.keys());
@@ -202,8 +253,18 @@ class Chain {
 
   /**
    * Create a simple linear chain (convenience method).
-   * @param {...Link} links - Link instances (names will be auto-generated)
-   * @returns {Chain<TInput, TOutput>} A new linear chain
+   * Creates a chain with links executed in the order provided.
+   *
+   * @static
+   * @param {...Link} links - Link instances to add to the chain
+   * @returns {Chain<TInput, TOutput>} A new linear chain with automatic connections
+   * @example
+   * const chain = Chain.createLinear(
+   *   new ValidationLink(),
+   *   new ProcessingLink(),
+   *   new StorageLink()
+   * );
+   * // Links are connected: ValidationLink -> ProcessingLink -> StorageLink
    */
   static createLinear(...links) {
     const chain = new Chain();
