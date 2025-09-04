@@ -19,8 +19,6 @@ public interface ILink
 /// Follows the universal Link[Input, Output] pattern across all CodeUChain languages.
 /// </summary>
 public interface ILink<TInput, TOutput>
-    where TInput : class
-    where TOutput : class
 {
     /// <summary>
     /// Processes the context with type safety.
@@ -56,8 +54,6 @@ public static class LinkExtensions
 /// Follows the universal Link[Input, Output] pattern across all CodeUChain languages.
 /// </summary>
 public interface IContextLink<TInput, TOutput>
-    where TInput : class
-    where TOutput : class
 {
     Task<Context<TOutput>> CallAsync(Context<TInput> context);
 }

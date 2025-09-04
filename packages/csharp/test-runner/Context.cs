@@ -109,7 +109,7 @@ public class Context
 /// Supports clean type evolution through InsertAs<U>() method.
 /// Follows the universal pattern across all CodeUChain languages.
 /// </summary>
-public class Context<T> where T : class
+public class Context<T>
 {
     private readonly ImmutableDictionary<string, object> _data;
 
@@ -172,7 +172,7 @@ public class Context<T> where T : class
     /// Returns a new context with the specified key-value pair inserted, enabling clean type evolution.
     /// This method allows transforming the context's type to U without explicit casting.
     /// </summary>
-    public Context<U> InsertAs<U>(string key, object value) where U : class
+    public Context<U> InsertAs<U>(string key, object value)
     {
         return new Context<U>(_data.SetItem(key, value));
     }

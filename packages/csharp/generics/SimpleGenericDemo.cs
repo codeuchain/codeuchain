@@ -37,7 +37,7 @@ public class SimpleGenericDemo
 
         // Pattern 3: Type-Safe Chain
         Console.WriteLine("3. Type-Safe Chain:");
-        var chain = new Chain<object>()
+        var chain = new Chain<object, object>()
             .AddLink("process", new GenericProcessor())
             .AddLink("format", new GenericFormatter());
 
@@ -106,20 +106,20 @@ public class IntFormatter : IPipelineStep<int, string>
 }
 
 // Generic Chain Links
-public class GenericProcessor : IContextLink<object>
+public class GenericProcessor : IContextLink<object, object>
 {
-    public async Task<Context<object>> CallAsync(Context<object> context)
+    public Task<Context<object>> CallAsync(Context<object> context)
     {
         var data = context.Get("data")?.ToString() ?? "";
-        return context.Insert("processed", data.ToUpper());
+        return Task.FromResult(context.Insert("processed", data.ToUpper()));
     }
 }
 
-public class GenericFormatter : IContextLink<object>
+public class GenericFormatter : IContextLink<object, object>
 {
-    public async Task<Context<object>> CallAsync(Context<object> context)
+    public Task<Context<object>> CallAsync(Context<object> context)
     {
         var processed = context.Get("processed")?.ToString() ?? "";
-        return context.Insert("formatted", $"[{processed}]");
+        return Task.FromResult(context.Insert("formatted", $"[{processed}]"));
     }
 }

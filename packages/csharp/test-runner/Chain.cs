@@ -244,6 +244,12 @@ public class Chain<TInput, TOutput>
             }
         }
 
+        // If no links were executed, return an empty output context
+        if (currentOutputContext == null)
+        {
+            currentOutputContext = Context<TOutput>.Create();
+        }
+
         return currentOutputContext;
     }
 }

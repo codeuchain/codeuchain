@@ -29,6 +29,15 @@ class Context:
         new_data[key] = value
         return Context(new_data)
 
+    def insert_as(self, key: str, value: Any) -> 'Context':
+        """
+        Create a new Context with type evolution, allowing clean transformation
+        between TypedDict shapes without explicit casting.
+        """
+        new_data = self._data.copy()
+        new_data[key] = value
+        return Context(new_data)
+
     def with_mutation(self) -> 'MutableContext':
         """For those needing change, provide a mutable sibling."""
         return MutableContext(self._data.copy())
