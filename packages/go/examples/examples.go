@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/joshuawink/codeuchain/go"
+	"github.com/codeuchain/codeuchain/packages/go"
 )
 
 // IdentityLink does nothing - pure love
@@ -19,7 +19,7 @@ func NewIdentityLink() *IdentityLink {
 }
 
 // Call implements the Link interface
-func (il *IdentityLink) Call(ctx context.Context, c *codeuchain.Context) (*codeuchain.Context, error) {
+func (il *IdentityLink) Call(ctx context.Context, c *codeuchain.Context[any]) (*codeuchain.Context[any], error) {
 	return c, nil
 }
 
@@ -34,7 +34,7 @@ func NewMathLink(operation string) *MathLink {
 }
 
 // Call implements the Link interface
-func (ml *MathLink) Call(ctx context.Context, c *codeuchain.Context) (*codeuchain.Context, error) {
+func (ml *MathLink) Call(ctx context.Context, c *codeuchain.Context[any]) (*codeuchain.Context[any], error) {
 	numbersVal := c.Get("numbers")
 	numbers, ok := numbersVal.([]interface{})
 	if !ok {
@@ -91,7 +91,7 @@ func NewLoggingMiddleware() *LoggingMiddleware {
 }
 
 // Before implements the Middleware interface
-func (lm *LoggingMiddleware) Before(ctx context.Context, link codeuchain.Link, c *codeuchain.Context) error {
+func (lm *LoggingMiddleware) Before(ctx context.Context, link codeuchain.Link[any, any], c *codeuchain.Context[any]) error {
 	if link != nil {
 		log.Printf("Before link execution: %v", c.ToMap())
 	} else {
@@ -101,7 +101,7 @@ func (lm *LoggingMiddleware) Before(ctx context.Context, link codeuchain.Link, c
 }
 
 // After implements the Middleware interface
-func (lm *LoggingMiddleware) After(ctx context.Context, link codeuchain.Link, c *codeuchain.Context) error {
+func (lm *LoggingMiddleware) After(ctx context.Context, link codeuchain.Link[any, any], c *codeuchain.Context[any]) error {
 	if link != nil {
 		log.Printf("After link execution: %v", c.ToMap())
 	} else {
@@ -111,7 +111,7 @@ func (lm *LoggingMiddleware) After(ctx context.Context, link codeuchain.Link, c 
 }
 
 // OnError implements the Middleware interface
-func (lm *LoggingMiddleware) OnError(ctx context.Context, link codeuchain.Link, err error, c *codeuchain.Context) error {
+func (lm *LoggingMiddleware) OnError(ctx context.Context, link codeuchain.Link[any, any], err error, c *codeuchain.Context[any]) error {
 	log.Printf("Error in execution: %v, context: %v", err, c.ToMap())
 	return nil
 }
@@ -129,7 +129,7 @@ func NewTimingMiddleware() *TimingMiddleware {
 }
 
 // Before implements the Middleware interface
-func (tm *TimingMiddleware) Before(ctx context.Context, link codeuchain.Link, c *codeuchain.Context) error {
+func (tm *TimingMiddleware) Before(ctx context.Context, link codeuchain.Link[any, any], c *codeuchain.Context[any]) error {
 	if link != nil {
 		// Use a simple string representation for timing
 		linkKey := fmt.Sprintf("%p", link)
@@ -139,7 +139,7 @@ func (tm *TimingMiddleware) Before(ctx context.Context, link codeuchain.Link, c 
 }
 
 // After implements the Middleware interface
-func (tm *TimingMiddleware) After(ctx context.Context, link codeuchain.Link, c *codeuchain.Context) error {
+func (tm *TimingMiddleware) After(ctx context.Context, link codeuchain.Link[any, any], c *codeuchain.Context[any]) error {
 	if link != nil {
 		linkKey := fmt.Sprintf("%p", link)
 		if startTime, exists := tm.StartTimes[linkKey]; exists {
@@ -152,7 +152,7 @@ func (tm *TimingMiddleware) After(ctx context.Context, link codeuchain.Link, c *
 }
 
 // OnError implements the Middleware interface
-func (tm *TimingMiddleware) OnError(ctx context.Context, link codeuchain.Link, err error, c *codeuchain.Context) error {
+func (tm *TimingMiddleware) OnError(ctx context.Context, link codeuchain.Link[any, any], err error, c *codeuchain.Context[any]) error {
 	if link != nil {
 		linkKey := fmt.Sprintf("%p", link)
 		if startTime, exists := tm.StartTimes[linkKey]; exists {
@@ -174,4 +174,65 @@ func NewBasicChain() *BasicChain {
 	return &BasicChain{
 		Chain: codeuchain.NewChain(),
 	}
+}
+
+// SimpleMathExample demonstrates basic chain usage
+func SimpleMathExample() {
+	// Create a chain
+	chain := NewBasicChain()
+
+	// Add math processing links
+	chain.AddLink("sum", NewMathLink("sum"))
+	chain.AddLink("mean", NewMathLink("mean"))
+
+	// Connect links conditionally
+	chain.Connect("sum", "mean", func(ctx *codeuchain.Context[any]) bool {
+		return ctx.Get("result") != nil
+	})
+
+	// Add middleware
+	chain.UseMiddleware(NewLoggingMiddleware())
+
+	// Create input data
+	data := map[string]interface{}{
+		"numbers": []interface{}{1.0, 2.0, 3.0, 4.0, 5.0},
+	}
+	ctx := codeuchain.NewContext[any](data)
+
+	// Run the chain
+	result, err := chain.Run(context.Background(), ctx)
+	if err != nil {
+		log.Printf("Error: %v", err)
+		return
+	}
+
+	fmt.Printf("Final result: %v\n", result.Get("result"))
+	fmt.Printf("Full context: %v\n", result.ToMap())
+}
+
+// MiddlewareExample demonstrates middleware usage
+func MiddlewareExample() {
+	chain := NewBasicChain()
+
+	// Add a simple processing link
+	chain.AddLink("process", NewIdentityLink())
+
+	// Add multiple middleware
+	chain.UseMiddleware(NewLoggingMiddleware())
+	chain.UseMiddleware(NewTimingMiddleware())
+
+	// Create context
+	data := map[string]interface{}{
+		"input": "test data",
+	}
+	ctx := codeuchain.NewContext[any](data)
+
+	// Run with middleware
+	result, err := chain.Run(context.Background(), ctx)
+	if err != nil {
+		log.Printf("Error: %v", err)
+		return
+	}
+
+	fmt.Printf("Processed result: %v\n", result.ToMap())
 }
