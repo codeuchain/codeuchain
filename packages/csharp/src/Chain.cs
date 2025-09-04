@@ -105,18 +105,23 @@ public class Chain
             catch (Exception ex)
             {
                 // Handle link errors
+                bool errorHandled = false;
                 foreach (var middleware in _middlewares)
                 {
                     try
                     {
                         currentContext = await middleware.OnErrorAsync(link, ex, currentContext);
+                        errorHandled = true; // Assume middleware handled the error
                     }
                     catch
                     {
                         // Continue with other error handlers
                     }
                 }
-                throw;
+
+                // Only rethrow if no middleware handled the error
+                if (!errorHandled)
+                    throw;
             }
 
             // After each link
@@ -179,5 +184,66 @@ public class Chain
     public Context RunSync(Context initialContext)
     {
         return RunAsync(initialContext).GetAwaiter().GetResult();
+    }
+}
+
+/// <summary>
+/// Generic Chain with type safety.
+/// Supports the universal Link[Input, Output] pattern for clean type evolution.
+/// Note: Middleware is simplified to work with single types for now.
+/// </summary>
+public class Chain<TInput, TOutput>
+    where TInput : class
+    where TOutput : class
+{
+    private readonly ImmutableList<KeyValuePair<string, IContextLink<TInput, TOutput>>> _links;
+
+    private Chain(ImmutableList<KeyValuePair<string, IContextLink<TInput, TOutput>>> links)
+    {
+        _links = links;
+    }
+
+    public Chain()
+    {
+        _links = ImmutableList<KeyValuePair<string, IContextLink<TInput, TOutput>>>.Empty;
+    }
+
+    /// <summary>
+    /// Adds a link to the chain.
+    /// </summary>
+    public Chain<TInput, TOutput> AddLink(string name, IContextLink<TInput, TOutput> link)
+    {
+        return new Chain<TInput, TOutput>(_links.Add(new KeyValuePair<string, IContextLink<TInput, TOutput>>(name, link)));
+    }
+
+    /// <summary>
+    /// Executes the chain with the given context.
+    /// </summary>
+    public async Task<Context<TOutput>> RunAsync(Context<TInput> initialContext)
+    {
+        // For a chain with type evolution, we need to handle the type transformation properly
+        // This is a simplified implementation - in practice, you'd want a more sophisticated approach
+
+        Context<TInput> currentInputContext = initialContext;
+        Context<TOutput> currentOutputContext = default!;
+
+        // Execute links with type evolution
+        foreach (var (name, link) in _links)
+        {
+            try
+            {
+                currentOutputContext = await link.CallAsync(currentInputContext);
+                // For subsequent links, we need to adapt the context type
+                // This is a limitation of the current simplified implementation
+                currentInputContext = currentOutputContext.InsertAs<TInput>("__temp", new object()).Remove("__temp");
+            }
+            catch (Exception)
+            {
+                // For now, rethrow exceptions - middleware can be added later
+                throw;
+            }
+        }
+
+        return currentOutputContext;
     }
 }

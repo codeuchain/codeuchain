@@ -20,3 +20,15 @@ public interface IMiddleware
     /// </summary>
     ValueTask<Context> OnErrorAsync(ILink? link, Exception exception, Context context);
 }
+
+/// <summary>
+/// Generic Middleware interface.
+/// Simplified for type-evolving chains - middleware operates on the current context type.
+/// </summary>
+public interface IMiddleware<T>
+    where T : class
+{
+    Task<Context<T>> BeforeAsync(IContextLink<T, T>? link, Context<T> context);
+    Task<Context<T>> AfterAsync(IContextLink<T, T>? link, Context<T> context);
+    Task<Context<T>> OnErrorAsync(IContextLink<T, T>? link, Exception exception, Context<T> context);
+}

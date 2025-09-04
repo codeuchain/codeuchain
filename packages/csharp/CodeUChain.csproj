@@ -11,6 +11,7 @@
     <Description>A modular framework for chaining processing links with middleware support, following agape philosophy.</Description>
     <RepositoryUrl>https://github.com/codeuchain/codeuchain</RepositoryUrl>
     <PackageTags>chain,middleware,processing,framework</PackageTags>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <ItemGroup>

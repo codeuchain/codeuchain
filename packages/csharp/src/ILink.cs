@@ -14,6 +14,22 @@ public interface ILink
 }
 
 /// <summary>
+/// Generic Link: Opt-in Type Safety
+/// Strongly-typed version of ILink for static type checking while maintaining runtime flexibility.
+/// Follows the universal Link[Input, Output] pattern across all CodeUChain languages.
+/// </summary>
+public interface ILink<TInput, TOutput>
+    where TInput : class
+    where TOutput : class
+{
+    /// <summary>
+    /// Processes the context with type safety.
+    /// Provides clean type evolution without explicit casting.
+    /// </summary>
+    ValueTask<Context<TOutput>> ProcessAsync(Context<TInput> context);
+}
+
+/// <summary>
 /// Extension methods to make implementing links easier.
 /// </summary>
 public static class LinkExtensions
@@ -33,4 +49,15 @@ public static class LinkExtensions
     {
         return new ValueTask<Context>(processor(context));
     }
+}
+
+/// <summary>
+/// Generic Link interface for context-based processing.
+/// Follows the universal Link[Input, Output] pattern across all CodeUChain languages.
+/// </summary>
+public interface IContextLink<TInput, TOutput>
+    where TInput : class
+    where TOutput : class
+{
+    Task<Context<TOutput>> CallAsync(Context<TInput> context);
 }
