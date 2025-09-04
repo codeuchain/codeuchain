@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/joshuawink/codeuchain/go"
-	"github.com/joshuawink/codeuchain/go/examples"
+	"github.com/codeuchain/codeuchain/packages/go"
+	"github.com/codeuchain/codeuchain/packages/go/examples"
 )
 
 func main() {
@@ -13,7 +13,7 @@ func main() {
 	chain := examples.NewBasicChain()
 	chain.AddLink("sum", examples.NewMathLink("sum"))
 	chain.AddLink("mean", examples.NewMathLink("mean"))
-	chain.Connect("sum", "mean", func(ctx *codeuchain.Context) bool {
+	chain.Connect("sum", "mean", func(ctx *codeuchain.Context[any]) bool {
 		return ctx.Get("result") != nil
 	})
 	chain.UseMiddleware(examples.NewLoggingMiddleware())
@@ -22,7 +22,7 @@ func main() {
 	data := map[string]interface{}{
 		"numbers": []interface{}{1.0, 2.0, 3.0, 4.0, 5.0},
 	}
-	ctx := codeuchain.NewContext(data)
+	ctx := codeuchain.NewContext[any](data)
 
 	result, err := chain.Run(context.Background(), ctx)
 	if err != nil {
