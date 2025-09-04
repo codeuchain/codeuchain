@@ -1,41 +1,46 @@
 // Concrete type declarations for the package public API
 
-export declare class Context {
+// Type variables for generic typing
+export type TInput = any;
+export type TOutput = any;
+
+export declare class Context<T = any> {
   constructor(data?: Record<string, any>);
-  static empty(): Context;
-  static from(data: Record<string, any>): Context;
+  static empty(): Context<T>;
+  static from<TData = any>(data: TData): Context<TData>;
   get(key: string): any;
-  insert(key: string, value: any): Context;
-  withMutation(): MutableContext;
-  merge(other: Context): Context;
+  insert(key: string, value: any): Context<T>;
+  insertAs<TNew = any>(key: string, value: any): Context<TNew>;
+  withMutation(): MutableContext<T>;
+  merge(other: Context<T>): Context<T>;
   toObject(): Record<string, any>;
   has(key: string): boolean;
   keys(): string[];
 }
 
-export declare class MutableContext {
+export declare class MutableContext<T = any> {
   constructor(data?: Record<string, any>);
   get(key: string): any;
   set(key: string, value: any): void;
-  toImmutable(): Context;
+  toImmutable(): Context<T>;
   has(key: string): boolean;
   keys(): string[];
 }
 
-export declare class Link {
-  call(ctx: Context): Promise<Context>;
+export declare class Link<TInput = any, TOutput = any> {
+  call(ctx: Context<TInput>): Promise<Context<TOutput>>;
   getName(): string;
-  validateContext(ctx: Context, requiredFields?: string[]): void;
+  validateContext(ctx: Context<TInput>, requiredFields?: string[]): void;
 }
 
-export declare class Chain {
+export declare class Chain<TInput = any, TOutput = any> {
   constructor();
-  addLink(link: Link, name?: string): Chain;
-  connect(source: string, target: string, condition?: (ctx: Context) => boolean): Chain;
-  useMiddleware(middleware: Middleware): Chain;
-  onError(handler: (err: Error, ctx: Context, linkName: string) => any): Chain;
-  run(initialCtx: Context): Promise<Context>;
-  static createLinear(...links: Link[]): Chain;
+  addLink(link: Link<TInput, TOutput>, name?: string): Chain<TInput, TOutput>;
+  connect(source: string, target: string, condition?: (ctx: Context<TInput>) => boolean): Chain<TInput, TOutput>;
+  useMiddleware(middleware: Middleware): Chain<TInput, TOutput>;
+  onError(handler: (err: Error, ctx: Context<TInput>, linkName: string) => any): Chain<TInput, TOutput>;
+  run(initialCtx: Context<TInput>): Promise<Context<TOutput>>;
+  static createLinear<TInput = any, TOutput = any>(...links: Link<any, any>[]): Chain<TInput, TOutput>;
 }
 
 export declare class Middleware {
