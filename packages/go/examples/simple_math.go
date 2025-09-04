@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/joshuawink/codeuchain/go"
-	"github.com/joshuawink/codeuchain/go/examples"
+	"codeuchain/examples"
 )
 
 func main() {
