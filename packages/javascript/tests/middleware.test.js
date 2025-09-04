@@ -378,7 +378,7 @@ describe('Middleware', () => {
       const result = await chain.run(ctx);
 
       expect(result.get('original')).toBe('value');
-      expect(result.get('middleware')).toBeUndefined(); // Middleware modifications don't persist
+      expect(result.get('middleware')).toBe('modified'); // Middleware modifications now persist
     });
   });
 });

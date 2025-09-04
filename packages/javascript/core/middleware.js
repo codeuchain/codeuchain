@@ -3,22 +3,27 @@
  *
  * With agape gentleness, the Middleware provides optional enhancement hooks.
  * Base class that implementations can extend.
+ * Enhanced with generic typing for type-safe workflows.
  */
 
 const { Context } = require('./context');
 const { Link } = require('./link');
 
+/**
+ * @template T
+ */
 class Middleware {
   /**
    * Gentle enhancer—optional hooks with forgiving defaults.
    * Base class that middleware implementations can inherit from.
    * Subclasses can override any combination of before(), after(), and onError().
+   * Enhanced with generic typing for type-safe workflows.
    */
 
   /**
    * With selfless optionality, do nothing by default.
    * @param {Link} link - The link about to be executed
-   * @param {Context} ctx - The current context
+   * @param {Context<T>} ctx - The current context
    * @param {string} linkName - The name of the link
    */
   async before(link, ctx, linkName) {
@@ -28,7 +33,7 @@ class Middleware {
   /**
    * Forgiving default.
    * @param {Link} link - The link that was executed
-   * @param {Context} ctx - The context after execution
+   * @param {Context<T>} ctx - The context after execution
    * @param {string} linkName - The name of the link
    */
   async after(link, ctx, linkName) {
@@ -39,7 +44,7 @@ class Middleware {
    * Compassionate error handling.
    * @param {Link} link - The link that threw the error
    * @param {Error} error - The error that occurred
-   * @param {Context} ctx - The context at the time of error
+   * @param {Context<T>} ctx - The context at the time of error
    * @param {string} linkName - The name of the link
    */
   async onError(link, error, ctx, linkName) {
