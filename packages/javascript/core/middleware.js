@@ -4,13 +4,15 @@
  * With agape gentleness, the Middleware provides optional enhancement hooks.
  * Base class that implementations can extend.
  * Enhanced with generic typing for type-safe workflows.
+ *
+ * @since 1.0.0
  */
 
 const { Context } = require('./context');
 const { Link } = require('./link');
 
 /**
- * @template T
+ * @template T - The context type that this middleware operates on
  */
 class Middleware {
   /**
@@ -18,34 +20,72 @@ class Middleware {
    * Base class that middleware implementations can inherit from.
    * Subclasses can override any combination of before(), after(), and onError().
    * Enhanced with generic typing for type-safe workflows.
+   *
+   * @example
+   * class LoggingMiddleware extends Middleware {
+   *   async before(link, ctx, linkName) {
+   *     console.log(`Starting ${linkName}`);
+   *     return ctx.insert('startTime', Date.now());
+   *   }
+   *
+   *   async after(link, ctx, linkName) {
+   *     console.log(`Completed ${linkName}`);
+   *   }
+   * }
    */
 
   /**
    * With selfless optionality, do nothing by default.
+   * Called before each link execution. Can return a modified context.
+   *
    * @param {Link} link - The link about to be executed
-   * @param {Context<T>} ctx - The current context
-   * @param {string} linkName - The name of the link
+   * @param {Context<T>} ctx - The current context before link execution
+   * @param {string} linkName - The name of the link being executed
+   * @returns {Promise<Context<T>|undefined>} Optionally return modified context
+   * @example
+   * async before(link, ctx, linkName) {
+   *   console.log(`About to execute ${linkName}`);
+   *   return ctx.insert('startTime', Date.now());
+   * }
    */
   async before(link, ctx, linkName) {
     // Default: do nothing
   }
 
   /**
-   * Forgiving default.
+   * Forgiving default called after successful link execution.
+   * Called after each successful link execution. Can return a modified context.
+   *
    * @param {Link} link - The link that was executed
-   * @param {Context<T>} ctx - The context after execution
-   * @param {string} linkName - The name of the link
+   * @param {Context<T>} ctx - The context after link execution
+   * @param {string} linkName - The name of the link that was executed
+   * @returns {Promise<Context<T>|undefined>} Optionally return modified context
+   * @example
+   * async after(link, ctx, linkName) {
+   *   const duration = Date.now() - ctx.get('startTime');
+   *   console.log(`${linkName} took ${duration}ms`);
+   *   return ctx.insert('duration', duration);
+   * }
    */
   async after(link, ctx, linkName) {
     // Default: do nothing
   }
 
   /**
-   * Compassionate error handling.
+   * Compassionate error handling called when links fail.
+   * Called when any link throws an error during execution.
+   *
    * @param {Link} link - The link that threw the error
    * @param {Error} error - The error that occurred
    * @param {Context<T>} ctx - The context at the time of error
-   * @param {string} linkName - The name of the link
+   * @param {string} linkName - The name of the link that failed
+   * @returns {Promise<void>}
+   * @example
+   * async onError(link, error, ctx, linkName) {
+   *   console.error(`Error in ${linkName}:`, error.message);
+   *   // Send to error reporting service
+   *   await errorReporting.report(error, { linkName, context: ctx.toObject() });
+   * }
    */
   async onError(link, error, ctx, linkName) {
     // Default: log the error
