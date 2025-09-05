@@ -17,6 +17,12 @@ CodeUChain C# provides a clean, async-first architecture for building processing
 
 ## Installation
 
+### NuGet Package
+```bash
+dotnet add package CodeUChain --version 1.0.0
+```
+
+### From Source
 ```bash
 # Clone the repository
 git clone https://github.com/codeuchain/codeuchain.git
