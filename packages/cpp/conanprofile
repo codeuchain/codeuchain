@@ -1,0 +1,15 @@
+[settings]
+os=Macos
+arch=armv64
+compiler=apple-clang
+compiler.version=17
+compiler.libcxx=libc++
+build_type=Release
+
+[options]
+codeuchain:shared=False
+codeuchain:build_examples=False
+codeuchain:build_tests=False
+
+[conf]
+tools.cmake.cmaketoolchain:generator=Ninja

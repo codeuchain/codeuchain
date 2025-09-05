@@ -1,0 +1,168 @@
+name: Package C++ Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to package'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  package-cpp:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Setup C++ compiler
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: 11
+          platform: x64
+
+      - name: Create C++ package directory
+        run: |
+          mkdir -p cpp-package
+          cd cpp-package
+
+          # Copy C++ specific files
+          cp -r ../packages/cpp/* .
+
+          # Create a clean structure
+          mkdir -p codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}
+          cd codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}
+
+          # Copy essential files
+          cp -r ../include .
+          cp -r ../src .
+          cp -r ../examples .
+          cp -r ../cmake .
+          cp ../CMakeLists.txt .
+          cp ../README.md .
+          cp ../conanfile.py .
+
+          # Create a simple build script
+          cat > build.sh << 'EOF'
+          #!/bin/bash
+          set -e
+
+          echo "Building CodeUChain C++ v${{ github.event.inputs.version || '1.0.0' }}"
+          echo "================================="
+
+          # Create build directory
+          mkdir -p build
+          cd build
+
+          # Configure with CMake
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+
+          # Build
+          make -j$(nproc)
+
+          echo "Build complete! Run 'make install' to install or use the examples in ../examples/"
+          EOF
+
+          chmod +x build.sh
+
+          # Create usage instructions
+          cat > USAGE.md << 'EOF'
+          # CodeUChain C++ - Quick Start
+
+          This is a standalone C++ package of CodeUChain extracted from the monorepo.
+
+          ## Quick Build
+
+          ```bash
+          ./build.sh
+          ```
+
+          ## Manual Build
+
+          ```bash
+          mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          make -j$(nproc)
+          ```
+
+          ## Conan Installation (Alternative)
+
+          If you have Conan installed:
+
+          ```bash
+          conan install . --build=missing
+          ```
+
+          ## Examples
+
+          Check the `examples/` directory for usage examples.
+
+          ## Documentation
+
+          See README.md for detailed documentation.
+          EOF
+
+          cd ..
+
+      - name: Build and test package
+        run: |
+          cd cpp-package/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}
+          chmod +x build.sh
+          ./build.sh
+
+      - name: Create release archive
+        run: |
+          cd cpp-package
+          tar -czf codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.tar.gz codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}/
+          zip -r codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.zip codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}/
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v1
+        if: github.event_name == 'release'
+        with:
+          files: |
+            cpp-package/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.tar.gz
+            cpp-package/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v4
+        if: github.event_name == 'workflow_dispatch'
+        with:
+          name: codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}
+          path: |
+            cpp-package/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.tar.gz
+            cpp-package/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.zip
+
+  validate-package:
+    needs: package-cpp
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}
+
+      - name: Extract and validate
+        run: |
+          # Extract tar.gz
+          tar -xzf codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.tar.gz
+
+          # Check structure
+          ls -la codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}/
+
+          # Verify essential files exist
+          test -f codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}/CMakeLists.txt
+          test -d codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}/include
+          test -d codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}/src
+          test -d codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}/examples
+          test -f codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}/build.sh
+          test -f codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}/USAGE.md
+
+          echo "✅ Package structure validated successfully!"
