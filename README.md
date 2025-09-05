@@ -65,6 +65,11 @@ codeuchain/
 │   │   ├── examples/          # Usage examples
 │   │   ├── tests/             # Unit tests
 │   │   └── SimpleSyncAsyncDemo/ # Zero-extra-syntax demo
+│   ├── cpp/                   # C++ implementation (⭐ NEW!)
+│   │   ├── include/           # Headers with typed features
+│   │   ├── src/               # Implementation files
+│   │   ├── examples/          # Usage examples
+│   │   └── tests/             # Unit tests
 │   ├── javascript/            # Node.js implementation
 │   ├── python/                # Python package
 │   ├── java/                  # Java/Maven implementation
@@ -87,6 +92,17 @@ codeuchain/
 - **ValueTask-Based**: Maximum performance with minimal overhead
 
 [→ C# Documentation](./packages/csharp/readme.md)
+
+### ⭐ C++ (Modern Implementation)
+**Status**: Complete with typed features and C++20 coroutines
+
+- **Modern C++20**: Full coroutine support with RAII and smart pointers
+- **Typed Features**: Opt-in generics for compile-time type safety
+- **Performance Optimized**: Zero-cost abstractions and efficient data structures
+- **Memory Safe**: RAII principles and smart pointer management
+- **CMake Build**: Industry-standard build configuration
+
+[→ C++ Documentation](./packages/cpp/README.md)
 
 ### JavaScript/Node.js
 **Status**: Complete with Jest test suite

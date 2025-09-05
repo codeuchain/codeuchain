@@ -29,9 +29,12 @@ public:
 
     // Connect links with conditions
     void connect(std::string source, std::string target,
-                 std::function<bool(const Context&)> condition);
+                std::function<bool(const Context&)> condition);
 
-    // Add middleware to the chain
+    // Connect with optional return-to-main behavior
+    void connect_branch(std::string source, std::string branch_target, 
+                       std::string return_target,
+                       std::function<bool(const Context&)> condition);    // Add middleware to the chain
     void use_middleware(std::shared_ptr<IMiddleware> middleware);
 
     // Execute the chain with initial context
@@ -43,12 +46,17 @@ public:
     // Get connections (for testing/debugging)
     const std::vector<std::tuple<std::string, std::string, std::function<bool(const Context&)>>>& connections() const;
 
+    // Get branch connections (for testing/debugging)
+    const std::vector<std::tuple<std::string, std::string, std::string, std::function<bool(const Context&)>>>& branch_connections() const;
+
     // Get middlewares (for testing/debugging)
     const std::vector<std::shared_ptr<IMiddleware>>& middlewares() const;
 
 private:
     std::unordered_map<std::string, std::shared_ptr<ILink>> links_;
+    std::vector<std::string> link_order_; // Maintain insertion order for auto-connection
     std::vector<std::tuple<std::string, std::string, std::function<bool(const Context&)>>> connections_;
+    std::vector<std::tuple<std::string, std::string, std::string, std::function<bool(const Context&)>>> branch_connections_;
     std::vector<std::shared_ptr<IMiddleware>> middlewares_;
 };
 

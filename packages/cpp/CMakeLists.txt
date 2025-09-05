@@ -15,7 +15,9 @@ add_library(codeuchain
     src/core/link.cpp
     src/core/chain.cpp
     src/core/middleware.cpp
+    src/core/timing_middleware.cpp
     src/utils/error_handling.cpp
+    src/typed_context.cpp
 )
 
 # Include directories
