@@ -3,168 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌌 CodeUChain Portal — Step Into the Universe</title>
+    <title>CodeUChain Pseudocode - Universal Patterns & Philosophy</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Portal and orbit animations */
-        @keyframes portalPulse {
-            0% { box-shadow: 0 0 60px 20px #7f5af0, 0 0 0 0 #fff; }
-            50% { box-shadow: 0 0 120px 40px #2cb67d, 0 0 40px 10px #fff; }
-            100% { box-shadow: 0 0 60px 20px #7f5af0, 0 0 0 0 #fff; }
+        /* Custom animations for that Material UI touch */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes orbit {
-            0% { transform: rotate(0deg) translateX(0) scale(1); }
-            50% { transform: rotate(180deg) translateX(20px) scale(1.1); }
-            100% { transform: rotate(360deg) translateX(0) scale(1); }
-        }
-        @keyframes float {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(-16px); }
-            100% { transform: translateY(0); }
-        }
-        .portal {
-            animation: portalPulse 3s infinite;
-        }
-        .orbit {
-            animation: orbit 8s linear infinite;
-        }
-        .float {
-            animation: float 4s ease-in-out infinite;
-        }
-
-        /* Orbiting Language Planets */
-        .planet {
-            position: absolute;
-            transform: translate(-50%, -50%);
-        }
-        .planet-cobol {
-            top: 10%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-20deg);
-        }
-        .planet-cpp {
-            top: 20%;
-            left: 80%;
-            transform: translate(-50%, -50%) rotate(30deg);
-        }
-        .planet-csharp {
-            top: 50%;
-            left: 95%;
-            transform: translate(-50%, -50%) rotate(60deg);
-        }
-        .planet-go {
-            top: 80%;
-            left: 80%;
-            transform: translate(-50%, -50%) rotate(120deg);
-        }
-        .planet-java {
-            top: 90%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(180deg);
-        }
-        .planet-js {
-            top: 80%;
-            left: 20%;
-            transform: translate(-50%, -50%) rotate(240deg);
-        }
-        .planet-pseudo {
-            top: 50%;
-            left: 5%;
-            transform: translate(-50%, -50%) rotate(300deg);
-        }
-        .planet-python {
-            top: 20%;
-            left: 20%;
-            transform: translate(-50%, -50%) rotate(330deg);
-        }
+        .animate-fade-in-up { animation: fadeInUp 0.6s ease-out; }
     </style>
 </head>
-<body class="bg-gradient-to-tr from-indigo-900 via-purple-800 to-blue-700 min-h-screen text-white overflow-x-hidden">
-    <!-- Hero Section -->
-    <header class="relative w-full h-screen flex flex-col items-center justify-center">
-        <!-- Cosmic Portal -->
-        <div class="portal absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full bg-gradient-to-br from-purple-500 via-blue-400 to-indigo-600 flex items-center justify-center shadow-2xl border-8 border-white/30 z-20">
-            <div class="text-center">
-                <h1 class="text-6xl font-extrabold tracking-tight drop-shadow-lg mb-4 animate-fade-in-up">🌌</h1>
-                <div class="text-3xl font-bold mb-2 animate-fade-in-up">CodeUChain Portal</div>
-                <div class="text-lg font-medium opacity-80 animate-fade-in-up">Step into a universe of creativity</div>
+<body class="bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700 min-h-screen text-gray-800">
+    <div class="max-w-7xl mx-auto px-6 py-12 lg:px-8 lg:py-16">
+        <header class="text-center text-white mb-16 animate-fade-in-up">
+            <div class="inline-block bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium mb-8">
+                Version 1.0.0
             </div>
-        </div>
+            <h1 class="text-5xl lg:text-7xl font-bold mb-6 drop-shadow-lg">
+                🌟 CodeUChain Pseudocode
+            </h1>
+            <p class="text-xl lg:text-2xl opacity-90 max-w-4xl mx-auto leading-relaxed">
+                Universal patterns and philosophy for building systems that you chain. A conceptual foundation that transcends programming languages.
+            </p>
+        </header>
 
-        <!-- Orbiting Language Planets -->
-        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[32rem] h-[32rem] pointer-events-none z-10">
-            <div class="planet planet-cobol">
-                <a href="cobol/index.html" class="orbit float block w-20 h-20 rounded-full bg-gradient-to-br from-yellow-300 to-pink-400 shadow-lg border-4 border-white/30 flex items-center justify-center text-2xl font-bold focus:outline-none focus:ring-4 focus:ring-yellow-300" aria-label="Cobol World">COBOL</a>
-            </div>
-            <div class="planet planet-cpp">
-                <a href="cpp/index.html" class="orbit float block w-20 h-20 rounded-full bg-gradient-to-br from-blue-300 to-gray-400 shadow-lg border-4 border-white/30 flex items-center justify-center text-2xl font-bold focus:outline-none focus:ring-4 focus:ring-blue-300" aria-label="C++ World">C++</a>
-            </div>
-            <div class="planet planet-csharp">
-                <a href="csharp/index.html" class="orbit float block w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-blue-600 shadow-lg border-4 border-white/30 flex items-center justify-center text-2xl font-bold focus:outline-none focus:ring-4 focus:ring-purple-400" aria-label="C# World">C#</a>
-            </div>
-            <div class="planet planet-go">
-                <a href="go/index.html" class="orbit float block w-20 h-20 rounded-full bg-gradient-to-br from-teal-300 to-blue-400 shadow-lg border-4 border-white/30 flex items-center justify-center text-2xl font-bold focus:outline-none focus:ring-4 focus:ring-teal-300" aria-label="Go World">Go</a>
-            </div>
-            <div class="planet planet-java">
-                <a href="java/index.html" class="orbit float block w-20 h-20 rounded-full bg-gradient-to-br from-orange-400 to-red-500 shadow-lg border-4 border-white/30 flex items-center justify-center text-2xl font-bold focus:outline-none focus:ring-4 focus:ring-orange-400" aria-label="Java World">Java</a>
-            </div>
-            <div class="planet planet-js">
-                <a href="javascript/index.html" class="orbit float block w-20 h-20 rounded-full bg-gradient-to-br from-yellow-400 to-green-400 shadow-lg border-4 border-white/30 flex items-center justify-center text-2xl font-bold focus:outline-none focus:ring-4 focus:ring-yellow-400" aria-label="JavaScript World">JS/TS</a>
-            </div>
-            <div class="planet planet-pseudo">
-                <a href="pseudo/index.html" class="orbit float block w-20 h-20 rounded-full bg-gradient-to-br from-pink-400 to-purple-300 shadow-lg border-4 border-white/30 flex items-center justify-center text-2xl font-bold focus:outline-none focus:ring-4 focus:ring-pink-400" aria-label="Pseudocode World">Pseudo</a>
-            </div>
-            <div class="planet planet-python">
-                <a href="python/index.html" class="orbit float block w-20 h-20 rounded-full bg-gradient-to-br from-green-300 to-blue-300 shadow-lg border-4 border-white/30 flex items-center justify-center text-2xl font-bold focus:outline-none focus:ring-4 focus:ring-green-300" aria-label="Python World">Python</a>
-            </div>
-        </div>
-    </header>
-
-    <!-- Info Cards Section -->
-    <section class="relative w-full py-16 bg-gradient-to-b from-blue-700 via-indigo-800 to-purple-900">
-        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-16">
-            <div class="float bg-gradient-to-br from-blue-500 via-purple-400 to-indigo-600 rounded-3xl p-10 shadow-2xl border-2 border-white/20 hover:scale-105 transition-transform duration-300">
-                <h3 class="text-2xl font-semibold text-blue-200 mb-4">🎯 Core Concepts</h3>
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8 mb-16">
+            <div class="bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 animate-fade-in-up">
+                <h3 class="text-2xl font-semibold text-blue-600 mb-4">🎯 Core Concepts</h3>
+                <p class="text-gray-600 mb-6">The fundamental building blocks of CodeUChain's philosophy</p>
                 <ul class="space-y-3">
-                    <li><a href="pseudo/core/context.md" class="text-blue-100 hover:text-white underline">Context</a> — Immutable data flow</li>
-                    <li><a href="pseudo/core/link.md" class="text-blue-100 hover:text-white underline">Link</a> — Processing units</li>
-                    <li><a href="pseudo/core/chain.md" class="text-blue-100 hover:text-white underline">Chain</a> — Orchestration engine</li>
-                    <li><a href="pseudo/core/middleware.md" class="text-blue-100 hover:text-white underline">Middleware</a> — Cross-cutting concerns</li>
-                    <li><a href="pseudo/core/error_handling.md" class="text-blue-100 hover:text-white underline">Error Handling</a> — Compassionate recovery</li>
+                    <li><a href="pseudo/core/context.md" class="text-blue-500 hover:text-blue-700 transition-colors">Context</a> - Immutable data flow</li>
+                    <li><a href="pseudo/core/link.md" class="text-blue-500 hover:text-blue-700 transition-colors">Link</a> - Processing units</li>
+                    <li><a href="pseudo/core/chain.md" class="text-blue-500 hover:text-blue-700 transition-colors">Chain</a> - Orchestration engine</li>
+                    <li><a href="pseudo/core/middleware.md" class="text-blue-500 hover:text-blue-700 transition-colors">Middleware</a> - Cross-cutting concerns</li>
+                    <li><a href="pseudo/core/error_handling.md" class="text-blue-500 hover:text-blue-700 transition-colors">Error Handling</a> - Compassionate recovery</li>
                 </ul>
             </div>
-            <div class="float bg-gradient-to-br from-green-400 via-blue-300 to-purple-400 rounded-3xl p-10 shadow-2xl border-2 border-white/20 hover:scale-105 transition-transform duration-300">
-                <h3 class="text-2xl font-semibold text-green-200 mb-4">📚 Documentation</h3>
-                <ul class="space-y-3">
-                    <li><a href="pseudo/docs/universal_foundation.md" class="text-green-100 hover:text-white underline">Universal Foundation</a></li>
-                    <li><a href="pseudo/docs/agape_philosophy.md" class="text-green-100 hover:text-white underline">Agape Philosophy</a></li>
-                    <li><a href="pseudo/docs/translation_guide.md" class="text-green-100 hover:text-white underline">Translation Guide</a></li>
-                    <li><a href="pseudo/docs/language_strengths.md" class="text-green-100 hover:text-white underline">Language Strengths</a></li>
-                </ul>
-            </div>
-            <div class="float bg-gradient-to-br from-purple-500 via-pink-400 to-blue-400 rounded-3xl p-10 shadow-2xl border-2 border-white/20 hover:scale-105 transition-transform duration-300">
-                <h3 class="text-2xl font-semibold text-purple-200 mb-4">🌈 Philosophy</h3>
-                <p class="mb-4">CodeUChain embodies <span class="text-pink-200 font-bold">agape</span> — selfless, compassionate software design that serves developers and users with grace and power.</p>
-                <p class="italic text-blue-100">"Error Handling is the loving guide that transforms mistakes into wisdom and failures into strength."</p>
-            </div>
-            <div class="float bg-gradient-to-br from-orange-400 via-yellow-300 to-pink-400 rounded-3xl p-10 shadow-2xl border-2 border-white/20 hover:scale-105 transition-transform duration-300">
-                <h3 class="text-2xl font-semibold text-orange-200 mb-4">🚀 Implementation Status</h3>
-                <ul class="space-y-3">
-                    <li class="flex items-center"><span class="text-green-200 mr-2">✅</span> Python — Reference</li>
-                    <li class="flex items-center"><span class="text-green-200 mr-2">✅</span> Go — 97.5% Coverage</li>
-                    <li class="flex items-center"><span class="text-green-200 mr-2">✅</span> JS/TS — Complete</li>
-                    <li class="flex items-center"><span class="text-green-200 mr-2">✅</span> C# — Enterprise</li>
-                    <li class="flex items-center"><span class="text-orange-200 mr-2">🔄</span> Java — Planned</li>
-                    <li class="flex items-center"><span class="text-orange-200 mr-2">🔄</span> Rust — Planned</li>
-                </ul>
-            </div>
-        </div>
-    </section>
 
-    <!-- Footer Section -->
-    <footer class="relative w-full py-8 bg-gradient-to-t from-indigo-900 via-purple-800 to-blue-700 text-center text-white border-t border-white/20">
-        <p class="text-lg mb-2">© 2025 CodeUChain. Built with <span class="text-pink-300">❤️</span> in the universal multiverse.</p>
-        <p class="text-sm opacity-80 italic">"Code that you chain, creating beautiful systems from simple, elegant parts."</p>
-    </footer>
+            <div class="bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 animate-fade-in-up">
+                <h3 class="text-2xl font-semibold text-green-600 mb-4">📚 Documentation</h3>
+                <p class="text-gray-600 mb-6">Comprehensive guides and foundational principles</p>
+                <ul class="space-y-3">
+                    <li><a href="pseudo/docs/universal_foundation.md" class="text-green-500 hover:text-green-700 transition-colors">Universal Foundation</a></li>
+                    <li><a href="pseudo/docs/agape_philosophy.md" class="text-green-500 hover:text-green-700 transition-colors">Agape Philosophy</a></li>
+                    <li><a href="pseudo/docs/translation_guide.md" class="text-green-500 hover:text-green-700 transition-colors">Translation Guide</a></li>
+                    <li><a href="pseudo/docs/language_strengths.md" class="text-green-500 hover:text-green-700 transition-colors">Language Strengths</a></li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 animate-fade-in-up">
+                <h3 class="text-2xl font-semibold text-purple-600 mb-4">🌈 Philosophy</h3>
+                <p class="text-gray-600 mb-6">The heart and soul of CodeUChain's approach</p>
+                <p class="mb-4">CodeUChain embodies <strong class="text-purple-600">agape</strong> - selfless, compassionate software design that serves developers and users with grace and power.</p>
+                <p class="italic text-gray-500">"In the journey of software, Error Handling is the loving guide that transforms mistakes into wisdom and failures into strength."</p>
+            </div>
+
+            <div class="bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 animate-fade-in-up">
+                <h3 class="text-2xl font-semibold text-orange-600 mb-4">🚀 Implementation Status</h3>
+                <p class="text-gray-600 mb-6">Current state of language implementations</p>
+                <ul class="space-y-3">
+                    <li class="flex items-center"><span class="text-green-500 mr-2">✅</span> Python - Reference Implementation</li>
+                    <li class="flex items-center"><span class="text-green-500 mr-2">✅</span> Go - Production Ready (97.5% coverage)</li>
+                    <li class="flex items-center"><span class="text-green-500 mr-2">✅</span> JavaScript/TypeScript - Complete</li>
+                    <li class="flex items-center"><span class="text-green-500 mr-2">✅</span> C# - Enterprise Ready</li>
+                    <li class="flex items-center"><span class="text-orange-500 mr-2">🔄</span> Java - Planned</li>
+                    <li class="flex items-center"><span class="text-orange-500 mr-2">🔄</span> Rust - Planned</li>
+                </ul>
+            </div>
+        </section>
+
+        <div class="text-center mb-16 animate-fade-in-up">
+            <a href="https://github.com/codeuchain/codeuchain" class="inline-block bg-white text-blue-600 px-8 py-4 rounded-full font-semibold hover:bg-blue-50 transition-all duration-300 shadow-lg hover:shadow-xl mr-4 mb-4">
+                View on GitHub
+            </a>
+            <a href="https://github.com/codeuchain/codeuchain/tree/main/packages" class="inline-block bg-white text-purple-600 px-8 py-4 rounded-full font-semibold hover:bg-purple-50 transition-all duration-300 shadow-lg hover:shadow-xl mr-4 mb-4">
+                Language Implementations
+            </a>
+            <a href="pseudo/" class="inline-block bg-white text-green-600 px-8 py-4 rounded-full font-semibold hover:bg-green-50 transition-all duration-300 shadow-lg hover:shadow-xl mr-4 mb-4">
+                📚 Pseudocode Docs
+            </a>
+            <a href="README.html" class="inline-block bg-white text-orange-600 px-8 py-4 rounded-full font-semibold hover:bg-orange-50 transition-all duration-300 shadow-lg hover:shadow-xl mb-4">
+                Project README
+            </a>
+        </div>
+
+        <footer class="text-center text-white border-t border-white/20 pt-12 animate-fade-in-up">
+            <p class="text-lg mb-4">© 2025 CodeUChain. Built with ❤️ using universal patterns that transcend languages.</p>
+            <p class="text-sm opacity-80 italic">
+                "Code that you chain, creating beautiful systems from simple, elegant parts."
+            </p>
+        </footer>
+    </div>
 </body>
 </html>
