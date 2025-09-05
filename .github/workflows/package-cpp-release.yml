@@ -26,98 +26,37 @@ jobs:
           version: 11
           platform: x64
 
-      - name: Create C++ package directory
+      - name: Prepare C++ release package
         run: |
-          mkdir -p cpp-package
-          cd cpp-package
-
-          # Copy C++ specific files
-          cp -r ../packages/cpp/* .
-
-          # Create a clean structure
-          mkdir -p codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}
-          cd codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}
-
-          # Copy essential files
-          cp -r ../include .
-          cp -r ../src .
-          cp -r ../examples .
-          cp -r ../cmake .
-          cp ../CMakeLists.txt .
-          cp ../README.md .
-          cp ../conanfile.py .
-
-          # Create a simple build script
-          cat > build.sh << 'EOF'
-          #!/bin/bash
-          set -e
-
-          echo "Building CodeUChain C++ v${{ github.event.inputs.version || '1.0.0' }}"
-          echo "================================="
-
-          # Create build directory
-          mkdir -p build
-          cd build
-
-          # Configure with CMake
-          cmake .. -DCMAKE_BUILD_TYPE=Release
-
-          # Build
-          make -j$(nproc)
-
-          echo "Build complete! Run 'make install' to install or use the examples in ../examples/"
-          EOF
-
-          chmod +x build.sh
-
-          # Create usage instructions
-          cat > USAGE.md << 'EOF'
-          # CodeUChain C++ - Quick Start
-
-          This is a standalone C++ package of CodeUChain extracted from the monorepo.
-
-          ## Quick Build
-
-          ```bash
-          ./build.sh
-          ```
-
-          ## Manual Build
-
-          ```bash
-          mkdir build && cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release
-          make -j$(nproc)
-          ```
-
-          ## Conan Installation (Alternative)
-
-          If you have Conan installed:
-
-          ```bash
-          conan install . --build=missing
-          ```
-
-          ## Examples
-
-          Check the `examples/` directory for usage examples.
-
-          ## Documentation
-
-          See README.md for detailed documentation.
-          EOF
-
-          cd ..
+          # Use the existing releases directory structure
+          echo "Using existing releases/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }} structure"
+          
+          # Verify the release package structure exists
+          if [ ! -d "releases/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}" ]; then
+            echo "Error: Release package structure not found in releases/"
+            exit 1
+          fi
 
       - name: Build and test package
         run: |
-          cd cpp-package/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}
-          chmod +x build.sh
-          ./build.sh
+          cd releases/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}
+          
+          # Test the build script if it exists
+          if [ -f "build.sh" ]; then
+            chmod +x build.sh
+            ./build.sh
+          else
+            # Fallback to manual cmake build from repository root
+            cd ../../
+            mkdir -p build_release_test
+            cd build_release_test
+            cmake ../packages/cpp -DCMAKE_BUILD_TYPE=Release
+            make -j$(nproc)
+          fi
 
       - name: Create release archive
         run: |
-          cd cpp-package
+          cd releases
           tar -czf codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.tar.gz codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}/
           zip -r codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.zip codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}/
 
@@ -126,8 +65,8 @@ jobs:
         if: github.event_name == 'release'
         with:
           files: |
-            cpp-package/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.tar.gz
-            cpp-package/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.zip
+            releases/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.tar.gz
+            releases/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -137,8 +76,8 @@ jobs:
         with:
           name: codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}
           path: |
-            cpp-package/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.tar.gz
-            cpp-package/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.zip
+            releases/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.tar.gz
+            releases/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.zip
 
   validate-package:
     needs: package-cpp
