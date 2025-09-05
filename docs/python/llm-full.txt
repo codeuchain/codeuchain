@@ -1,0 +1,98 @@
+# CodeUChain (Python) - Full LLM Reference
+
+**Name:** CodeUChain (Python)  
+**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/python  
+**Docs:** https://codeuchain.github.io/codeuchain/python/  
+**Version:** 1.0.0  
+**License:** MIT  
+**Repository:** git+https://github.com/codeuchain/codeuchain.git  
+**Contact:** https://github.com/codeuchain/codeuchain/issues  
+**Authors:** CodeUChain contributors  
+**Language:** Python 3.8+  
+**Platform:** Cross-platform  
+
+## Description
+
+The Python implementation serves as the reference for CodeUChain patterns. It provides a clean, idiomatic Python API with full async support and comprehensive type safety.
+
+## Key Features
+
+- **Reference Implementation:** Defines the canonical CodeUChain patterns
+- **Async First:** Native asyncio integration
+- **Type Safety:** Full generic type support with mypy compatibility
+- **Rich Ecosystem:** Integrates with popular Python libraries
+- **Educational:** Extensive examples and documentation
+
+## Installation
+
+```bash
+# From source
+git clone https://github.com/codeuchain/codeuchain.git
+cd packages/python
+pip install -e .
+
+# Or via PyPI (when published)
+pip install codeuchain
+```
+
+## Core API
+
+### Link Definition
+```python
+from typing import Generic, TypeVar
+from codeuchain import Link, Context
+
+TInput = TypeVar('TInput')
+TOutput = TypeVar('TOutput')
+
+class MyLink(Link[TInput, TOutput]):
+    async def call(self, ctx: Context[TInput]) -> Context[TOutput]:
+        # Process and return
+        return ctx.insert("processed", True)
+```
+
+### Chain Composition
+```python
+from codeuchain import Chain
+
+chain = (Chain()
+    .then(validation_link)
+    .then(processing_link)
+    .catch(error_handler))
+
+result = await chain.call(initial_context)
+```
+
+## Testing
+
+```bash
+# Run tests
+pytest
+
+# With coverage
+pytest --cov=codeuchain --cov-report=html
+
+# Type checking
+mypy codeuchain/
+```
+
+## Examples
+
+See `packages/python/examples/` for:
+- Basic chain composition
+- Typed features demonstration
+- Error handling patterns
+- Integration with popular libraries
+- Performance benchmarks
+
+## Development
+
+```bash
+# Setup development environment
+pip install -e ".[dev]"
+
+# Run linting
+black codeuchain/
+isort codeuchain/
+flake8 codeuchain/
+```

@@ -1,0 +1,38 @@
+# CodeUChain (C#) - LLM Reference
+
+**Name:** CodeUChain (C#)  
+**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/csharp  
+**Docs:** https://codeuchain.github.io/codeuchain/csharp/  
+**Version:** 1.0.0  
+**License:** MIT  
+**Repository:** git+https://github.com/codeuchain/codeuchain.git  
+**Contact:** https://github.com/codeuchain/codeuchain/issues  
+
+**Description:** C# implementation with .NET Core/.NET 5+ support and comprehensive enterprise features.
+
+**Key Features:**
+- Full .NET generic support
+- Async/await patterns
+- Enterprise-grade error handling
+- NuGet package ready
+- Comprehensive test coverage
+
+**Installation:**
+```bash
+dotnet add package CodeUChain
+# or from source
+dotnet build packages/csharp/
+```
+
+**Usage:**
+```csharp
+using CodeUChain;
+
+var myLink = new Link<InputType, OutputType>(async ctx => {
+    // Your processing logic
+    return ctx.Insert("result", processedData);
+});
+
+var chain = new Chain().Then(myLink);
+var result = await chain.Call(initialContext);
+```
