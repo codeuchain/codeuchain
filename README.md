@@ -195,6 +195,17 @@ public async ValueTask<Context> ProcessAsync(Context context) {
 ```
 [→ C# Documentation](./packages/csharp/readme.md)
 
+### ⭐ C++ (Modern Implementation)
+**Status**: Complete with typed features and C++20 coroutines
+
+- **Modern C++20**: Full coroutine support with RAII and smart pointers
+- **Typed Features**: Opt-in generics for compile-time type safety
+- **Performance Optimized**: Zero-cost abstractions and efficient data structures
+- **Memory Safe**: RAII principles and smart pointer management
+- **CMake Build**: Industry-standard build configuration
+
+[→ C++ Documentation](./packages/cpp/README.md)
+
 ### JavaScript/Node.js
 ```javascript
 // Native async/await support
