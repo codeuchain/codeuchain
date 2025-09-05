@@ -1,0 +1,42 @@
+# CodeUChain (Rust) - LLM Reference
+
+**Name:** CodeUChain (Rust)  
+**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/rust  
+**Docs:** https://codeuchain.github.io/codeuchain/rust/  
+**Version:** 1.0.0  
+**License:** MIT  
+**Repository:** git+https://github.com/codeuchain/codeuchain.git  
+**Contact:** https://github.com/codeuchain/codeuchain/issues  
+
+**Description:** Rust implementation with memory safety, performance, and Cargo ecosystem integration.
+
+**Key Features:**
+- Memory-safe implementation
+- Zero-cost abstractions
+- Async support with tokio
+- Cargo package ready
+- Comprehensive testing
+
+**Installation:**
+```bash
+cargo add codeuchain
+# or
+cargo build
+```
+
+**Usage:**
+```rust
+use codeuchain::{Link, Chain, Context};
+
+struct MyLink;
+
+impl Link<InputType, OutputType> for MyLink {
+    async fn call(&self, ctx: Context<InputType>) -> Result<Context<OutputType>, Error> {
+        // Your processing logic
+        Ok(ctx.insert("result", processed_data))
+    }
+}
+
+let chain = Chain::new().then(MyLink);
+let result = chain.call(initial_context).await?;
+```

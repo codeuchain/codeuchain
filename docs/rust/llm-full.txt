@@ -1,0 +1,164 @@
+# CodeUChain (Rust) - Full LLM Reference
+
+**Name:** CodeUChain (Rust)  
+**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/rust  
+**Docs:** https://codeuchain.github.io/codeuchain/rust/  
+**Version:** 1.0.0  
+**License:** MIT  
+**Repository:** git+https://github.com/codeuchain/codeuchain.git  
+**Contact:** https://github.com/codeuchain/codeuchain/issues  
+**Authors:** CodeUChain contributors  
+**Language:** Rust 1.70+  
+**Platform:** Cross-platform (Linux, macOS, Windows)  
+
+## Description
+
+The Rust implementation provides memory-safe, high-performance CodeUChain patterns with full ownership system integration and zero-cost abstractions.
+
+## Key Features
+
+- **Memory Safety:** Rust's ownership system prevents memory errors
+- **Performance:** Zero-cost abstractions with native speed
+- **Async Support:** Tokio integration for async patterns
+- **Type Safety:** Compile-time guarantees with Rust's type system
+- **Ecosystem:** Full Cargo integration and crate ecosystem
+
+## Installation
+
+```bash
+# Add to Cargo.toml
+cargo add codeuchain
+
+# Or manually
+[dependencies]
+codeuchain = "1.0.0"
+
+# From source
+git clone https://github.com/codeuchain/codeuchain.git
+cd packages/rust
+cargo build --release
+```
+
+## Core API
+
+### Link Implementation
+```rust
+use codeuchain::{Link, Context, Error};
+use async_trait::async_trait;
+
+pub struct ValidationLink;
+
+#[async_trait]
+impl Link<UserInput, ValidatedUser> for ValidationLink {
+    async fn call(&self, ctx: Context<UserInput>) -> Result<Context<ValidatedUser>, Error> {
+        let input = ctx.get("user")?;
+        // Validation logic
+        let validated = ValidatedUser::new(/* ... */)?;
+        Ok(ctx.insert("validated", validated))
+    }
+}
+```
+
+### Chain Composition
+```rust
+use codeuchain::Chain;
+
+let chain = Chain::new()
+    .then(ValidationLink)
+    .then(ProcessingLink)
+    .catch_error(|err| {
+        eprintln!("Error: {}", err);
+        // Error handling
+    });
+
+let result = chain.call(initial_context).await?;
+```
+
+## Testing
+
+```bash
+# Run tests
+cargo test
+
+# With coverage (requires cargo-tarpaulin)
+cargo tarpaulin --out Html
+
+# Doc tests
+cargo test --doc
+
+# Benchmarks
+cargo bench
+```
+
+## Project Structure
+
+```
+packages/rust/
+├── src/
+│   ├── lib.rs
+│   ├── core/
+│   │   ├── mod.rs
+│   │   ├── link.rs
+│   │   ├── chain.rs
+│   │   └── context.rs
+│   └── utils/
+│       ├── mod.rs
+│       └── error_handling.rs
+├── tests/
+│   └── integration_test.rs
+├── examples/
+│   └── basic_usage.rs
+├── Cargo.toml
+└── README.md
+```
+
+## Examples
+
+See `packages/rust/examples/` for:
+- Basic chain composition
+- Error handling patterns
+- Async usage examples
+- Performance benchmarks
+- Integration with popular crates
+
+## Development
+
+```bash
+# Check code
+cargo check
+
+# Format code
+cargo fmt
+
+# Lint code
+cargo clippy
+
+# Run examples
+cargo run --example basic_usage
+
+# Generate docs
+cargo doc --open
+```
+
+## Cargo Configuration
+
+```toml
+[package]
+name = "codeuchain"
+version = "1.0.0"
+edition = "2021"
+description = "CodeUChain Rust implementation"
+license = "MIT"
+
+[dependencies]
+tokio = { version = "1.0", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+anyhow = "1.0"
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "chain_benchmarks"
+harness = false
+```

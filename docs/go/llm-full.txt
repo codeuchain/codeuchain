@@ -1,0 +1,95 @@
+# CodeUChain (Go) - Full LLM Reference
+
+**Name:** CodeUChain (Go)  
+**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/go  
+**Docs:** https://codeuchain.github.io/codeuchain/go/  
+**Version:** 1.0.0  
+**License:** MIT  
+**Repository:** git+https://github.com/codeuchain/codeuchain.git  
+**Contact:** https://github.com/codeuchain/codeuchain/issues  
+**Authors:** CodeUChain contributors  
+**Language:** Go 1.18+  
+**Platform:** Cross-platform (Linux, macOS, Windows)  
+
+## Description
+
+This is the Go implementation of CodeUChain, providing a production-ready, high-performance framework for building composable software systems. It features comprehensive type safety, excellent error handling, and full async support.
+
+## Key Features
+
+- **Full Type Safety:** Leverages Go generics for compile-time guarantees
+- **Async Support:** Native goroutine and channel integration
+- **High Performance:** Zero-cost abstractions with Go's efficiency
+- **Comprehensive Testing:** 97.5% test coverage with edge cases
+- **Production Ready:** Battle-tested with error recovery patterns
+- **Composable Architecture:** Clean separation of concerns
+
+## Installation
+
+```bash
+# Add to go.mod
+go get github.com/codeuchain/codeuchain/packages/go
+
+# Or clone and build
+git clone https://github.com/codeuchain/codeuchain.git
+cd packages/go
+go build ./...
+```
+
+## Core API
+
+### Link Interface
+```go
+type Link[TInput any, TOutput any] interface {
+    Call(ctx Context[TInput]) (Context[TOutput], error)
+}
+```
+
+### Chain Composition
+```go
+chain := codeuchain.NewChain().
+    Then(validationLink).
+    Then(processingLink).
+    Catch(errorHandler)
+```
+
+### Context Usage
+```go
+ctx := codeuchain.NewContext(map[string]any{
+    "user_id": 123,
+    "data": inputData,
+})
+
+result := ctx.Insert("processed", true)
+```
+
+## Testing
+
+```bash
+go test ./... -v
+go test ./... -coverprofile=coverage.out
+go tool cover -html=coverage.out
+```
+
+## Examples
+
+See `packages/go/examples/` for comprehensive usage examples including:
+- Basic chain composition
+- Error handling patterns
+- Middleware implementation
+- Performance benchmarks
+- Typed features demonstration
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass
+5. Submit a pull request
+
+## Support
+
+- **Issues:** https://github.com/codeuchain/codeuchain/issues
+- **Discussions:** https://github.com/codeuchain/codeuchain/discussions
+- **Documentation:** https://codeuchain.github.io/codeuchain/go/

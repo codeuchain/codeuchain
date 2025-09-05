@@ -10,6 +10,10 @@ With selfless love, CodeUChain chains your code as links, observes with middlewa
 
 **Status**: ✅ **Production Ready** with comprehensive test coverage and typed features implementation.
 
+## 🤖 LLM Support
+
+This package supports the [llm.txt standard](https://codeuchain.github.io/codeuchain/go/llm.txt) for easy AI/LLM integration. See [llm-full.txt](https://codeuchain.github.io/codeuchain/go/llm-full.txt) for comprehensive documentation.
+
 ## ✨ Features
 
 - **🎯 Context System**: Immutable by default, mutable for flexibility—embracing Go's interface{} approach

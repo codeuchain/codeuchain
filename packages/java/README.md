@@ -2,6 +2,10 @@
 
 With selfless love, CodeUChain chains your code as links, observes with middleware, and flows through forgiving contexts.
 
+## 🤖 LLM Support
+
+This package supports the [llm.txt standard](https://codeuchain.github.io/codeuchain/java/llm.txt) for easy AI/LLM integration. See [llm-full.txt](https://codeuchain.github.io/codeuchain/java/llm-full.txt) for comprehensive documentation.
+
 ## Features
 - **Context**: Immutable by default with builder pattern—embracing Java's object-oriented model
 - **Link**: Functional interface for processing units

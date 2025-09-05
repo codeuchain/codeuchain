@@ -1,0 +1,142 @@
+# CodeUChain (JavaScript/TypeScript) - Full LLM Reference
+
+**Name:** CodeUChain (JavaScript/TypeScript)  
+**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/javascript  
+**Docs:** https://codeuchain.github.io/codeuchain/javascript/  
+**Version:** 1.0.0  
+**License:** MIT  
+**Repository:** git+https://github.com/codeuchain/codeuchain.git  
+**Contact:** https://github.com/codeuchain/codeuchain/issues  
+**Authors:** CodeUChain contributors  
+**Language:** TypeScript/JavaScript (ES2020+)  
+**Platform:** Node.js 14+, Browsers with ES2020 support  
+
+## Description
+
+The JavaScript/TypeScript implementation provides a modern, type-safe way to use CodeUChain patterns in web and server applications. It supports both strict TypeScript usage and flexible JavaScript usage.
+
+## Key Features
+
+- **Type Safety:** Full TypeScript generics with compile-time guarantees
+- **Universal:** Works in Node.js, browsers, and edge runtimes
+- **Flexible:** Supports both typed and untyped usage patterns
+- **Modern:** Uses ES2020 features and modern JavaScript patterns
+- **Tested:** Comprehensive Jest test suite
+
+## Installation
+
+```bash
+# NPM
+npm install @codeuchain/javascript
+
+# Yarn
+yarn add @codeuchain/javascript
+
+# PNPM
+pnpm add @codeuchain/javascript
+```
+
+## Core API
+
+### TypeScript Usage
+```typescript
+import { Link, Chain, Context } from '@codeuchain/javascript';
+
+interface UserInput {
+  name: string;
+  email: string;
+}
+
+interface UserOutput {
+  id: number;
+  name: string;
+  email: string;
+}
+
+const validateUser: Link<UserInput, UserOutput> = {
+  async call(ctx: Context<UserInput>): Promise<Context<UserOutput>> {
+    const input = ctx.get('user');
+    // Validation logic
+    return ctx.insert('validatedUser', { id: 1, ...input });
+  }
+};
+```
+
+### JavaScript Usage
+```javascript
+const { Link, Chain, Context } = require('@codeuchain/javascript');
+
+const myLink = {
+  async call(ctx) {
+    const data = ctx.get('input');
+    // Processing logic
+    return ctx.insert('output', processedData);
+  }
+};
+
+const chain = new Chain().then(myLink);
+```
+
+## Testing
+
+```bash
+# Run tests
+npm test
+
+# With coverage
+npm run test:coverage
+
+# Watch mode
+npm run test:watch
+```
+
+## Build & Development
+
+```bash
+# Development
+npm run dev
+
+# Build
+npm run build
+
+# Type checking
+npm run type-check
+
+# Linting
+npm run lint
+```
+
+## Examples
+
+See `packages/javascript/examples/` for:
+- Basic chain composition
+- TypeScript integration examples
+- Browser usage examples
+- Error handling patterns
+- Performance benchmarks
+
+## Configuration
+
+### TypeScript Config
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "strict": true,
+    "esModuleInterop": true
+  }
+}
+```
+
+### Jest Config
+```javascript
+module.exports = {
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  collectCoverageFrom: [
+    'src/**/*.{ts,js}',
+    '!src/**/*.d.ts'
+  ]
+};
+```

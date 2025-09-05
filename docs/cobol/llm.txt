@@ -1,0 +1,34 @@
+# CodeUChain (COBOL) - LLM Reference
+
+**Name:** CodeUChain (COBOL)  
+**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/cobol  
+**Docs:** https://codeuchain.github.io/codeuchain/cobol/  
+**Version:** 1.0.0  
+**License:** MIT  
+**Repository:** git+https://github.com/codeuchain/codeuchain.git  
+**Contact:** https://github.com/codeuchain/codeuchain/issues  
+
+**Description:** COBOL reference materials and examples for CodeUChain patterns in legacy systems.
+
+**Key Features:**
+- COBOL implementation examples
+- Legacy system integration
+- Mainframe compatibility
+- Batch processing patterns
+- Database integration examples
+
+**Usage:**
+```cobol
+IDENTIFICATION DIVISION.
+PROGRAM-ID. VALIDATION-LINK.
+
+DATA DIVISION.
+WORKING-STORAGE SECTION.
+    01 INPUT-DATA PIC X(100).
+    01 OUTPUT-DATA PIC X(100).
+
+PROCEDURE DIVISION.
+    CALL 'PROCESS-DATA' USING INPUT-DATA OUTPUT-DATA.
+    DISPLAY 'Processing complete'.
+    STOP RUN.
+```
