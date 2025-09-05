@@ -2,6 +2,10 @@
 
 A modular framework for chaining processing links with middleware support, following agape philosophy.
 
+## 🤖 LLM Support
+
+This package supports the [llm.txt standard](https://codeuchain.github.io/codeuchain/csharp/llm.txt) for easy AI/LLM integration. See [llm-full.txt](https://codeuchain.github.io/codeuchain/csharp/llm-full.txt) for comprehensive documentation.
+
 ## Overview
 
 CodeUChain C# provides a clean, async-first architecture for building processing pipelines with:
@@ -13,6 +17,12 @@ CodeUChain C# provides a clean, async-first architecture for building processing
 
 ## Installation
 
+### NuGet Package
+```bash
+dotnet add package CodeUChain --version 1.0.0
+```
+
+### From Source
 ```bash
 # Clone the repository
 git clone https://github.com/codeuchain/codeuchain.git

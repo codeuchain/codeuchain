@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 description = "CodeUChain Rust: Agape-Optimized Implementation"
 license = "MIT"
-repository = "https://github.com/joshuawink/codeuchain"
+repository = "https://github.com/codeuchain/codeuchain"
 keywords = ["chain", "middleware", "async", "processing"]
 categories = ["asynchronous", "data-structures"]
 

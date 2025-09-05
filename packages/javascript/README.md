@@ -4,6 +4,16 @@
 
 CodeUChain for JavaScript brings the harmony of chained processing to the world's most ubiquitous runtime. With Node.js ubiquity and browser compatibility, JavaScript implementations shine in event-driven architectures, real-time processing, and web-first applications.
 
+## 📦 Installation
+
+```bash
+npm install codeuchain
+```
+
+## 🤖 LLM *"In the ecosystem of programming languages, JavaScript is the loving universal translator that makes CodeUChain speak every language and run on every platform."*
+
+## 🚀 Quick StartThis package supports the [llm.txt standard](https://codeuchain.github.io/codeuchain/javascript/llm.txt) for easy AI/LLM integration. See [llm-full.txt](https://codeuchain.github.io/codeuchain/javascript/llm-full.txt) for comprehensive documentation.
+
 ## 🌟 JavaScript's Heart: Event-Driven Love
 
 JavaScript brings **universal reach** to CodeUChain:
@@ -114,7 +124,180 @@ chain.onError((error, ctx, linkName) => {
 });
 ```
 
-## 🌈 Complete JavaScript Example
+## � Opt-in Typed Features
+
+**JavaScript CodeUChain now supports opt-in generic typing** for enhanced developer experience and type safety. These features are completely optional and maintain 100% backward compatibility.
+
+### Generic Context with Type Evolution
+
+```javascript
+const { Context } = require('@codeuchain/javascript');
+
+/**
+ * @typedef {Object} UserInput
+ * @property {string} name - User's name
+ * @property {string} email - User's email
+ */
+
+/**
+ * @typedef {UserInput & Object} UserValidated
+ * @property {string} name - User's name
+ * @property {string} email - User's email
+ * @property {boolean} isValid - Validation status
+ */
+
+// Create typed context
+/** @type {UserInput} */
+const userData = { name: 'Alice', email: 'alice@example.com' };
+const ctx = new Context(userData);
+
+// Type evolution with insertAs() - clean transformation
+/** @type {Context<UserValidated>} */
+const validatedCtx = ctx.insertAs('isValid', true);
+
+// Original data preserved, new field added
+console.log(validatedCtx.get('name')); // 'Alice'
+console.log(validatedCtx.get('isValid')); // true
+```
+
+### Generic Link Interfaces
+
+```javascript
+const { Link } = require('@codeuchain/javascript');
+
+/**
+ * Link for validating user input
+ * @extends {Link<UserInput, UserValidated>}
+ */
+class ValidationLink extends Link {
+  /**
+   * @param {Context<UserInput>} ctx
+   * @returns {Promise<Context<UserValidated>>}
+   */
+  async call(ctx) {
+    const email = ctx.get('email');
+
+    if (!email.includes('@')) {
+      throw new Error('Invalid email');
+    }
+
+    // Type evolution: UserInput -> UserValidated
+    return ctx.insertAs('isValid', true);
+  }
+}
+
+/**
+ * Link for processing validated users
+ * @extends {Link<UserValidated, UserProcessed>}
+ */
+class ProcessingLink extends Link {
+  /**
+   * @param {Context<UserValidated>} ctx
+   * @returns {Promise<Context<UserProcessed>>}
+   */
+  async call(ctx) {
+    const isValid = ctx.get('isValid');
+    if (!isValid) throw new Error('User not validated');
+
+    return ctx
+      .insertAs('userId', `user_${Date.now()}`)
+      .insertAs('status', 'active');
+  }
+}
+```
+
+### Generic Chain Processing
+
+```javascript
+const { Chain } = require('@codeuchain/javascript');
+
+/**
+ * Typed user registration chain
+ * @extends {Chain<UserInput, UserProcessed>}
+ */
+class UserRegistrationChain extends Chain {
+  constructor() {
+    super();
+
+    // Add typed links
+    this.addLink(new ValidationLink());
+    this.addLink(new ProcessingLink());
+
+    // Connect with type safety
+    this.connect('ValidationLink', 'ProcessingLink');
+  }
+
+  /**
+   * Register user with full type safety
+   * @param {Context<UserInput>} initialCtx
+   * @returns {Promise<Context<UserProcessed>>}
+   */
+  async registerUser(initialCtx) {
+    return await this.run(initialCtx);
+  }
+}
+
+// Usage with type safety
+const chain = new UserRegistrationChain();
+const inputCtx = new Context({ name: 'Alice', email: 'alice@example.com' });
+const resultCtx = await chain.registerUser(inputCtx);
+
+console.log(resultCtx.get('userId')); // TypeScript knows this exists
+console.log(resultCtx.get('status')); // TypeScript knows this exists
+```
+
+### TypeScript Definitions
+
+For full TypeScript support, use the included type definitions:
+
+```typescript
+import { Context, Link, Chain } from '@codeuchain/javascript';
+
+// Full TypeScript generic support
+interface UserInput {
+  name: string;
+  email: string;
+}
+
+interface UserProcessed extends UserInput {
+  isValid: boolean;
+  userId: string;
+  status: string;
+}
+
+// Type-safe operations
+const ctx: Context<UserInput> = new Context({ name: 'Alice', email: 'alice@example.com' });
+const result: Context<UserProcessed> = ctx.insertAs('isValid', true)
+  .insertAs('userId', 'user_123')
+  .insertAs('status', 'active');
+
+// TypeScript provides full IntelliSense and type checking
+```
+
+### Key Benefits of Typed Features
+
+- **Enhanced IDE Support**: Full IntelliSense, autocomplete, and refactoring
+- **Type Safety**: Catch errors at development time
+- **Clean Type Evolution**: `insertAs()` method for seamless transformations
+- **Zero Runtime Cost**: Typing is compile-time only, no performance impact
+- **100% Backward Compatible**: Existing code continues to work unchanged
+- **Mixed Usage**: Typed and untyped code can coexist seamlessly
+
+### When to Use Typed Features
+
+**Use typed features when:**
+- Building complex processing pipelines
+- Working in teams with multiple developers
+- Needing enhanced IDE support and refactoring
+- Wanting to catch type-related errors early
+
+**Continue using untyped features when:**
+- Rapid prototyping and exploration
+- Simple, straightforward processing
+- Maximum runtime flexibility needed
+- Working with highly dynamic data structures
+
+## �🌈 Complete JavaScript Example
 
 ### Real-Time Event Processing Chain
 ```javascript

@@ -1,0 +1,35 @@
+# CodeUChain (Go) - LLM Reference
+
+**Name:** CodeUChain (Go)  
+**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/go  
+**Docs:** https://codeuchain.github.io/codeuchain/go/  
+**Version:** 1.0.0  
+**License:** MIT  
+**Repository:** git+https://github.com/codeuchain/codeuchain.git  
+**Contact:** https://github.com/codeuchain/codeuchain/issues  
+
+**Description:** Go implementation of the CodeUChain primitives (Link, Chain, Context, Middleware). Documentation and examples are available via the project docs.
+
+**Key Features:**
+- Full Go implementation of CodeUChain patterns
+- Async/await support with goroutines
+- Comprehensive test coverage (97.5%)
+- Production-ready with error handling
+- Compatible with Go 1.18+ generics
+
+**Installation:**
+```bash
+go get github.com/codeuchain/codeuchain/packages/go
+```
+
+**Usage:**
+```go
+// Basic usage example
+link := codeuchain.NewLink(func(ctx codeuchain.Context) (codeuchain.Context, error) {
+    // Your processing logic here
+    return ctx, nil
+})
+
+chain := codeuchain.NewChain().Then(link)
+result, err := chain.Call(initialContext)
+```
