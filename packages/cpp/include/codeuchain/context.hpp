@@ -8,10 +8,7 @@
 #include <optional>
 
 /*!
-Context: The Loving Data Container
-
-With agape harmony, the Context holds immutable data that flows through the chain.
-Core implementation that all context implementations can build upon.
+ * @brief Immutable context container for CodeUChain data flow
 */
 
 namespace codeuchain {
