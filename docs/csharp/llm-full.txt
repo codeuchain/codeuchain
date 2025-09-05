@@ -1,0 +1,144 @@
+# CodeUChain (C#) - Full LLM Reference
+
+**Name:** CodeUChain (C#)  
+**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/csharp  
+**Docs:** https://codeuchain.github.io/codeuchain/csharp/  
+**Version:** 1.0.0  
+**License:** MIT  
+**Repository:** git+https://github.com/codeuchain/codeuchain.git  
+**Contact:** https://github.com/codeuchain/codeuchain/issues  
+**Authors:** CodeUChain contributors  
+**Language:** C# 9.0+  
+**Platform:** .NET Core 3.1+, .NET 5+  
+
+## Description
+
+The C# implementation provides enterprise-grade CodeUChain patterns with full .NET ecosystem integration, comprehensive error handling, and production-ready features.
+
+## Key Features
+
+- **Enterprise Ready:** Full .NET ecosystem integration
+- **Type Safety:** C# generics with compile-time guarantees
+- **Async Patterns:** Native async/await support
+- **Error Handling:** Comprehensive exception management
+- **Testing:** xUnit integration with high coverage
+- **Performance:** Optimized for .NET runtime
+
+## Installation
+
+```bash
+# NuGet package (when published)
+dotnet add package CodeUChain
+
+# From source
+git clone https://github.com/codeuchain/codeuchain.git
+cd packages/csharp
+dotnet build
+```
+
+## Core API
+
+### Link Implementation
+```csharp
+using CodeUChain;
+
+public class ValidationLink : ILink<UserInput, ValidatedUser>
+{
+    public async Task<Context<ValidatedUser>> CallAsync(Context<UserInput> ctx)
+    {
+        var input = ctx.Get<UserInput>("user");
+        // Validation logic
+        var validated = new ValidatedUser { /* ... */ };
+        return ctx.Insert("validated", validated);
+    }
+}
+```
+
+### Chain Composition
+```csharp
+var chain = new Chain()
+    .Then(new ValidationLink())
+    .Then(new ProcessingLink())
+    .Catch(new ErrorHandler());
+
+var result = await chain.CallAsync(initialContext);
+```
+
+## Testing
+
+```bash
+# Run tests
+dotnet test
+
+# With coverage
+dotnet test --collect:"XPlat Code Coverage"
+
+# Specific test
+dotnet test --filter "TestCategory=Unit"
+```
+
+## Project Structure
+
+```
+packages/csharp/
+├── src/
+│   ├── CodeUChain.csproj
+│   ├── Chain.cs
+│   ├── Context.cs
+│   ├── ILink.cs
+│   └── IMiddleware.cs
+├── tests/
+│   ├── CodeUChain.Tests.csproj
+│   └── ChainTests.cs
+├── examples/
+│   └── Program.cs
+└── CodeUChain.sln
+```
+
+## Examples
+
+See `packages/csharp/examples/` for:
+- Basic chain composition
+- Generic type usage
+- Error handling patterns
+- Performance benchmarks
+- Enterprise integration examples
+
+## Development
+
+```bash
+# Restore packages
+dotnet restore
+
+# Build
+dotnet build
+
+# Run examples
+dotnet run --project examples/
+```
+
+## Configuration
+
+### Project File
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>10.0</LangVersion>
+  </PropertyGroup>
+</Project>
+```
+
+### Test Configuration
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit" Version="2.4.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5" />
+  </ItemGroup>
+</Project>
+```
