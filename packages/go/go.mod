@@ -1,4 +1,4 @@
-module github.com/codeuchain/codeuchain/packages/go
+module github.com/codeuchain/go
 
 go 1.21
 
