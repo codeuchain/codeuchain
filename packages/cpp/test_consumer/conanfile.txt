@@ -1,0 +1,9 @@
+[requires]
+codeuchain/1.0.0
+
+[generators]
+CMakeDeps
+CMakeToolchain
+
+[layout]
+cmake_layout
