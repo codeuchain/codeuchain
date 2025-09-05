@@ -1,6 +1,6 @@
 {
-  "name": "@codeuchain/javascript",
-  "version": "0.1.0",
+  "name": "codeuchain",
+  "version": "1.0.0",
   "description": "CodeUChain JavaScript implementation - Interactive playground with event-driven, ubiquitous patterns",
   "main": "core/index.js",
   "types": "index.d.ts",
@@ -20,13 +20,15 @@
     "functional",
     "async",
     "javascript",
+    "typescript",
+    "types",
     "agape"
   ],
-  "author": "CodeUChain Team",
-  "license": "MIT",
+  "author": "Joshua Wink",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/orchestrate-solutions/codeuchain",
+    "url": "https://github.com/codeuchain/codeuchain",
     "directory": "packages/javascript"
   },
   "engines": {
