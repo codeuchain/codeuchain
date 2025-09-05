@@ -13,6 +13,7 @@
 ## Table of Contents
 
 - [The Simple Truth](#the-simple-truth-code-that-you-chain)
+- [Installation](#installation)
 - [Why CodeUChain Matters](#why-codeuchain-matters-the-conceptual-foundation)
   - [The Human Mind Craves Chains](#the-human-mind-craves-chains)
   - [Composition Over Complexity](#composition-over-complexity)
@@ -41,6 +42,41 @@ Normal Method → Normal Method → Normal Method = Powerful System
 ```
 
 **That's it.** No complex interfaces, no special syntax, no framework gymnastics. Just write the code you want to run, chain it together, and let the magic happen.
+
+## 📦 Installation
+
+Choose your language and install CodeUChain:
+
+### JavaScript/TypeScript
+```bash
+npm install codeuchain
+```
+
+### Python
+```bash
+pip install codeuchain
+```
+
+### Go
+```bash
+go get github.com/codeuchain/codeuchain/packages/go@latest
+```
+
+### C# (Coming Soon)
+```bash
+# Via NuGet
+dotnet add package CodeUChain
+```
+
+### Java (Coming Soon)
+```bash
+# Via Maven
+<dependency>
+    <groupId>com.codeuchain</groupId>
+    <artifactId>codeuchain</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
 
 ## Why CodeUChain Matters: The Conceptual Foundation
 

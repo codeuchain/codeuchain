@@ -27,7 +27,7 @@ This package supports the [llm.txt standard](https://codeuchain.github.io/codeuc
 ## 📦 Installation
 
 ```bash
-go get github.com/codeuchain/codeuchain/packages/go
+go get github.com/codeuchain/codeuchain/packages/go@latest
 ```
 
 ## 🚀 Quick Start

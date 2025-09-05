@@ -2,6 +2,14 @@
 
 With selfless love, CodeUChain chains your code as links, observes with middleware, and flows through forgiving contexts.
 
+## 📦 Installation
+
+```bash
+pip install codeuchain
+```
+
+**Zero external dependencies** - pure Python!
+
 ## 🤖 LLM Support
 
 This package supports the [llm.txt standard](https://codeuchain.github.io/codeuchain/python/llm.txt) for easy AI/LLM integration. See [llm-full.txt](https://codeuchain.github.io/codeuchain/python/llm-full.txt) for comprehensive documentation.
@@ -13,12 +21,6 @@ This package supports the [llm.txt standard](https://codeuchain.github.io/codeuc
 - **Middleware:** Gentle enhancers, optional and forgiving.
 - **Error Handling:** Compassionate routing and retries.
 - **Typed Features:** Optional static typing with TypedDict and generics for type safety.
-
-## Installation
-```bash
-pip install -e .
-```
-**Zero external dependencies** - pure Python!
 
 ## Quick Start
 ```python
