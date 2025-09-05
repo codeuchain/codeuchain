@@ -1,0 +1,40 @@
+# CodeUChain (JavaScript/TypeScript) - LLM Reference
+
+**Name:** CodeUChain (JavaScript/TypeScript)  
+**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/javascript  
+**Docs:** https://codeuchain.github.io/codeuchain/javascript/  
+**Version:** 1.0.0  
+**License:** MIT  
+**Repository:** git+https://github.com/codeuchain/codeuchain.git  
+**Contact:** https://github.com/codeuchain/codeuchain/issues  
+
+**Description:** JavaScript/TypeScript implementation with full type safety and Node.js/browser compatibility.
+
+**Key Features:**
+- Full TypeScript support with generics
+- Works in Node.js and browsers
+- NPM package ready
+- Jest testing framework
+- ESM and CommonJS support
+
+**Installation:**
+```bash
+npm install @codeuchain/javascript
+# or
+yarn add @codeuchain/javascript
+```
+
+**Usage:**
+```typescript
+import { Link, Chain, Context } from '@codeuchain/javascript';
+
+const myLink: Link<InputType, OutputType> = {
+  async call(ctx: Context<InputType>): Promise<Context<OutputType>> {
+    // Your processing logic
+    return ctx.insert('result', processedData);
+  }
+};
+
+const chain = new Chain().then(myLink);
+const result = await chain.call(initialContext);
+```

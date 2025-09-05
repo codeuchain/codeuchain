@@ -1,0 +1,179 @@
+# CodeUChain (C++) - Full LLM Reference
+
+**Name:** CodeUChain (C++)  
+**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/cpp  
+**Docs:** https://codeuchain.github.io/codeuchain/cpp/  
+**Version:** 1.0.0  
+**License:** MIT  
+**Repository:** git+https://github.com/codeuchain/codeuchain.git  
+**Contact:** https://github.com/codeuchain/codeuchain/issues  
+**Authors:** CodeUChain contributors  
+**Language:** C++17/20  
+**Platform:** Cross-platform (Linux, macOS, Windows)  
+
+## Description
+
+The C++ implementation provides high-performance CodeUChain patterns with modern C++ features, template metaprogramming, and cross-platform compatibility.
+
+## Key Features
+
+- **High Performance:** Template-based zero-cost abstractions
+- **Modern C++:** C++17/20 features with concepts and coroutines
+- **Cross-platform:** CMake-based build system
+- **Type Safety:** Compile-time guarantees with templates
+- **Async Support:** C++20 coroutines integration
+
+## Installation
+
+```bash
+# Clone and build
+git clone https://github.com/codeuchain/codeuchain.git
+cd packages/cpp
+
+# Create build directory
+mkdir build && cd build
+
+# Configure with CMake
+cmake .. -DCMAKE_BUILD_TYPE=Release
+
+# Build
+make -j$(nproc)
+
+# Install (optional)
+make install
+```
+
+## Core API
+
+### Link Implementation
+```cpp
+#include <codeuchain/link.hpp>
+#include <codeuchain/context.hpp>
+
+template<typename TInput, typename TOutput>
+class ValidationLink : public Link<TInput, TOutput> {
+public:
+    Context<TOutput> call(const Context<TInput>& ctx) override {
+        auto input = ctx.get("user");
+        // Validation logic
+        auto validated = validateUser(input);
+        return ctx.insert("validated", validated);
+    }
+};
+```
+
+### Chain Composition
+```cpp
+#include <codeuchain/chain.hpp>
+
+auto chain = Chain()
+    .then(std::make_shared<ValidationLink>())
+    .then(std::make_shared<ProcessingLink>())
+    .catch([](const std::exception& e) {
+        // Error handling
+        std::cerr << "Error: " << e.what() << std::endl;
+    });
+
+auto result = chain.call(initialContext);
+```
+
+## Testing
+
+```bash
+# Run tests (requires Google Test)
+cd build
+ctest --output-on-failure
+
+# With coverage (requires gcov/lcov)
+make coverage
+
+# Benchmarks (requires Google Benchmark)
+make benchmark
+```
+
+## Project Structure
+
+```
+packages/cpp/
+├── CMakeLists.txt
+├── include/
+│   └── codeuchain/
+│       ├── chain.hpp
+│       ├── context.hpp
+│       ├── link.hpp
+│       └── middleware.hpp
+├── src/
+│   ├── chain.cpp
+│   ├── context.cpp
+│   └── link.cpp
+├── tests/
+│   ├── CMakeLists.txt
+│   └── chain_test.cpp
+├── examples/
+│   ├── CMakeLists.txt
+│   └── basic_usage.cpp
+└── README.md
+```
+
+## Examples
+
+See `packages/cpp/examples/` for:
+- Basic chain composition
+- Template usage examples
+- Error handling patterns
+- Performance benchmarks
+- CMake integration examples
+
+## Development
+
+```bash
+# Configure for development
+cmake .. -DCMAKE_BUILD_TYPE=Debug -DCODEUCHAIN_BUILD_TESTS=ON
+
+# Build
+make -j$(nproc)
+
+# Run tests
+make test
+
+# Format code (requires clang-format)
+find . -name "*.cpp" -o -name "*.hpp" | xargs clang-format -i
+```
+
+## CMake Configuration
+
+```cmake
+cmake_minimum_required(VERSION 3.16)
+project(codeuchain VERSION 1.0.0 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Find dependencies
+find_package(Threads REQUIRED)
+
+# Library target
+add_library(codeuchain
+    src/chain.cpp
+    src/context.cpp
+    src/link.cpp
+)
+
+target_include_directories(codeuchain
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+
+target_link_libraries(codeuchain
+    PUBLIC
+        Threads::Threads
+)
+
+# Tests
+option(CODEUCHAIN_BUILD_TESTS "Build tests" ON)
+if(CODEUCHAIN_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
+```

@@ -4,6 +4,10 @@
 
 CodeUChain for JavaScript brings the harmony of chained processing to the world's most ubiquitous runtime. With Node.js ubiquity and browser compatibility, JavaScript implementations shine in event-driven architectures, real-time processing, and web-first applications.
 
+## 🤖 LLM Support
+
+This package supports the [llm.txt standard](https://codeuchain.github.io/codeuchain/javascript/llm.txt) for easy AI/LLM integration. See [llm-full.txt](https://codeuchain.github.io/codeuchain/javascript/llm-full.txt) for comprehensive documentation.
+
 ## 🌟 JavaScript's Heart: Event-Driven Love
 
 JavaScript brings **universal reach** to CodeUChain:

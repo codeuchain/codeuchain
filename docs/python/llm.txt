@@ -1,0 +1,37 @@
+# CodeUChain (Python) - LLM Reference
+
+**Name:** CodeUChain (Python)  
+**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/python  
+**Docs:** https://codeuchain.github.io/codeuchain/python/  
+**Version:** 1.0.0  
+**License:** MIT  
+**Repository:** git+https://github.com/codeuchain/codeuchain.git  
+**Contact:** https://github.com/codeuchain/codeuchain/issues  
+
+**Description:** Python/reference implementation of CodeUChain primitives with comprehensive examples and tests.
+
+**Key Features:**
+- Reference implementation in Python
+- Async/await support with asyncio
+- Full type hints and generic support
+- Extensive test suite
+- Rich ecosystem integration
+
+**Installation:**
+```bash
+pip install -e packages/python
+# or
+pip install codeuchain
+```
+
+**Usage:**
+```python
+from codeuchain import Link, Chain, Context
+
+async def my_link(ctx: Context) -> Context:
+    # Your processing logic
+    return ctx.insert("result", "processed")
+
+chain = Chain().then(my_link)
+result = await chain.call(initial_context)
+```

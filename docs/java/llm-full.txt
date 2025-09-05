@@ -1,0 +1,148 @@
+# CodeUChain (Java) - Full LLM Reference
+
+**Name:** CodeUChain (Java)  
+**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/java  
+**Docs:** https://codeuchain.github.io/codeuchain/java/  
+**Version:** 1.0.0  
+**License:** MIT  
+**Repository:** git+https://github.com/codeuchain/codeuchain.git  
+**Contact:** https://github.com/codeuchain/codeuchain/issues  
+**Authors:** CodeUChain contributors  
+**Language:** Java 11+  
+**Platform:** JVM (OpenJDK, Oracle JDK, etc.)  
+
+## Description
+
+The Java implementation provides enterprise-grade CodeUChain patterns with full JVM ecosystem integration, comprehensive error handling, and production-ready features for Java applications.
+
+## Key Features
+
+- **Enterprise Java:** Full JVM ecosystem integration
+- **Type Safety:** Java generics with compile-time guarantees
+- **Async Support:** CompletableFuture integration
+- **Build System:** Maven with comprehensive dependency management
+- **Testing:** JUnit 5 with high coverage
+- **Spring Integration:** Ready for Spring Boot applications
+
+## Installation
+
+```xml
+<!-- Add to pom.xml -->
+<dependency>
+    <groupId>com.codeuchain</groupId>
+    <artifactId>codeuchain</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+## Core API
+
+### Link Implementation
+```java
+import com.codeuchain.*;
+
+public class ValidationLink implements Link<UserInput, ValidatedUser> {
+    @Override
+    public CompletableFuture<Context<ValidatedUser>> call(Context<UserInput> ctx) {
+        UserInput input = ctx.get("user");
+        // Validation logic
+        ValidatedUser validated = new ValidatedUser(/* ... */);
+        return CompletableFuture.completedFuture(
+            ctx.insert("validated", validated)
+        );
+    }
+}
+```
+
+### Chain Composition
+```java
+Chain chain = new Chain()
+    .then(new ValidationLink())
+    .then(new ProcessingLink())
+    .catch(new ErrorHandler());
+
+CompletableFuture<Context> result = chain.call(initialContext);
+```
+
+## Testing
+
+```bash
+# Run tests
+mvn test
+
+# With coverage
+mvn test jacoco:report
+
+# Integration tests
+mvn verify
+```
+
+## Project Structure
+
+```
+packages/java/
+├── src/
+│   ├── main/java/com/codeuchain/
+│   │   ├── Chain.java
+│   │   ├── Context.java
+│   │   ├── Link.java
+│   │   └── Middleware.java
+│   └── test/java/com/codeuchain/
+│       └── ChainTest.java
+├── pom.xml
+└── README.md
+```
+
+## Examples
+
+See `packages/java/src/main/java/com/codeuchain/examples/` for:
+- Basic chain composition
+- Generic type usage
+- Error handling patterns
+- Spring Boot integration
+- Performance benchmarks
+
+## Development
+
+```bash
+# Compile
+mvn compile
+
+# Run tests
+mvn test
+
+# Package
+mvn package
+
+# Install locally
+mvn install
+```
+
+## Maven Configuration
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <groupId>com.codeuchain</groupId>
+    <artifactId>codeuchain</artifactId>
+    <version>1.0.0</version>
+    
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+    </properties>
+    
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.9.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
+```

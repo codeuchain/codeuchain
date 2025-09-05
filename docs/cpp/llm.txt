@@ -1,0 +1,40 @@
+# CodeUChain (C++) - LLM Reference
+
+**Name:** CodeUChain (C++)  
+**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/cpp  
+**Docs:** https://codeuchain.github.io/codeuchain/cpp/  
+**Version:** 1.0.0  
+**License:** MIT  
+**Repository:** git+https://github.com/codeuchain/codeuchain.git  
+**Contact:** https://github.com/codeuchain/codeuchain/issues  
+
+**Description:** C++ implementation with CMake build system and high-performance features.
+
+**Key Features:**
+- C++17/20 template support
+- CMake build system
+- High-performance implementation
+- Cross-platform compatibility
+- Comprehensive testing
+
+**Installation:**
+```bash
+# CMake build
+mkdir build && cd build
+cmake ..
+make
+make install
+```
+
+**Usage:**
+```cpp
+#include <codeuchain/chain.hpp>
+
+auto myLink = [](Context<InputType> ctx) -> Context<OutputType> {
+    // Your processing logic
+    return ctx.insert("result", processedData);
+};
+
+auto chain = Chain().then(myLink);
+auto result = chain.call(initialContext);
+```
