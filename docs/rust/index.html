@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeUChain (Rust) - Memory-Safe Performance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom animations for elegance */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up { animation: fadeInUp 0.6s ease-out; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen text-gray-800">
+    <div class="max-w-4xl mx-auto px-6 py-12 lg:px-8 lg:py-16">
+        <header class="bg-gradient-to-br from-orange-500 via-red-600 to-pink-700 text-white rounded-2xl p-12 mb-12 text-center animate-fade-in-up shadow-xl">
+            <div class="inline-block bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium mb-6">
+                Version 1.0.0
+            </div>
+            <h1 class="text-4xl lg:text-5xl font-bold mb-4">🦀 CodeUChain (Rust)</h1>
+            <p class="text-xl opacity-90">Memory-Safe Performance & Reliability</p>
+        </header>
+
+        <div class="bg-white rounded-2xl shadow-xl p-8 lg:p-12 animate-fade-in-up mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <span class="text-orange-600 font-semibold mr-2">🏠 Homepage:</span>
+                        <a href="https://github.com/codeuchain/codeuchain/tree/main/packages/rust" class="text-orange-500 hover:text-orange-700 transition-colors">GitHub Packages</a>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-orange-600 font-semibold mr-2">📚 Docs:</span>
+                        <a href="https://codeuchain.github.io/codeuchain/rust/" class="text-orange-500 hover:text-orange-700 transition-colors">Documentation</a>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-orange-600 font-semibold mr-2">📄 License:</span>
+                        <span class="text-gray-600">MIT</span>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <span class="text-orange-600 font-semibold mr-2">📦 Repository:</span>
+                        <a href="https://github.com/codeuchain/codeuchain" class="text-orange-500 hover:text-orange-700 transition-colors">GitHub</a>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-orange-600 font-semibold mr-2">📞 Contact:</span>
+                        <a href="https://github.com/codeuchain/codeuchain/issues" class="text-orange-500 hover:text-orange-700 transition-colors">Issues</a>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-orange-600 font-semibold mr-2">🔄 Status:</span>
+                        <span class="text-orange-600 font-medium">Planned</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">📖 Description</h2>
+                <p class="text-gray-600 leading-relaxed">Rust implementation with memory safety, performance, and Cargo ecosystem integration.</p>
+            </div>
+
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">✨ Key Features</h2>
+                <ul class="space-y-2">
+                    <li class="flex items-start">
+                        <span class="text-orange-500 mr-2">✓</span>
+                        <span class="text-gray-600">Memory-safe implementation</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-orange-500 mr-2">✓</span>
+                        <span class="text-gray-600">Zero-cost abstractions</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-orange-500 mr-2">✓</span>
+                        <span class="text-gray-600">Async support with tokio</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-orange-500 mr-2">✓</span>
+                        <span class="text-gray-600">Cargo package ready</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-orange-500 mr-2">✓</span>
+                        <span class="text-gray-600">Comprehensive testing</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">📦 Installation</h2>
+                <pre class="bg-gray-100 p-4 rounded-lg overflow-x-auto"><code class="text-sm text-gray-800">cargo add codeuchain
+# or
+cargo build</code></pre>
+            </div>
+
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">🚀 Usage</h2>
+                <pre class="bg-gray-100 p-4 rounded-lg overflow-x-auto"><code class="text-sm text-gray-800">use codeuchain::{Link, Chain, Context};
+
+struct MyLink;
+
+impl Link&lt;InputType, OutputType&gt; for MyLink {
+    async fn call(&amp;self, ctx: Context&lt;InputType&gt;) -&gt; Result&lt;Context&lt;OutputType&gt;, Error&gt; {
+        // Your processing logic
+        Ok(ctx.insert("result", processed_data))
+    }
+}
+
+let chain = Chain::new().then(MyLink);
+let result = chain.call(initial_context).await?;</code></pre>
+            </div>
+        </div>
+
+        <div class="text-center animate-fade-in-up">
+            <a href="../" class="inline-block bg-orange-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-orange-700 transition-all duration-300 shadow-lg hover:shadow-xl mr-4 mb-4">
+                ← Back to Docs
+            </a>
+            <a href="https://github.com/codeuchain/codeuchain/tree/main/packages/rust" class="inline-block bg-gray-800 text-white px-6 py-3 rounded-full font-semibold hover:bg-gray-900 transition-all duration-300 shadow-lg hover:shadow-xl mb-4">
+                View Source Code →
+            </a>
+        </div>
+    </div>
+</body>
+</html>
