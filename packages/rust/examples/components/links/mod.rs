@@ -7,7 +7,7 @@ These are the building blocks that get swapped between projects.
 
 use async_trait::async_trait;
 use codeuchain::core::context::Context;
-use codeuchain::core::link::Link;
+use codeuchain::core::link::LegacyLink;
 use serde_json::Value;
 
 /// Forgiving link that does nothing—pure love.
@@ -21,7 +21,7 @@ impl IdentityLink {
 }
 
 #[async_trait]
-impl Link for IdentityLink {
+impl LegacyLink for IdentityLink {
     async fn call(&self, ctx: Context) -> Result<Context, Box<dyn std::error::Error + Send + Sync>> {
         Ok(ctx)
     }
@@ -40,7 +40,7 @@ impl MathLink {
 }
 
 #[async_trait]
-impl Link for MathLink {
+impl LegacyLink for MathLink {
     async fn call(&self, ctx: Context) -> Result<Context, Box<dyn std::error::Error + Send + Sync>> {
         if let Some(Value::Array(numbers)) = ctx.get("numbers") {
             let numbers: Vec<f64> = numbers
