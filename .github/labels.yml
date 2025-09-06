@@ -1,0 +1,25 @@
+labels:
+  - name: bug
+    color: d73a4a
+    description: Something is not working
+  - name: enhancement
+    color: a2eeef
+    description: New feature or request
+  - name: chore
+    color: cfd3d7
+    description: Repository maintenance tasks
+  - name: docs
+    color: 0075ca
+    description: Documentation only changes
+  - name: good first issue
+    color: 7057ff
+    description: Good for newcomers
+  - name: help wanted
+    color: 008672
+    description: Extra attention is needed
+  - name: performance
+    color: 0e8a16
+    description: Performance improvements
+  - name: release
+    color: 5319e7
+    description: Release-related tasks

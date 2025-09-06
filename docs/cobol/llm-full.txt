@@ -1,210 +1,252 @@
-# CodeUChain (COBOL) - Full LLM Reference
+# CodeUChain (COBOL) – Full LLM Reference
 
 **Name:** CodeUChain (COBOL)  
 **Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/cobol  
 **Docs:** https://codeuchain.github.io/codeuchain/cobol/  
 **Version:** 1.0.0  
-**License:** MIT  
+**License:** Apache 2.0  
 **Repository:** git+https://github.com/codeuchain/codeuchain.git  
 **Contact:** https://github.com/codeuchain/codeuchain/issues  
 **Authors:** CodeUChain contributors  
-**Language:** COBOL (various dialects)  
-**Platform:** Mainframe, Unix, Windows  
+**Language:** COBOL (Enterprise COBOL, GnuCOBOL, Micro Focus)  
+**Platform:** z/OS, Unix, Windows  
+**Paradigm Keywords:** Batch Pipelines, Deterministic Stages, Shared Context Copy, Legacy Integration, Type Evolution (structural), Middleware Emulation
 
-## Description
+---
+## 1. Purpose & Philosophy
+Bring CodeUChain’s composable link/chain model to legacy COBOL environments (batch & transactional) without invasive platform changes. Emphasize: predictable batch steps, auditable transformations, minimized JCL churn, optional modernization via generated wrappers.
 
-COBOL reference materials demonstrating CodeUChain patterns adapted for legacy systems, mainframe environments, and batch processing workflows.
+| Principle | COBOL Adaptation | Benefit |
+|-----------|------------------|---------|
+| Link Purity | PROGRAM accepts context + returns updated copy | Easier unit test via driver harness |
+| Context Evolution | New group levels added sequentially | Progressive enrichment |
+| Middleware Emulation | BEFORE/AFTER paragraphs or wrapper program | Centralized logging & metrics |
+| Error Classification | RETURN-CODE ranges or status fields | Automated rerun & restart control |
+| Batch Idempotency | Re-process aware design (checkpoint keys) | Safe restart on abend |
 
-## Key Features
+---
+## 2. Architectural Overview
+```
+JCL STEP 1  -> VALIDATE-LINK  (updates CONTEXT-GLOBAL)
+JCL STEP 2  -> PARSE-LINK     (adds PARSED-*)
+JCL STEP 3  -> ENRICH-LINK    (adds ENRICHED-*)
+JCL STEP 4  -> OUTPUT-LINK    (writes files / DB2)
+            [Middleware Wrapper: logs start/end RC + record counts]
+```
+Context = copybook (global working storage) passed BY REFERENCE or persisted in a temporary dataset between steps.
 
-- **Legacy Integration:** CodeUChain patterns for existing COBOL systems
-- **Mainframe Compatible:** Works with IBM z/OS and other mainframe systems
-- **Batch Processing:** Optimized for high-volume batch operations
-- **Database Integration:** Patterns for DB2, VSAM, and other databases
-- **Modern Patterns:** Applying functional programming concepts to COBOL
-
-## Usage Examples
-
-### Basic Link Pattern
+---
+## 3. Core Structures
+Representative context copybook:
 ```cobol
-IDENTIFICATION DIVISION.
-PROGRAM-ID. VALIDATION-LINK.
-
-DATA DIVISION.
-WORKING-STORAGE SECTION.
-    01 WS-INPUT-DATA.
-        05 INPUT-FIELD PIC X(50).
-    01 WS-OUTPUT-DATA.
-        05 OUTPUT-FIELD PIC X(50).
-        05 VALIDATION-STATUS PIC X(10).
-
-PROCEDURE DIVISION USING WS-INPUT-DATA WS-OUTPUT-DATA.
-    PERFORM VALIDATE-INPUT
-    PERFORM PROCESS-DATA
-    PERFORM SET-OUTPUT
-    EXIT PROGRAM.
-
-VALIDATE-INPUT.
-    IF INPUT-FIELD = SPACES
-        MOVE 'INVALID' TO VALIDATION-STATUS
-    ELSE
-        MOVE 'VALID' TO VALIDATION-STATUS
-    END-IF.
-
-PROCESS-DATA.
-    IF VALIDATION-STATUS = 'VALID'
-        MOVE FUNCTION UPPER-CASE(INPUT-FIELD) TO OUTPUT-FIELD
-    END-IF.
-
-SET-OUTPUT.
-    MOVE OUTPUT-FIELD TO WS-OUTPUT-DATA.
+       01  CONTEXT-GLOBAL.
+           05 CTX-INPUT-AREA.
+              10 CTX-RAW-LINE              PIC X(256).
+              10 CTX-REQUEST-ID            PIC X(32).
+           05 CTX-VALIDATION-AREA.
+              10 CTX-IS-VALID              PIC X     VALUE 'N'.
+              10 CTX-ERROR-CODE            PIC 9(04) VALUE 0.
+           05 CTX-PARSE-AREA.
+              10 CTX-TOKEN-COUNT           PIC 9(04) VALUE 0.
+              10 CTX-TOKENS OCCURS 20 TIMES PIC X(16) VALUE SPACES.
+           05 CTX-ENRICH-AREA.
+              10 CTX-SCORE                 PIC 9V999 VALUE 0.
+           05 CTX-CLASSIFICATION.
+              10 CTX-ERROR-CLASS           PIC X(08) VALUE SPACES.
 ```
 
-### Chain Composition
+---
+## 4. Installation / Setup
+No central package manager; adopt via:
+1. Standardized copybooks (`CONTEXT-GLOBAL.cpy`, `MIDDLEWARE-API.cpy`).  
+2. JCL step wrappers calling each link program.  
+3. Optional generation: a meta-tool can emit skeleton programs from a YAML chain definition.  
+
+Example JCL fragment:
+```jcl
+//STEPVAL  EXEC PGM=VALIDATE
+//STEPPARS DD  DSN=CTX.IN,DISP=SHR
+//STEPOUT  DD  DSN=CTX.OUT,DISP=OLD
+```
+
+---
+## 5. Implementing a Link (Program)
 ```cobol
-IDENTIFICATION DIVISION.
-PROGRAM-ID. PROCESSING-CHAIN.
-
-DATA DIVISION.
-WORKING-STORAGE SECTION.
-    01 WS-CONTEXT.
-        05 INPUT-DATA PIC X(100).
-        05 PROCESSED-DATA PIC X(100).
-        05 ERROR-FLAG PIC X.
-
-PROCEDURE DIVISION.
-    PERFORM INITIALIZE-CONTEXT
-    PERFORM VALIDATION-LINK
-    PERFORM TRANSFORMATION-LINK
-    PERFORM OUTPUT-LINK
-    PERFORM ERROR-HANDLING
-    STOP RUN.
-
-INITIALIZE-CONTEXT.
-    MOVE 'INPUT VALUE' TO INPUT-DATA
-    MOVE 'N' TO ERROR-FLAG.
-
-VALIDATION-LINK.
-    CALL 'VALIDATION-LINK' USING WS-CONTEXT.
-
-TRANSFORMATION-LINK.
-    IF ERROR-FLAG = 'N'
-        CALL 'TRANSFORMATION-LINK' USING WS-CONTEXT
-    END-IF.
-
-OUTPUT-LINK.
-    IF ERROR-FLAG = 'N'
-        CALL 'OUTPUT-LINK' USING WS-CONTEXT
-    END-IF.
-
-ERROR-HANDLING.
-    IF ERROR-FLAG = 'Y'
-        DISPLAY 'Processing error occurred'
-        PERFORM CLEANUP
-    END-IF.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. VALIDATE-LINK.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       COPY CONTEXT-GLOBAL.
+       PROCEDURE DIVISION.
+           PERFORM VLD-CHECK
+           GOBACK.
+       VLD-CHECK.
+           IF CTX-RAW-LINE = SPACES
+              MOVE 1001 TO CTX-ERROR-CODE
+              MOVE 'INVALID' TO CTX-ERROR-CLASS
+           ELSE
+              MOVE 'Y' TO CTX-IS-VALID
+           END-IF.
 ```
 
-## Project Structure
+---
+## 6. Error Handling & Classification
+Strategy:
+| Class | Code Range | Meaning | Action |
+|-------|-----------|---------|--------|
+| TRANSIENT | 9000-9099 | External I/O or DB2 timeout | Retry step / restart JCL |
+| PERMANENT | 9100-9199 | Data integrity violation | Abort job + alert |
+| VALIDATION | 1000-1999 | Bad input fields | Route to reject file |
+| SECURITY | 3000-3099 | Auth / access failure | Audit & terminate |
 
+Classification paragraph sets `CTX-ERROR-CLASS` and standardized RETURN-CODE.
+
+---
+## 7. Middleware Emulation
+Two approaches:
+1. Wrapper Program: CALL underlying link; record start/end timestamps, RC, record counts.  
+2. Inline Paragraph Hooks: Each link calls `MW-BEFORE` and `MW-AFTER` paragraphs supplied by COPY.  
+
+Middleware copybook snippet:
+```cobol
+       01 MW-METRICS.
+          05 MW-LINK-NAME        PIC X(32).
+          05 MW-START-TIME       PIC 9(08).
+          05 MW-END-TIME         PIC 9(08).
+          05 MW-RECORDS-IN       PIC 9(07) VALUE 0.
+          05 MW-RECORDS-OUT      PIC 9(07) VALUE 0.
 ```
-packages/cobol/
-├── bin/
-│   └── compile-scripts/
-├── docs/
-│   ├── mainframe-integration.md
-│   ├── batch-processing.md
-│   └── database-patterns.md
-└── README.md
+Log hook:
+```cobol
+       MW-BEFORE.
+           MOVE FUNCTION CURRENT-DATE(1:8) TO MW-START-TIME.
+           DISPLAY 'LINK START ' MW-LINK-NAME.
+       MW-AFTER.
+           MOVE FUNCTION CURRENT-DATE(1:8) TO MW-END-TIME.
+           DISPLAY 'LINK END   ' MW-LINK-NAME ' RC=' RETURN-CODE.
 ```
 
-## Examples
+---
+## 8. Type Evolution Example
+Add new group level for enrichment:
+```cobol
+       05 CTX-ENRICH-AREA REDEFINES CTX-ENRICH-AREA.
+          10 CTX-SCORE         PIC 9V999 VALUE 0.
+          10 CTX-SCORE-TAG     PIC X(08) VALUE 'BASE'.
+```
+Late-stage link sets additional fields without disturbing earlier structure.
 
-See `packages/cobol/` for:
-- Mainframe integration patterns
-- Batch processing examples
-- Database access patterns
-- Error handling in COBOL
-- Performance optimization techniques
+---
+## 9. Testing & TDD
+Approach:
+1. Use GnuCOBOL locally for rapid iteration.  
+2. Provide driver program feeding sample context datasets.  
+3. Create golden output files; diff after run.  
+4. Unit test paragraphs by factoring them into PERFORM targets with isolated WS copies.  
 
-## Development
-
+Example GnuCOBOL build:
 ```bash
-# Compile COBOL programs (varies by compiler)
-# IBM Enterprise COBOL
-cob2 input.cbl
-
-# GnuCOBOL
-cobc -x program.cob
-
-# Micro Focus COBOL
-cobol program.cbl;
+cobc -x validate-link.cob -o validate
+./validate < sample.in > sample.out
+diff expected.out sample.out
 ```
 
-## Best Practices
+---
+## 10. Observability & Diagnostics
+Techniques:
+* DISPLAY lines (gate with ENV flags)  
+* SMF record write (mainframe) for batch duration & RC  
+* DB2 accounting classification leveraging CTX-ERROR-CLASS  
+* Output audit trail file summarizing tokens, counts, enriched metrics  
 
-### Memory Management
+Audit summary paragraph example:
 ```cobol
-WORKING-STORAGE SECTION.
-    01 WS-WORK-AREA.
-        05 WS-TEMP-DATA PIC X(100) VALUE SPACES.
-    01 WS-RESULT-AREA.
-        05 WS-FINAL-RESULT PIC X(200) VALUE SPACES.
-
-PROCEDURE DIVISION.
-    INITIALIZE WS-WORK-AREA
-    INITIALIZE WS-RESULT-AREA
-    PERFORM PROCESS-DATA
-    PERFORM CLEANUP.
+       AUDIT-SUMMARY.
+           DISPLAY 'TOKENS=' CTX-TOKEN-COUNT ' SCORE=' CTX-SCORE.
 ```
 
-### Error Handling
-```cobol
-PROCEDURE DIVISION.
-    PERFORM MAIN-PROCESS
-    PERFORM ERROR-CHECK
-    STOP RUN.
+---
+## 11. Performance Guidance
+| Concern | Strategy |
+|---------|----------|
+| Excess dataset I/O | Buffer reads; process blocks of lines |
+| Copybook bloat | Split context into layered copybooks; include selectively |
+| Repeated PARSE logic | Encapsulate in single called link program |
+| Large OCCURS tokens | Cap size; overflow counter separate |
+| DISPLAY overhead | Gate logging; aggregate counts then emit |
 
-ERROR-CHECK.
-    IF RETURN-CODE NOT = ZERO
-        DISPLAY 'Error occurred: ' RETURN-CODE
-        PERFORM ERROR-RECOVERY
-    END-IF.
+Tip: Keep token arrays fixed-size for predictable storage; overflow increments an auxiliary counter.
+
+---
+## 12. Advanced Patterns
+* Parallelization (Unix/GnuCOBOL): split input, run multiple processes, merge sorted outputs.
+* Checkpoint/Restart: persist `CTX-REQUEST-ID` + last processed sequence to dataset.
+* Conditional Branch: a controlling program decides which link program to CALL next based on context flag.
+* Hybrid Modernization: wrap COBOL link with a shell script invoking Rust/Go microservice for enrichment.
+* Multi-format Parsing: separate link for EBCDIC → UTF-8 normalization prior to tokenization.
+
+---
+## 13. Migration & Adoption
+Phases:
+1. Extract monolithic JOB logic into discrete link programs.  
+2. Introduce shared context copybook.  
+3. Add middleware wrapper for metrics & timing.  
+4. Implement classification & retry (JCL restart logic).  
+5. Add enrichment & evolution areas.  
+6. Integrate hybrid calls (services / modern languages).  
+
+Rollback strategy: keep original JCL & program until parallel validation succeeds.
+
+---
+## 14. Anti-Patterns
+| Anti-Pattern | Problem | Remedy |
+|--------------|---------|--------|
+| Overloading working-storage with unrelated fields | Coupling | Modular copybooks per stage |
+| Using GOBACK early without RC | Lost error semantics | Set RETURN-CODE & classification |
+| Massive unstructured paragraphs | Hard to test | Factor into small PERFORM targets |
+| Recomputing expensive parsing each step | Wasted CPU | Persist parsed tokens in context |
+| Excess DISPLAY in production | Performance noise | Gate with debug flag /
+
+---
+## 15. FAQ
+**Q:** How do I simulate middleware?  
+**A:** Wrapper program or copied BEFORE/AFTER paragraphs around each link.  
+**Q:** How do I evolve context safely?  
+**A:** Append new group levels; avoid redefining existing elementary fields.  
+**Q:** Can I integrate DB2 commits with links?  
+**A:** Yes—commit at link boundaries; roll back prior to classification ‘PERMANENT’.  
+**Q:** How to handle partial invalid records?  
+**A:** Route rejects to side file; continue chain with remaining.  
+**Q:** How to orchestrate retries?  
+**A:** Use JCL COND codes + classification RC range for restartable steps.  
+
+---
+## 16. Glossary
+* **Link Program**: A standalone COBOL program acting as a transformation stage.  
+* **Chain (Job Flow)**: Ordered JCL steps or CALL sequence applying link programs.  
+* **Context Copybook**: Shared structured data passed or persisted between steps.  
+* **Middleware Wrapper**: Supervisory program injecting logging/metrics around link CALL.  
+* **Type Evolution**: Adding new group levels/fields to the shared context.  
+* **Classification**: Mapping RETURN-CODE / CTX-ERROR-CLASS to semantic category.  
+
+---
+## 17. TL;DR
+```text
+Create shared context copybook.
+Split monolith into link programs.
+Add wrapper (middleware) for logs/metrics.
+Classify errors via RETURN-CODE ranges (retry transient).
+Evolve context by appending new group levels.
+Gate DISPLAY logging; keep parsing single-pass.
+Hybrid: call modern services for enrichment when needed.
 ```
 
-## Integration Patterns
+---
+### Support & Resources
+- Issues: https://github.com/codeuchain/codeuchain/issues
+- Discussions: https://github.com/codeuchain/codeuchain/discussions
+- License: Apache 2.0
+- Examples: `packages/cobol/`
 
-### Database Access
-```cobol
-EXEC SQL
-    SELECT COLUMN1, COLUMN2
-    INTO :HOST-VARIABLE1, :HOST-VARIABLE2
-    FROM TABLE1
-    WHERE CONDITION = :INPUT-VALUE
-END-EXEC.
-
-IF SQLCODE = 0
-    MOVE HOST-VARIABLE1 TO OUTPUT-FIELD1
-    MOVE HOST-VARIABLE2 TO OUTPUT-FIELD2
-ELSE
-    MOVE 'DB-ERROR' TO ERROR-FLAG
-END-IF.
-```
-
-### File Processing
-```cobol
-SELECT INPUT-FILE ASSIGN TO 'input.dat'
-    ORGANIZATION IS LINE SEQUENTIAL.
-
-FD INPUT-FILE.
-01 INPUT-RECORD PIC X(80).
-
-PROCEDURE DIVISION.
-    OPEN INPUT INPUT-FILE
-    PERFORM UNTIL END-OF-FILE
-        READ INPUT-FILE
-            AT END MOVE 'Y' TO EOF-FLAG
-            NOT AT END PERFORM PROCESS-RECORD
-        END-READ
-    END-PERFORM
-    CLOSE INPUT-FILE.
-```
+---
+© 2025 Orchestrate LLC (Joshua @orchestrate.solutions) – Apache 2.0

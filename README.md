@@ -185,7 +185,7 @@ var chain = new Chain()
 
 CodeUChain works beautifully across programming languages, each optimized for its ecosystem:
 
-### ⭐ C# (Featured - Zero-Extra-Syntax)
+### ⭐ C#
 ```csharp
 // Just write normal async methods
 public async ValueTask<Context> ProcessAsync(Context context) {
@@ -194,6 +194,7 @@ public async ValueTask<Context> ProcessAsync(Context context) {
 }
 ```
 [→ C# Documentation](./packages/csharp/readme.md)
+
 
 ### C++ (Modern Implementation)
 **Status**: Complete with typed features and C++20 coroutines
@@ -437,5 +438,4 @@ go run simple_math.go
 
 ---
 
-*CodeUChain: Where simple code creates extraordinary systems 🌟*</content>
-<parameter name="filePath">/Users/jwink/Documents/github/codeuchain/README.md
+*CodeUChain: Where simple code creates extraordinary systems 🌟*

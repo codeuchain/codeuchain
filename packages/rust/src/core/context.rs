@@ -10,21 +10,27 @@ use serde_json::Value;
 use std::collections::HashMap;
 
 /// Immutable context with selfless love—holds data without judgment, returns fresh copies for changes.
+/// Generic type parameter T represents the current data shape, defaulting to serde_json::Value for flexibility.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Context {
+pub struct Context<T = Value> {
     data: HashMap<String, Value>,
+    _phantom: std::marker::PhantomData<T>,
 }
 
-impl Context {
+impl<T> Context<T> {
     /// Create a new context with optional initial data
     pub fn new(data: HashMap<String, Value>) -> Self {
-        Self { data }
+        Self {
+            data,
+            _phantom: std::marker::PhantomData,
+        }
     }
 
     /// Create an empty context
     pub fn empty() -> Self {
         Self {
             data: HashMap::new(),
+            _phantom: std::marker::PhantomData,
         }
     }
 
@@ -33,10 +39,24 @@ impl Context {
         self.data.get(key)
     }
 
-    /// With selfless safety, return a fresh context with the addition.
-    pub fn insert(mut self, key: String, value: Value) -> Self {
-        self.data.insert(key, value);
-        self
+    /// With selfless safety, return a fresh context with the addition (preserves type).
+    pub fn insert(self, key: String, value: Value) -> Context<T> {
+        let mut new_data = self.data;
+        new_data.insert(key, value);
+        Context {
+            data: new_data,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+
+    /// Type evolution: Transform to a new type while preserving data.
+    pub fn insert_as<U>(self, key: String, value: Value) -> Context<U> {
+        let mut new_data = self.data;
+        new_data.insert(key, value);
+        Context {
+            data: new_data,
+            _phantom: std::marker::PhantomData,
+        }
     }
 
     /// For those needing change, provide a mutable sibling.
@@ -47,7 +67,7 @@ impl Context {
     }
 
     /// Lovingly combine contexts, favoring the other with compassion.
-    pub fn merge(mut self, other: &Context) -> Self {
+    pub fn merge(mut self, other: &Context<T>) -> Context<T> {
         for (key, value) in &other.data {
             self.data.insert(key.clone(), value.clone());
         }
@@ -65,7 +85,14 @@ impl Context {
     }
 }
 
-impl Default for Context {
+impl Context<Value> {
+    /// Create context from HashMap (for backward compatibility)
+    pub fn from_hashmap(data: HashMap<String, Value>) -> Self {
+        Self::new(data)
+    }
+}
+
+impl<T> Default for Context<T> {
     fn default() -> Self {
         Self::empty()
     }
@@ -96,8 +123,11 @@ impl MutableContext {
     }
 
     /// Return to safety with a fresh immutable copy.
-    pub fn to_immutable(self) -> Context {
-        Context { data: self.data }
+    pub fn to_immutable<T>(self) -> Context<T> {
+        Context {
+            data: self.data,
+            _phantom: std::marker::PhantomData,
+        }
     }
 
     /// Get a reference to the internal data

@@ -1,37 +1,57 @@
-# CodeUChain (Python) - LLM Reference
+# CodeUChain (Python) – Cheat Sheet
 
-**Name:** CodeUChain (Python)  
-**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/python  
-**Docs:** https://codeuchain.github.io/codeuchain/python/  
-**Version:** 1.0.0  
-**License:** MIT  
-**Repository:** git+https://github.com/codeuchain/codeuchain.git  
-**Contact:** https://github.com/codeuchain/codeuchain/issues  
+Full reference: `docs/python/llm-full.txt`
 
-**Description:** Python/reference implementation of CodeUChain primitives with comprehensive examples and tests.
-
-**Key Features:**
-- Reference implementation in Python
-- Async/await support with asyncio
-- Full type hints and generic support
-- Extensive test suite
-- Rich ecosystem integration
-
-**Installation:**
+## Quick Start
 ```bash
-pip install -e packages/python
-# or
 pip install codeuchain
 ```
-
-**Usage:**
 ```python
-from codeuchain import Link, Chain, Context
-
-async def my_link(ctx: Context) -> Context:
-    # Your processing logic
-    return ctx.insert("result", "processed")
-
-chain = Chain().then(my_link)
-result = await chain.call(initial_context)
+from codeuchain import Context, Chain
+ctx = Context({"payload": "hi"})
+res = await chain.call(ctx)
 ```
+
+## Primitives
+- Link: async `call(ctx: Context[TIn]) -> Context[TOut]`
+- Context: immutable mapping; `insert`, `insert_as`
+- Chain: composition + `.catch()`
+- Middleware: `before/after/error` coroutines
+
+## Minimal Link
+```python
+class Parse(Link[Any, Any]):
+        async def call(self, ctx: Context[Any]) -> Context[Any]:
+                return ctx.insert("parsed", True)
+```
+
+## Chain Example
+```python
+chain = Chain() \
+    .then(Validate()) \
+    .then(Parse()) \
+    .catch(lambda name, err, ctx: ctx.insert("error", str(err)))
+```
+
+## Type Evolution
+```python
+c2: Context[Parsed] = c1.insert_as("parsed", Parsed(tokens=toks))
+```
+
+## Error Classification
+Retry transient (I/O, timeout). Surface validation/security.
+
+## Performance Tips
+- Reuse event loop tasks
+- Avoid deep copy of large dict entries
+- Log structured keys only
+
+## ASCII Pipeline
+```
+[In] -> (Validate) -> (Parse) -> (Enrich) -> [Out]
+```
+
+## TL;DR
+Async links + immutable/evolving contexts + graceful middleware.
+
+© 2025 Orchestrate LLC – Apache 2.0

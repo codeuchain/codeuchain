@@ -16,15 +16,17 @@ fi
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ASSETS_DIR="$REPO_ROOT/releases"
 
-declare -A prefix_map
-prefix_map[python]=py
-prefix_map[javascript]=js
-prefix_map[js]=js
-prefix_map[cpp]=cpp
-prefix_map[c++]=cpp
-prefix_map[csharp]=csharp
-prefix_map[go]=go
-prefix_map[pseudo]=pseudo
+get_prefix() {
+  case "$1" in
+    python) echo py ;;
+    javascript|js) echo js ;;
+    cpp|c++) echo cpp ;;
+    csharp) echo csharp ;;
+    go) echo go ;;
+    pseudo) echo pseudo ;;
+    *) echo "$1" ;;
+  esac
+}
 
 shopt -s nullglob
 files=("$ASSETS_DIR"/*.zip "$ASSETS_DIR"/*.tar.gz)
@@ -46,11 +48,12 @@ for f in "${files[@]}"; do
   fi
 
   key="$lang"
-  # normalize some names
-  key=${key//+/-}
-  key=${key,,}
+  # normalize some names (replace + with - and lowercase)
+  key="${key//+/-}"
+  # lowercase by using awk to be portable
+  key="$(echo "$key" | awk '{print tolower($0)}')"
 
-  short="${prefix_map[$key]:-$key}"
+  short="$(get_prefix "$key")"
   tag="$short/$ver"
 
   echo "Processing $base -> release tag: $tag"

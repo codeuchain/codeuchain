@@ -205,51 +205,18 @@ cmake --build build/Release
 
 ## 📦 Direct Download (Alternative)
 
-Don't want to download the entire monorepo? Get just the C++ implementation as a standalone package!
+If you prefer a minimal, release-only archive (no monorepo contents), we publish a clean package under `releases/codeuchain-cpp-v1.0.0` in this repository.
 
-### Download Options
-
-**GitHub Releases**: Download pre-built packages from our [releases page](https://github.com/codeuchain/codeuchain/releases)
-
-- **Source Code**: `codeuchain-cpp-v1.0.0.tar.gz` or `codeuchain-cpp-v1.0.0.zip`
-- **Ready to Build**: Includes build script, examples, and documentation
-- **No Dependencies**: Everything you need to get started
-
-### Quick Download Script
+Quick download and extract:
 
 ```bash
-# Download and extract the C++ package
-curl -L https://github.com/codeuchain/codeuchain/releases/download/cpp/v1.0.0/codeuchain-cpp-v1.0.0.tar.gz -o codeuchain-cpp.tar.gz
-tar -xzf codeuchain-cpp.tar.gz
+curl -L https://github.com/codeuchain/codeuchain/raw/main/releases/codeuchain-cpp-v1.0.0.tar.gz | tar xz
 cd codeuchain-cpp-v1.0.0
-
-# Build and run
 ./build.sh
 ./examples/simple_math
 ```
 
-### What's Included
-
-```
-codeuchain-cpp-v1.0.0/
-├── include/              # Header files
-├── src/                  # Source files
-├── examples/             # Example programs
-├── cmake/                # CMake configuration
-├── CMakeLists.txt        # Main build file
-├── build.sh              # Quick build script
-├── USAGE.md              # Getting started guide
-├── README.md             # Full documentation
-└── conanfile.py          # For Conan integration
-```
-
-### Perfect For
-
-- **Quick Evaluation**: Test CodeUChain without cloning the full repo
-- **Clean Integration**: No monorepo complexity in your project
-- **Offline Development**: Download once, work anywhere
-- **Minimal Footprint**: ~500KB download for full C++ implementation
-
+The release archive contains only the package sources, examples, `conanfile.py`, and build helpers (no other repo files).
 ## �🚀 Quick Start
 
 ### Prerequisites

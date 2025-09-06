@@ -77,3 +77,6 @@ hs_err_pid*
 # Package files
 *.nupkg
 *.snupkg
+
+# Build artifacts and generated packages
+cpp-package/
