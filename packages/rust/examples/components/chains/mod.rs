@@ -6,7 +6,7 @@ These are the orchestrators that get composed into features.
 */
 
 use codeuchain::core::context::Context;
-use codeuchain::core::link::Link;
+use codeuchain::core::link::LegacyLink;
 use codeuchain::core::middleware::Middleware;
 use codeuchain::core::chain::Chain;
 
@@ -25,7 +25,7 @@ impl BasicChain {
     }
 
     /// With gentle inclusion, store the link.
-    pub fn add_link(&mut self, name: String, link: Box<dyn Link>) {
+    pub fn add_link(&mut self, name: String, link: Box<dyn LegacyLink>) {
         self.chain.add_link(name, link);
     }
 
