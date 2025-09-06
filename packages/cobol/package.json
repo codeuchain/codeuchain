@@ -1,0 +1,48 @@
+{
+  "name": "codeuchain-cobol",
+  "version": "1.0.0",
+  "description": "CodeUChain COBOL Implementation - Universal Software Patterns in COBOL",
+  "main": "lib/src/main.cob",
+  "keywords": ["cobol", "codeuchain", "middleware", "chain", "link"],
+  "author": "CodeUChain Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/codeuchain/codeuchain"
+  },
+  "dependencies": {
+    "gnucobol": ">=3.0.0"
+  },
+  "engines": {
+    "cobol": ">=85"
+  },
+  "files": [
+    "lib/",
+    "examples/",
+    "docs/",
+    "README.md",
+    "Makefile"
+  ],
+  "scripts": {
+    "build": "make all",
+    "examples": "make examples",
+    "test": "make test",
+    "clean": "make clean",
+    "install": "make install"
+  },
+  "directories": {
+    "lib": "lib",
+    "example": "examples",
+    "doc": "docs"
+  },
+  "contributors": [
+    {
+      "name": "CodeUChain Team",
+      "email": "team@codeuchain.org"
+    }
+  ],
+  "bugs": {
+    "url": "https://github.com/codeuchain/codeuchain/issues"
+  },
+  "homepage": "https://github.com/codeuchain/codeuchain/tree/main/packages/cobol"
+}
