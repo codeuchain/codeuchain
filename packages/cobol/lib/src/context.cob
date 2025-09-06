@@ -65,7 +65,7 @@
                    MOVE LS-VALUE TO CONTEXT-VALUE
                    WRITE CONTEXT-RECORD
                    MOVE "SUCCESS" TO LS-RESULT
-                   DISPLAY "CONTEXT: Failed to create file"
+                   DISPLAY "CONTEXT: Record inserted"
                ELSE
                    MOVE "ERROR" TO LS-RESULT
                    DISPLAY "CONTEXT: Failed to create file"
