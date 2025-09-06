@@ -3,7 +3,7 @@ pub mod utils;
 
 // Re-export core types for convenience
 pub use core::context::{Context, MutableContext};
-pub use core::link::Link;
+pub use core::link::{Link, LegacyLink};
 pub use core::chain::Chain;
 pub use core::middleware::Middleware;
 

@@ -7,13 +7,13 @@ Core implementation that all chain implementations can build upon.
 
 use std::collections::HashMap;
 use crate::core::context::Context;
-use crate::core::link::Link;
+use crate::core::link::LegacyLink;
 use crate::core::middleware::Middleware;
 
 /// Loving weaver of links—connects with conditions, runs with selfless execution.
 /// Core implementation that provides full chain functionality.
 pub struct Chain {
-    links: HashMap<String, Box<dyn Link>>,
+    links: HashMap<String, Box<dyn LegacyLink>>,
     connections: Vec<(String, String, Box<dyn Fn(&Context) -> bool + Send + Sync>)>,
     middlewares: Vec<Box<dyn Middleware>>,
 }
@@ -29,7 +29,7 @@ impl Chain {
     }
 
     /// With gentle inclusion, store the link.
-    pub fn add_link(&mut self, name: String, link: Box<dyn Link>) {
+    pub fn add_link(&mut self, name: String, link: Box<dyn LegacyLink>) {
         self.links.insert(name, link);
     }
 
@@ -81,7 +81,7 @@ impl Chain {
     }
 
     /// Get a reference to the links
-    pub fn links(&self) -> &HashMap<String, Box<dyn Link>> {
+    pub fn links(&self) -> &HashMap<String, Box<dyn LegacyLink>> {
         &self.links
     }
 
