@@ -6,7 +6,7 @@ With selfless love, CodeUChain chains your code as links, observes with middlewa
 
 [![Go](https://img.shields.io/badge/Go-1.19+-blue)](https://golang.org/)
 [![Test Coverage](https://img.shields.io/badge/Coverage-97.5%25-brightgreen)](https://golang.org/)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 **Status**: ✅ **Production Ready** with comprehensive test coverage and typed features implementation.
 
@@ -270,7 +270,7 @@ result, err := chain.Run(context.Background(), inputContext)
 
 ## 📄 License
 
-MIT License - see LICENSE file for details
+Apache License 2.0 - see LICENSE file for details
 
 ---
 
