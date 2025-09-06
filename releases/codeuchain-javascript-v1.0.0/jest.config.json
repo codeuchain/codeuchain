@@ -1,0 +1,18 @@
+{
+  "testEnvironment": "node",
+  "testMatch": [
+    "**/__tests__/**/*.js",
+    "**/?(*.)+(spec|test).js",
+    "**/tests/**/*.js"
+  ],
+  "testPathIgnorePatterns": [
+    "<rootDir>/tests/test-setup.js"
+  ],
+  "collectCoverageFrom": [
+    "core/**/*.js",
+    "!core/index.js"
+  ],
+  "coverageDirectory": "coverage",
+  "coverageReporters": ["text", "lcov", "html"],
+  "setupFilesAfterEnv": ["<rootDir>/tests/test-setup.js"]
+}

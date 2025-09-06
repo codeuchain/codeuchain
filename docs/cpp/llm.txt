@@ -1,0 +1,54 @@
+# CodeUChain (C++) – Cheat Sheet
+
+Full reference: `docs/cpp/llm-full.txt`
+
+## Quick Start
+(Add library to your build system – header-only pattern suggested.)
+
+## Primitives
+- Link: `Context<Out> call(const Context<In>&)` (or async via coroutines)
+- Context<T>: copy-on-write style; `insert`, `insert_as<U>`
+- Chain: fluent composition; `catch_handler`
+- Middleware: wrappers around `call`
+
+## Minimal Link
+```cpp
+struct Parse : ILink<any_t, any_t> {
+    Context<any_t> call(const Context<any_t>& c) override {
+        return c.insert("parsed", true);
+    }
+};
+```
+
+## Chain Example
+```cpp
+auto chain = Chain{}
+    .then(std::make_shared<Validate>())
+    .then(std::make_shared<Parse>())
+    .catch_handler([](auto name, const std::exception& ex, auto ctx){
+            return ctx.insert("error", ex.what());
+    });
+```
+
+## Type Evolution
+```cpp
+auto evolved = ctx.insert_as<Parsed>("parsed", Parsed{tokens});
+```
+
+## Error Classification
+Transient (retry) vs Permanent (validation/security). Distinguish via custom exception types.
+
+## Performance Tips
+- Prefer move semantics
+- Reserve container capacity early
+- Avoid unnecessary heap allocations in links
+
+## ASCII Pipeline
+```
+[In] -> (Validate) -> (Parse) -> (Enrich) -> [Out]
+```
+
+## TL;DR
+Template links + move-aware immutable contexts + layered middleware.
+
+© 2025 Orchestrate LLC – Apache 2.0

@@ -1,0 +1,60 @@
+# CodeUChain (Go) – Cheat Sheet
+
+Full reference: `docs/go/llm-full.txt`
+
+## Quick Start
+```bash
+go get github.com/codeuchain/codeuchain/go
+```
+```go
+ctx := codeuchain.NewContext[any](map[string]any{"payload":"hi"})
+res, err := chain.Call(ctx)
+```
+
+## Primitives
+- Link: `Call(ctx Context[TIn]) (Context[TOut], error)`
+- Context: immutable map-like, `Insert`, `InsertAs` (type evolution)
+- Chain: ordered link composition + `Catch`
+- Middleware: `Before/After/OnError` (optional)
+
+## Minimal Link
+```go
+type Parse struct{}
+func (p *Parse) Call(c codeuchain.Context[any]) (codeuchain.Context[any], error) {
+    // transform
+    return c.Insert("parsed", true), nil
+}
+```
+
+## Chain Example
+```go
+chain := codeuchain.NewChain().
+  Then(&Validate{}).
+  Then(&Parse{}).
+  Catch(func(name string, err error, ctx codeuchain.Context[any]) (codeuchain.Context[any], error) {
+      return ctx.Insert("error", err.Error()), nil
+  })
+```
+
+## Type Evolution
+```go
+c2 := c1.InsertAs[Parsed]("parsed", Parsed{Tokens: toks})
+```
+
+## Error Classification
+Retry transient (network/timeouts); propagate permanent (validation, security).
+
+## Performance Tips
+- Batch small synchronous logic
+- Avoid unnecessary alloc copies
+- Log keys not large payload bodies
+
+## ASCII Pipeline
+```
+[In] -> (Validate) -> (Parse) -> (Enrich) -> [Out]
+```
+
+## TL;DR
+Selfless links + immutable contexts + evolvable types + gentle middleware.
+
+© 2025 Orchestrate LLC – Apache 2.0

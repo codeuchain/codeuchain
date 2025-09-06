@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <LangVersion>12.0</LangVersion>
     <PackageId>CodeUChain</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>CodeUChain Team</Authors>
     <Description>A modular framework for chaining processing links with middleware support, following agape philosophy.</Description>
     <RepositoryUrl>https://github.com/codeuchain/codeuchain</RepositoryUrl>
@@ -21,6 +21,7 @@
   <ItemGroup>
     <Compile Remove="tests/**" />
     <Compile Remove="examples/**" />
+    <Compile Remove="test-runner/**" />
   </ItemGroup>
 
 </Project>

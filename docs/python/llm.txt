@@ -1,0 +1,57 @@
+# CodeUChain (Python) – Cheat Sheet
+
+Full reference: `docs/python/llm-full.txt`
+
+## Quick Start
+```bash
+pip install codeuchain
+```
+```python
+from codeuchain import Context, Chain
+ctx = Context({"payload": "hi"})
+res = await chain.call(ctx)
+```
+
+## Primitives
+- Link: async `call(ctx: Context[TIn]) -> Context[TOut]`
+- Context: immutable mapping; `insert`, `insert_as`
+- Chain: composition + `.catch()`
+- Middleware: `before/after/error` coroutines
+
+## Minimal Link
+```python
+class Parse(Link[Any, Any]):
+        async def call(self, ctx: Context[Any]) -> Context[Any]:
+                return ctx.insert("parsed", True)
+```
+
+## Chain Example
+```python
+chain = Chain() \
+    .then(Validate()) \
+    .then(Parse()) \
+    .catch(lambda name, err, ctx: ctx.insert("error", str(err)))
+```
+
+## Type Evolution
+```python
+c2: Context[Parsed] = c1.insert_as("parsed", Parsed(tokens=toks))
+```
+
+## Error Classification
+Retry transient (I/O, timeout). Surface validation/security.
+
+## Performance Tips
+- Reuse event loop tasks
+- Avoid deep copy of large dict entries
+- Log structured keys only
+
+## ASCII Pipeline
+```
+[In] -> (Validate) -> (Parse) -> (Enrich) -> [Out]
+```
+
+## TL;DR
+Async links + immutable/evolving contexts + graceful middleware.
+
+© 2025 Orchestrate LLC – Apache 2.0

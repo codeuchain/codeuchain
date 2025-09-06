@@ -1,0 +1,59 @@
+# CodeUChain (C#) – Cheat Sheet
+
+Full reference: `docs/csharp/llm-full.txt`
+
+## Quick Start
+```bash
+dotnet add package CodeUChain
+```
+```csharp
+var ctx = Context.New(new { Payload = "hi" });
+var res = await chain.CallAsync(ctx);
+```
+
+## Primitives
+- Link: `Task<Context<TOut>> CallAsync(Context<TIn> ctx)`
+- Context<T>: immutable; `Insert`, `InsertAs<U>`
+- Chain: fluent builder + `.Catch()`
+- Middleware: `Before/After/OnError`
+
+## Minimal Link
+```csharp
+sealed class Parse : ILink<object, object>
+{
+        public Task<Context<object>> CallAsync(Context<object> ctx) =>
+                Task.FromResult(ctx.Insert("Parsed", true));
+}
+```
+
+## Chain Example
+```csharp
+var chain = Chain.Builder()
+    .Then(new Validate())
+    .Then(new Parse())
+    .Catch((name, ex, ctx) => Task.FromResult(ctx.Insert("Error", ex.Message)))
+    .Build();
+```
+
+## Type Evolution
+```csharp
+var evolved = ctx.InsertAs<Parsed>("Parsed", new Parsed(tokens));
+```
+
+## Error Classification
+Transient (retry w/ backoff) vs Permanent (validation, security). Tag via custom exception types.
+
+## Performance Tips
+- Prefer records / readonly structs for payload fragments
+- Avoid large object graph cloning
+- Use pooled builders for serialization
+
+## ASCII Pipeline
+```
+[In] -> (Validate) -> (Parse) -> (Enrich) -> [Out]
+```
+
+## TL;DR
+Async Tasks + immutable evolving contexts + disciplined middleware.
+
+© 2025 Orchestrate LLC – Apache 2.0

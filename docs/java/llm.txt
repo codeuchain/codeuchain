@@ -1,0 +1,60 @@
+# CodeUChain (Java) – Cheat Sheet
+
+Full reference: `docs/java/llm-full.txt`
+
+## Quick Start
+```bash
+# Gradle
+implementation "org.codeuchain:codeuchain:1.0.0"
+```
+```java
+var ctx = Context.of(Map.of("payload", "hi"));
+var res = chain.call(ctx).get();
+```
+
+## Primitives
+- Link: `CompletableFuture<Context<O>> call(Context<I> ctx)`
+- Context<T>: immutable; `insert`, `<U> insertAs`
+- Chain: fluent + `.catchHandler()`
+- Middleware: pre/post/error wrappers
+
+## Minimal Link
+```java
+final class Parse implements Link<Object, Object> {
+    public CompletableFuture<Context<Object>> call(Context<Object> ctx){
+        return completedFuture(ctx.insert("parsed", true));
+    }
+}
+```
+
+## Chain Example
+```java
+var chain = Chain.builder()
+    .then(new Validate())
+    .then(new Parse())
+    .catchHandler((name, ex, ctx) -> completedFuture(ctx.insert("error", ex.getMessage())))
+    .build();
+```
+
+## Type Evolution
+```java
+Context<Parsed> evolved = ctx.insertAs("parsed", new Parsed(tokens));
+```
+
+## Error Classification
+Retry transient (IO, 5xx); surface validation/security. Map using sealed hierarchy or enums.
+
+## Performance Tips
+- Avoid blocking joins; stay async
+- Reuse thread pools (virtual threads ready)
+- Minimize intermediate map copies
+
+## ASCII Pipeline
+```
+[In] -> (Validate) -> (Parse) -> (Enrich) -> [Out]
+```
+
+## TL;DR
+CompletableFuture links + immutable context + evolving typed payload.
+
+© 2025 Orchestrate LLC – Apache 2.0

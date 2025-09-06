@@ -1,0 +1,59 @@
+# CodeUChain (Rust) – Cheat Sheet
+
+Full reference: `docs/rust/llm-full.txt`
+
+## Quick Start
+```bash
+cargo add codeuchain
+```
+```rust
+let ctx = Context::new(json!({"payload":"hi"}));
+let res = chain.call(ctx).await?;
+```
+
+## Primitives
+- Trait Link: `async fn call(&self, ctx: Context<In>) -> Result<Context<Out>, Error>`
+- Context<T=Value>: immutable; `insert`, `insert_as` (serde_json::Value backed)
+- Chain: builder + `.catch()`
+- Middleware: wrappers with pre/post/error around `call`
+
+## Minimal Link
+```rust
+struct Parse;
+#[async_trait]
+impl Link<Value, Value> for Parse {
+    async fn call(&self, ctx: Context<Value>) -> Result<Context<Value>, Error> {
+        Ok(ctx.insert("parsed", json!(true)))
+    }
+}
+```
+
+## Chain Example
+```rust
+let chain = Chain::new()
+    .then(Parse)
+    .catch(|name, err, ctx| Ok(ctx.insert("error", json!(err.to_string()))));
+```
+
+## Type Evolution
+```rust
+let evolved: Context<Parsed> = ctx.insert_as("parsed", Parsed { tokens });
+```
+
+## Error Classification
+Implement `ErrorKind` (Transient, Validation, Security). Retry only `Transient`.
+
+## Performance Tips
+- Minimize cloning of large Values
+- Use borrowed data where viable
+- Integrate `tracing` spans per link
+
+## ASCII Pipeline
+```
+[In] -> (Validate) -> (Parse) -> (Enrich) -> [Out]
+```
+
+## TL;DR
+Async traits + serde-backed evolving contexts + layered middleware.
+
+© 2025 Orchestrate LLC – Apache 2.0

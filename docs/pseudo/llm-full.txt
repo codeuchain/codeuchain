@@ -1,0 +1,267 @@
+# CodeUChain (Pseudocode) - Full LLM Reference
+
+**Name:** CodeUChain (Pseudocode)  
+**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/pseudo  
+**Docs:** https://codeuchain.github.io/codeuchain/pseudo/  
+**Version:** 1.0.0  
+**License:** Apache 2.0  
+**Repository:** git+https://github.com/codeuchain/codeuchain.git  
+**Contact:** https://github.com/codeuchain/codeuchain/issues  
+**Authors:** CodeUChain contributors  
+
+---
+## 1. Purpose & Description
+This pseudocode package is the conceptual source of truth. It defines the neutral, language-agnostic mental model that every concrete implementation (Go, Python, JS/TS, C#, Rust, etc.) must honor: Links transform, Context carries immutable state with type evolution semantics, Chains compose, Middleware observes.
+
+| Pillar | Why It Exists | Invariance Across Languages |
+|--------|---------------|-----------------------------|
+| Link | Unit of transformation | Always exposes `call(context)` async/sync |
+| Context | Immutable data holder | Key-value + evolution method |
+| Chain | Ordered composition | Deterministic sequencing + error routing |
+| Middleware | Cross-cutting concern | before/after/error hooks |
+| Type Evolution | Gradual modeling | Widen without unsafe casts |
+
+---
+## 2. Core Primitives (Canonical Forms)
+```
+Link<Input, Output> {
+    call(ctx: Context<Input>) -> Context<Output>
+}
+
+Context<T> {
+    insert(key: string, value: any) -> Context<T>
+    insertAs<U>(key: string, value: any) -> Context<U>  // type evolution
+    get(key: string) -> any
+    has(key: string) -> boolean
+    keys() -> string[]
+}
+
+Chain {
+    then(link: Link) -> Chain
+    use(middleware: Middleware) -> Chain
+    catch(handler: ErrorHandler) -> Chain
+    call(ctx: Context<any>) -> Context<any>
+}
+
+Middleware {
+    before?(linkName, ctx)
+    after?(linkName, ctx)
+    onError?(linkName, ctx, error)
+}
+```
+
+---
+## 3. Expanded Concept Definitions
+### Link
+Single responsibility, deterministic given identical context slice. Should avoid external side effects unless explicitly designated (I/O, logging, metrics).
+
+### Context
+Immutable facade over internal associative store. Insert returns a new context preserving prior keys (copy-on-write or structural sharing). `insertAs` both inserts and semantically widens the type description.
+
+### Chain
+Declarative linear (optionally branching) assembly. Owns error routing and middleware invocation ordering: `before` (outer→inner), link call, `after` (inner→outer), `onError` if thrown.
+
+### Middleware
+Observer + conditional mutator. Must never invisibly swallow critical errors unless chain-level policy states otherwise.
+
+---
+## 4. Philosophy (Essence)
+Human reasoning is a chain of validated transformations. We externalize that into code: *explicit steps, explicit data surfaces, explicit evolution.* Errors are *information vectors*, not control-flow shame. Composition is the antidote to entropy.
+
+Patterns in nature (cell→tissue→organ→system) map to (link→subchain→module→service). The same fractal shape scales. CodeUChain preserves this fractality.
+
+Error lifecycle:
+```
+Raise → Classify → Tag in Context → (Retry | Compensate | Escalate)
+```
+
+---
+## 5. Implementation Guidance (New Language Port)
+1. Model primitives EXACTLY (names may localize but semantics fixed)  
+2. Leverage language generics (or parametric polymorphism) for `Link<Input, Output>`  
+3. Provide an untyped escape hatch (raw/dynamic context)  
+4. Ensure zero runtime overhead for typed vs untyped usage  
+5. Guarantee context immutability contract (defensive copy or persistent structure)  
+6. Provide ergonomic test utilities / builders  
+7. Document type evolution via examples  
+8. Supply middleware registration API symmetrical across languages
+
+---
+## 6. Language Family Nuances
+| Family | Priority Emphasis | Notes |
+|--------|------------------|-------|
+| Statically Typed (Go, C#, Java, Rust) | Compile-time contracts | Use generics / traits / interfaces |
+| Dynamically Typed (Python, JS) | Gradual typing | Provide optional static hints (PEP 484, TS) |
+| Systems (Rust, C++) | Zero-cost + safety | Avoid alloc churn in Context evolution |
+| Enterprise (Java, C#) | Tooling & integration | Annotations, DI friendliness |
+| Scripting (Bash, Lua) | Minimal wrappers | May inline chain logic for brevity |
+
+---
+## 7. Usage Examples (Abstract Pseudocode)
+### Basic Link
+```
+link ValidateEmail: Link<UserIn, UserIn> {
+    call(ctx):
+        u = ctx.get("user")
+        if not isValid(u.email): throw Error("invalid_email")
+        return ctx.insert("validated", true)
+}
+```
+
+### Chain Composition
+```
+chain UserPipeline = Chain.start(ValidateEmail)
+    .then(Normalize)
+    .then(Persist)
+    .catch(classifyAndTagErrors)
+
+finalCtx = UserPipeline.call(initialCtx)
+```
+
+### Middleware Skeleton
+```
+middleware Metrics {
+    before(name, ctx): ctx.insert("_t0", now())
+    after(name, ctx): log(name, now() - ctx.get("_t0"))
+    onError(name, ctx, err): logError(name, err)
+}
+```
+
+---
+## 8. Development Workflow (Canonical)
+1. Define domain data shape(s)  
+2. Write failing unit test for first link  
+3. Implement link until green  
+4. Compose link in chain; add integration test  
+5. Introduce middleware (metrics/logging)  
+6. Add error classification & retries  
+7. Optimize allocations / hot paths  
+8. Document evolution narrative (raw→enriched→classified)  
+
+---
+## 9. Quality Standards
+| Dimension | Target |
+|----------|--------|
+| Test Coverage | ≥90% lines + critical branches |
+| Allocation Regression | None without justification |
+| Error Surfaces | All errors tagged or propagated |
+| API Stability | Semantic version adherence |
+| Docs Freshness | Updated with every public change |
+
+---
+## 10. Testing Strategy
+Core categories:
+- Unit (per-link deterministic behavior)
+- Chain integration (ordering, propagation, branching)
+- Middleware (hook invocation order, error paths)
+- Property / fuzz (context key resilience, key collisions)
+- Performance micro-bench (context insert & chain call overhead)
+
+Pseudo test example:
+```
+test "email validation error":
+    ctx = Context.start({ user: { email: "bad" } })
+    expect(ValidateEmail.call(ctx)) throws "invalid_email"
+```
+
+---
+## 11. Performance Guidance
+| Concern | Strategy | Rationale |
+|---------|----------|-----------|
+| Context Copy Overhead | Structural sharing | Minimize allocations |
+| Deep Object Cloning | Shallow + reference reuse | Avoid quadratic cost |
+| Logging Hot Path | Sampling / deferred formatting | Reduce I/O stalls |
+| Retry Backoff | Exponential jitter | Prevent thundering herd |
+| Middleware Stack Depth | Flatten common composites | Avoid nested call overhead |
+
+Micro-benchmark shape:
+```
+for N in [10,100,1000]: run chain(links=N) measure avg latency
+```
+
+---
+## 12. Advanced Patterns
+- Conditional Link Inclusion (feature flag / predicate guarded)
+- Fan-Out / Fan-In (parallel subchains then merge contexts)
+- Saga Compensation (attach compensating links in error routes)
+- Streaming Adaptation (wrap chunk events into ephemeral contexts)
+- Progressive Type Evolution (Raw → Normalized → Enriched → Scored)
+- Retry with Classification (only retry on transient classification)
+- Observability Envelope (middleware that batches and flushes metrics)
+
+---
+## 13. Migration & Evolution Strategy
+Phase adoption:
+1. Start untyped context for speed  
+2. Introduce interfaces / structs for stable shapes  
+3. Replace transitional `insert` with `insertAs<StableShape>`  
+4. Extract shared chain fragments to libraries  
+5. Introduce richer middleware (tracing, metrics)  
+6. Optimize hotspots (allocation + serialization)  
+
+Backward compatibility rule: *No breaking changes to public Link/Chain/Context signatures without major version.*
+
+---
+## 14. Anti-Patterns
+| Anti-Pattern | Cost | Better |
+|--------------|------|--------|
+| Monolithic God Link | Un-testable | Split by responsibility |
+| Mutable Global Context | Hidden coupling | Pass explicit context | 
+| Silent Error Swallow | Debug pain | Tag & rethrow / classify |
+| Over-Logging Each Link | Noise & perf hit | Structured sampled logs |
+| Embedding Secrets in Context | Leakage risk | Reference secret manager |
+| Deep Cloning Entire Context | Performance drag | Persistent structure |
+
+---
+## 15. FAQ
+**Q:** Can I short-circuit a chain?  
+**A:** Throw a classified error or design a conditional link that returns early sentinel consumed by subsequent predicate.  
+
+**Q:** How do I branch?  
+**A:** Build two subchains; select at runtime; or implement predicate-based inclusion inside builder.  
+
+**Q:** Where do retries belong?  
+**A:** Decorate links (retry wrapper) or specialized middleware with classification filter.  
+
+**Q:** Should middleware mutate data?  
+**A:** Only for tagging / metadata; business transformations stay in links.  
+
+**Q:** How to handle partial failures?  
+**A:** Tag partial state in context; continue chain; final aggregation decides degrade vs abort.  
+
+---
+## 16. Glossary
+- **Evolution**: Transition of context type to a superset or refined shape.
+- **Classification**: Assigning semantic label to an error (retryable, permanent, security, validation).
+- **Compensation**: Reverse action executed in response to failure after partial success.
+- **Observer Middleware**: Middleware performing only observation (no mutation).
+- **Fractal Composition**: Reapplying the chain pattern at multiple abstraction levels.
+
+---
+## 17. TL;DR
+```text
+Primitives: Link + Chain + Context + Middleware + Type Evolution
+Philosophy: Explicit steps, immutable data, composition > inheritance
+Adoption: Start untyped → add evolution → optimize
+Performance: Structural sharing, sampling logs, classify retries
+Testing: Unit per link; integration per chain; fuzz context keys
+Avoid: God links, silent catches, deep cloning, secret embedding
+Outcome: Predictable, observable, evolvable pipelines
+```
+
+---
+## 18. Resources
+- Core Concepts: docs/core/
+- Translation Guide: docs/translation_guide.md
+- Language Strengths: docs/language_strengths.md
+- Philosophy: docs/agape_philosophy.md
+- Universal Foundation: docs/universal_foundation.md
+
+---
+## 19. Support
+- Issues: https://github.com/codeuchain/codeuchain/issues
+- Discussions: https://github.com/codeuchain/codeuchain/discussions
+- Documentation: https://codeuchain.github.io/codeuchain/pseudo/
+
+---
+© 2025 Orchestrate LLC (Joshua @orchestrate.solutions) – Apache 2.0

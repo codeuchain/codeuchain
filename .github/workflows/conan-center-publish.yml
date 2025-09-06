@@ -1,0 +1,68 @@
+name: Publish to Conan Center
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  conan-center-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Conan
+        run: |
+          pip install conan==2.0.17
+
+      - name: Setup Conan
+        run: |
+          conan profile detect --force
+          conan remote add conancenter https://center.conan.io || true
+
+      - name: Export and test package
+        run: |
+          cd packages/cpp
+          conan create . --build=missing
+          conan list "codeuchain/1.0.0:*"
+
+      - name: Upload to Conan Center
+        run: |
+          conan upload "codeuchain/1.0.0" -c -r conancenter --confirm
+        env:
+          CONAN_LOGIN_USERNAME: ${{ secrets.CONAN_LOGIN_USERNAME }}
+          CONAN_PASSWORD: ${{ secrets.CONAN_PASSWORD }}
+
+  validate-published:
+    needs: conan-center-publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Conan
+        run: |
+          pip install conan==2.0.17
+
+      - name: Setup Conan
+        run: |
+          conan profile detect --force
+          conan remote add conancenter https://center.conan.io || true
+
+      - name: Test published package
+        run: |
+          conan install --requires=codeuchain/1.0.0 --build=missing
+          echo "✅ Package successfully published and installable from Conan Center"

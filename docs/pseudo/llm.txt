@@ -1,0 +1,49 @@
+# CodeUChain (Pseudocode) – Cheat Sheet
+
+Full reference: `docs/pseudo/llm-full.txt`
+
+## Quick Start
+Conceptual only – adapt to target language.
+
+## Primitives
+- Link: `call(ctx: Context<Input>) -> Context<Output>`
+- Context: immutable map; `insert`, `insert_as`
+- Chain: sequence + `catch`
+- Middleware: `before/after/error`
+
+## Minimal Link
+```
+class Parse implements Link<any, any>:
+	call(ctx): return ctx.insert("parsed", true)
+```
+
+## Chain Example
+```
+chain = Chain()
+	.then(Validate())
+	.then(Parse())
+	.catch( (name, err, ctx) => ctx.insert("error", err.message) )
+```
+
+## Type Evolution
+```
+ctx2 = ctx1.insert_as("parsed", Parsed(tokens))
+```
+
+## Error Classification
+Retry transient (network/backoff). Propagate validation/security.
+
+## Performance Tips
+- Keep links pure
+- Avoid large structure copies
+- Classify errors early
+
+## ASCII Pipeline
+```
+[In] -> (Validate) -> (Parse) -> (Enrich) -> [Out]
+```
+
+## TL;DR
+Composable pure steps over an evolving immutable context.
+
+© 2025 Orchestrate LLC – Apache 2.0

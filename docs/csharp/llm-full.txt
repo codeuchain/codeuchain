@@ -1,0 +1,313 @@
+dotnet test --collect:"XPlat Code Coverage"
+dotnet test --filter "TestCategory=Unit"
+dotnet build
+dotnet run --project examples/
+# CodeUChain (C#) – Full LLM Reference
+
+**Name:** CodeUChain (C#)  
+**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/csharp  
+**Docs:** https://codeuchain.github.io/codeuchain/csharp/  
+**Version:** 1.0.0  
+**License:** Apache 2.0  
+**Repository:** git+https://github.com/codeuchain/codeuchain.git  
+**Contact:** https://github.com/codeuchain/codeuchain/issues  
+**Authors:** CodeUChain contributors  
+**Language:** C# 10+  
+**Target Frameworks:** .NET 6+, .NET 8 LTS  
+**Paradigm Keywords:** Composable Pipelines, Immutable Context, Type Evolution, Middleware Observability
+
+---
+## 1. Purpose & Philosophy
+Enterprise-grade composable async transformations with explicit data evolution and zero hidden mutation. Strong typing where you want it; runtime flexibility where you need it. Links remain pure, Context evolves immutably, Chains orchestrate, Middleware observes.
+
+| Principle | C# Expression | Benefit |
+|-----------|---------------|---------|
+| Selfless Links | `Task<Context<TOut>> CallAsync(Context<TIn>)` | Predictable, mockable |
+| Immutable Context | `ctx2 = ctx.Insert(k,v)` | No side-effect surprises |
+| Type Evolution | `InsertAs<TNew>()` (pattern) | Progressive modeling |
+| Observability | Middleware `Before/After/OnError` | Central instrumentation |
+| Mixed Strictness | Raw context fallback | Gradual adoption |
+
+---
+## 2. Architectural Overview
+```
+Http Request → Context<RequestDto>
+  | ValidateHeadersLink
+  v
+Context<ValidatedRequest>
+  | ParsePayloadLink
+  v
+Context<ParsedModel>
+  | EnrichLink (middleware: metrics, tracing)
+  v
+Context<EnrichedModel>
+```
+Branching, retry wrapping, and error classification integrate without altering primitive contracts.
+
+---
+## 3. Core Interfaces (Representative)
+```csharp
+public interface ILink<TIn, TOut> {
+  Task<Context<TOut>> CallAsync(Context<TIn> ctx, CancellationToken ct = default);
+}
+
+public sealed class Context<T> {
+  public bool Has(string key);
+  public object? Get(string key);         // optional typed Get<T>(key)
+  public Context<T> Insert(string key, object value);           // preserve type
+  public Context<TNew> InsertAs<TNew>(string key, object value); // type evolution
+  public IReadOnlyCollection<string> Keys { get; }
+  public IReadOnlyDictionary<string, object?> Snapshot();
+}
+
+public interface IMiddleware {
+  Task BeforeAsync(string linkName, Context<object?> ctx, CancellationToken ct);
+  Task AfterAsync(string linkName, Context<object?> ctx, CancellationToken ct);
+  Task OnErrorAsync(string linkName, Context<object?> ctx, Exception ex, CancellationToken ct);
+}
+```
+
+---
+## 4. Installation
+```bash
+dotnet add package CodeUChain   # (when published)
+
+# From source
+git clone https://github.com/codeuchain/codeuchain.git
+cd packages/csharp
+dotnet build
+```
+
+---
+## 5. Implementing a Link
+```csharp
+public record Inbound(string Email, string Body);
+public record Parsed(string Email, string[] Tokens);
+
+public sealed class ParseLink : ILink<Inbound, Parsed>
+{
+  public Task<Context<Parsed>> CallAsync(Context<Inbound> ctx, CancellationToken ct = default)
+  {
+    var email = (string)ctx.Get("Email")!;
+    if (!email.Contains('@')) throw new ArgumentException("invalid_email");
+    var body = (string)ctx.Get("Body")!;
+    var tokens = body.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    return Task.FromResult(ctx.InsertAs<Parsed>("Parsed", new Parsed(email, tokens)));
+  }
+}
+```
+
+### Link Composition
+```csharp
+var chain = Chain.Start(new ParseLink())
+  .Then(new EnrichLink())
+  .Catch((name, ex, c) => c.Insert("error", ex.Message));
+
+var result = await chain.CallAsync(Context.Start(new Inbound("a@b.com", "hello world")));
+```
+
+---
+## 6. Chain & Error Handling
+Typical error flow:
+```
+Throw → Middleware.OnError → Chain.Catch handler (optional) → propagate or convert
+```
+Retry wrapper example (simplified):
+```csharp
+public static ILink<TIn,TOut> WithRetry<TIn,TOut>(this ILink<TIn,TOut> inner, int attempts = 3, TimeSpan? delay = null)
+{
+  return new DelegateLink<TIn,TOut>(async (ctx, ct) => {
+    Exception? last = null;
+    for (var i=0;i<attempts;i++) {
+      try { return await inner.CallAsync(ctx, ct); }
+      catch (Exception ex) { last = ex; if (delay!=null) await Task.Delay(delay.Value, ct); }
+    }
+    throw last!;
+  });
+}
+```
+
+---
+## 7. Middleware Lifecycle
+```csharp
+public sealed class MetricsMiddleware : IMiddleware {
+  private readonly IStopwatchFactory _sw;
+  public MetricsMiddleware(IStopwatchFactory sw) => _sw = sw;
+  public Task BeforeAsync(string name, Context<object?> ctx, CancellationToken ct) {
+    ctx.Insert("_t0", _sw.StartNew());
+    return Task.CompletedTask;
+  }
+  public Task AfterAsync(string name, Context<object?> ctx, CancellationToken ct) {
+    var sw = (IStopwatch)ctx.Get("_t0")!;
+    Console.WriteLine($"{name} took {sw.ElapsedMilliseconds}ms");
+    return Task.CompletedTask;
+  }
+  public Task OnErrorAsync(string name, Context<object?> ctx, Exception ex, CancellationToken ct) {
+    Console.Error.WriteLine($"ERR {name}: {ex.Message}");
+    return Task.CompletedTask;
+  }
+}
+```
+Registration: `chain.Use(new MetricsMiddleware(...));`
+
+Guidelines:
+- Keep blocking IO out of `Before/After` unless essential.
+- Use `OnError` to classify & tag, not silently swallow.
+
+---
+## 8. Type Evolution Example
+```csharp
+public record Stage1(string Raw);
+public record Stage2(string Raw, string[] Tokens);
+public record Stage3(string Raw, string[] Tokens, double Score);
+
+ctx = ctx.InsertAs<Stage2>("Stage2", new Stage2(ctx.Get("Raw").ToString()!, Tokenize(ctx.Get("Raw").ToString()!)));
+ctx = ctx.InsertAs<Stage3>("Stage3", new Stage3(ctx.Get("Raw").ToString()!, ((Stage2)ctx.Get("Stage2")!).Tokens, 0.91));
+```
+Benefits: IntelliSense progression; safe widening without casts littering business code.
+
+---
+## 9. Testing & TDD
+```bash
+dotnet test
+```
+Example xUnit test:
+```csharp
+public class ParseLinkTests {
+  [Fact]
+  public async Task ParsesTokens() {
+    var ctx = Context.Start(new Inbound("a@b.com","hello world"));
+    var outCtx = await new ParseLink().CallAsync(ctx);
+    var parsed = (Parsed)outCtx.Get("Parsed")!;
+    Assert.Equal(2, parsed.Tokens.Length);
+  }
+}
+```
+Table-driven style with `Theory`:
+```csharp
+public class EmailCases {
+  [Theory]
+  [InlineData("a@b.com", true)]
+  [InlineData("bad", false)]
+  public async Task EmailValidation(string email, bool ok) {
+    var ctx = Context.Start(new Inbound(email, "body"));
+    if (ok) await new ParseLink().CallAsync(ctx);
+    else await Assert.ThrowsAsync<ArgumentException>(() => new ParseLink().CallAsync(ctx));
+  }
+}
+```
+
+---
+## 10. Observability & Diagnostics
+Strategies:
+- Middleware for metrics (EventCounters / OpenTelemetry)
+- Structured logging (Serilog / ILogger)
+- Correlation IDs inserted early in chain
+- Dump `ctx.Keys` only (avoid large payload logs)
+
+Debug middleware snippet:
+```csharp
+public sealed class DebugMw : IMiddleware {
+  public Task BeforeAsync(string n, Context<object?> c, CancellationToken t){ Console.WriteLine($"→ {n}"); return Task.CompletedTask; }
+  public Task AfterAsync(string n, Context<object?> c, CancellationToken t){ Console.WriteLine($"← {n}: [{string.Join(',', c.Keys)}]"); return Task.CompletedTask; }
+  public Task OnErrorAsync(string n, Context<object?> c, Exception e, CancellationToken t){ Console.WriteLine($"! {n} {e.Message}"); return Task.CompletedTask; }
+}
+```
+
+---
+## 11. Performance Guidance
+| Concern | Recommendation |
+|---------|---------------|
+| Allocation churn | Use pooled objects inside links when safe |
+| Boxing/unboxing | Provide typed `Get<T>()` helpers |
+| Logging overhead | Use `ILogger` with structured templates + filters |
+| Async overhead | Avoid unnecessary `async`/`await` pass-through |
+| Reflection cost | Cache delegates if reflection-based construction |
+
+Benchmark skeleton (BenchmarkDotNet):
+```csharp
+[MemoryDiagnoser]
+public class ChainBench {
+  private ILink<Inbound, Parsed> _chain = /* build chain */;
+  private Context<Inbound> _ctx = Context.Start(new Inbound("a@b.com","hello"));
+  [Benchmark] public Task<Context<Parsed>> Run() => _chain.CallAsync(_ctx);
+}
+```
+
+---
+## 12. Advanced Patterns
+- Conditional links (feature flag evaluation inside builder)
+- Fan-out subchains with Task.WhenAll then merge contexts
+- Retry + circuit breaker decorators
+- Saga compensation (append compensating links on success path, trigger on error)
+- Streaming ingestion (wrap message batches as contexts)
+- Partial failure tagging (collect soft failures, continue pipeline)
+
+---
+## 13. Migration & Adoption
+Phases:
+1. Start with raw contexts + minimal links
+2. Introduce records & generics (strong typing)
+3. Add middleware (metrics, logging)
+4. Introduce retry / circuit breakers
+5. Optimize allocations + add benchmarks
+6. Extract reusable chain fragments into libraries
+
+Backward compatibility: preserve public interfaces; evolve via extension methods / optional parameters.
+
+---
+## 14. Anti-Patterns
+| Anti-Pattern | Problem | Remedy |
+|--------------|---------|--------|
+| God Link | Hard to test | Decompose into smaller links |
+| Swallowing exceptions in middleware | Hidden failure | Tag then rethrow or classify |
+| Excessive reflection per call | Performance drag | Cache compiled delegates |
+| Logging full payload bodies | PII / performance | Log hashes / key fields |
+| Overusing dynamic | Loses safety | Constrain with generics + type evolution |
+
+---
+## 15. FAQ
+**Q:** How do I cancel a running chain?  
+**A:** Pass a `CancellationToken` through `CallAsync` and propagate to links & middleware.  
+
+**Q:** Can middleware mutate business data?  
+**A:** Prefer adding metadata only; keep domain mutations in links.  
+
+**Q:** How to branch?  
+**A:** Implement conditional builder methods or a link that inserts routing key & subsequent conditional links read it.  
+
+**Q:** How to short-circuit?  
+**A:** Throw an intentional classified exception or return a context consumed by a conditional terminator link.  
+
+**Q:** Is context thread-safe?  
+**A:** Immutable snapshots are safe to share; do not mutate underlying store.  
+
+---
+## 16. Glossary
+- **Link**: Async transformer (pure intent, minimal side effects).
+- **Chain**: Ordered composition executor.
+- **Context**: Immutable typed key-value state with evolution.
+- **Middleware**: Observability / policy layer around link execution.
+- **Type Evolution**: Progressive widening of context data contract.
+
+---
+## 17. TL;DR
+```text
+Install: dotnet add package CodeUChain
+Model: ILink + Chain + Context + Middleware + Type Evolution
+Adopt: Start raw → add records → add middleware → optimize
+Perf: Minimize allocations, structured logging, benchmark critical chains
+Testing: xUnit per link + integration chain tests + BenchmarkDotNet
+Errors: Classify, retry transient, propagate permanent
+Avoid: God links, silent catches, reflection hotspots, payload log dumps
+```
+
+---
+### Support & Resources
+- Issues: https://github.com/codeuchain/codeuchain/issues
+- Discussions: https://github.com/codeuchain/codeuchain/discussions
+- Examples: `packages/csharp/examples/`
+- License: Apache 2.0
+
+---
+© 2025 Orchestrate LLC (Joshua @orchestrate.solutions) – Apache 2.0

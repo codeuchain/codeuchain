@@ -1,10 +1,10 @@
 [package]
 name = "codeuchain"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
 description = "CodeUChain Rust: Agape-Optimized Implementation"
-license = "MIT"
-repository = "https://github.com/joshuawink/codeuchain"
+license = "Apache-2.0"
+repository = "https://github.com/codeuchain/codeuchain"
 keywords = ["chain", "middleware", "async", "processing"]
 categories = ["asynchronous", "data-structures"]
 
@@ -18,3 +18,19 @@ anyhow = "1.0"
 
 [dev-dependencies]
 tokio-test = "0.4"
+
+[[example]]
+name = "typed_features"
+path = "examples/typed_features.rs"
+
+[[example]]
+name = "simple_math"
+path = "examples/simple_math.rs"
+
+[[example]]
+name = "timing_example"
+path = "examples/timing_example.rs"
+
+[[example]]
+name = "timing_formats"
+path = "examples/timing_formats.rs"

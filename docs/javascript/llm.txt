@@ -1,0 +1,57 @@
+# CodeUChain (JavaScript/TypeScript) – Cheat Sheet
+
+Full reference: `docs/javascript/llm-full.txt`
+
+## Quick Start
+```bash
+npm install codeuchain
+```
+```ts
+import { Context, Chain } from 'codeuchain'
+const ctx = new Context({ payload: 'hi' })
+const res = await chain.call(ctx)
+```
+
+## Primitives
+- Link: `call(ctx: Context<TIn>): Promise<Context<TOut>>`
+- Context: immutable-like; `insert`, `insertAs`
+- Chain: `.then(link)` + `.catch(handler)`
+- Middleware: `{ before, after, error }`
+
+## Minimal Link
+```ts
+class Parse implements Link<any, any> {
+  async call(ctx: Context<any>) { return ctx.insert('parsed', true) }
+}
+```
+
+## Chain Example
+```ts
+const chain = new Chain()
+  .then(new Validate())
+  .then(new Parse())
+  .catch((name, err, ctx) => ctx.insert('error', err.message))
+```
+
+## Type Evolution
+```ts
+const c2 = c1.insertAs<Parsed>('parsed', { tokens })
+```
+
+## Error Classification
+Retry transient (HTTP 429/5xx, timeouts). Bubble validation/auth.
+
+## Performance Tips
+- Avoid large object cloning
+- Use structured logging fields
+- Keep link bodies pure
+
+## ASCII Pipeline
+```
+[In] -> (Validate) -> (Parse) -> (Enrich) -> [Out]
+```
+
+## TL;DR
+Promise links + evolving contexts + ergonomic middleware.
+
+© 2025 Orchestrate LLC – Apache 2.0
