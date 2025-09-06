@@ -1,260 +1,516 @@
-/*!/*!
+/*!/*!/*!
+
+Timing Middleware
 
 Timing MiddlewareTiming Middleware Utility: High-Performance Timing Component
 
+High-performance timing middleware for measuring link execution times with multiple output formats.
+
+*/
 
 
-High-performance timing middleware for measuring link execution times with multiple output formats.A comprehensive timing middleware utility for CodeUChain that provides:
 
-*/- Per-invocation and aggregate timing statistics
+use crate::core::{Context, Middleware, LegacyLink};High-performance timing middleware for measuring link execution times with multiple output formats.A comprehensive timing middleware utility for CodeUChain that provides:
 
-- Multiple output formats (Tabular, CSV)
+use std::collections::HashMap;
 
-use crate::core::{Context, Middleware, LegacyLink};- Configurable time units and precision
+use std::sync::{Arc, Mutex};*/- Per-invocation and aggregate timing statistics
 
-use std::collections::HashMap;- Thread-safe operation
+use std::time::{Duration, Instant};
 
-use std::sync::{Arc, Mutex};- Auto-print functionality
+use serde::{Deserialize, Serialize};- Multiple output formats (Tabular, CSV)
 
-use std::time::{Duration, Instant};- Marketplace-ready component design
 
-use serde::{Deserialize, Serialize};
 
-Usage:
+/// Time unit for formatting durationsuse crate::core::{Context, Middleware, LegacyLink};- Configurable time units and precision
 
-/// Time unit for formatting durations```rust
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]use codeuchain::utils::timing_middleware::{TimingMiddleware, FormatConfig, TimeUnit, OutputFormat};
+pub enum TimeUnit {use std::collections::HashMap;- Thread-safe operation
 
-pub enum TimeUnit {
+    Nano,
 
-    Nano,let timing = TimingMiddleware::new();
-
-    Micro,chain.use_middleware(Box::new(timing));
+    Micro,use std::sync::{Arc, Mutex};- Auto-print functionality
 
     Milli,
 
-    Auto,// Or with custom config
+    Auto,use std::time::{Duration, Instant};- Marketplace-ready component design
 
-}let config = FormatConfig {
+}
 
-    time_unit: TimeUnit::Auto,
+use serde::{Deserialize, Serialize};
 
-/// Output format for timing reports    decimal_places: 3,
+/// Output format for timing reports
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]    show_raw_ns: true,
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]Usage:
 
-pub enum OutputFormat {    output_format: OutputFormat::Tabular,
+pub enum OutputFormat {
 
-    Tabular,    show_total: true,
+    Tabular,/// Time unit for formatting durations```rust
 
-    Csv,    show_avg: true,
+    Csv,
 
-}    show_calls: true,
+}#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]use codeuchain::utils::timing_middleware::{TimingMiddleware, FormatConfig, TimeUnit, OutputFormat};
 
-};
 
-/// Configuration for timing middleware output formatting
 
-#[derive(Debug, Clone, Serialize, Deserialize)]let timing = TimingMiddleware::with_config(true, true, config);
+/// Configuration for timing middleware output formattingpub enum TimeUnit {
 
-pub struct FormatConfig {chain.use_middleware(Box::new(timing));
+#[derive(Debug, Clone, Serialize, Deserialize)]
 
-    pub time_unit: TimeUnit,```
+pub struct FormatConfig {    Nano,let timing = TimingMiddleware::new();
 
-    pub decimal_places: usize,*/
+    pub time_unit: TimeUnit,
+
+    pub decimal_places: usize,    Micro,chain.use_middleware(Box::new(timing));
 
     pub show_raw_ns: bool,
 
-    pub output_format: OutputFormat,use async_trait::async_trait;
+    pub output_format: OutputFormat,    Milli,
 
-    pub show_total: bool,use crate::core::context::Context;
+    pub show_total: bool,
 
-    pub show_avg: bool,use crate::core::link::LegacyLink;
-
-    pub show_calls: bool,use crate::core::middleware::Middleware;
-
-}use std::collections::{HashMap, VecDeque};
-
-use std::sync::Mutex;
-
-impl Default for FormatConfig {
-
-    fn default() -> Self {/// Comprehensive timing middleware for performance monitoring
-
-        Self {#[derive(Debug)]
-
-            time_unit: TimeUnit::Auto,pub struct TimingMiddleware {
-
-            decimal_places: 2,    per_invocation: bool,
-
-            show_raw_ns: false,    auto_print: bool,
-
-            output_format: OutputFormat::Tabular,    format_config: FormatConfig,
-
-            show_total: true,    link_stats: Mutex<HashMap<String, LinkStats>>,
-
-            show_avg: true,    active_timings: Mutex<VecDeque<(String, std::time::Instant)>>,
-
-            show_calls: true,    chain_start: Mutex<Option<std::time::Instant>>,
-
-        }    chain_total_ns: Mutex<f64>,
-
-    }    link_counter: Mutex<u32>, // Add a counter for unique IDs
-
-}}
-
-
-
-/// Timing statistics for a single link/// Configuration for timing middleware output formatting
-
-#[derive(Debug, Clone)]#[derive(Debug, Clone)]
-
-struct LinkStats {pub struct FormatConfig {
-
-    name: String,    pub time_unit: TimeUnit,
-
-    calls: u64,    pub decimal_places: usize,
-
-    total_ns: u128,    pub show_raw_ns: bool,
-
-    min_ns: u128,    pub output_format: OutputFormat,
-
-    max_ns: u128,    pub show_total: bool,
-
-}    pub show_avg: bool,
+    pub show_avg: bool,    Auto,// Or with custom config
 
     pub show_calls: bool,
 
-/// Timing middleware for measuring execution times}
+}}let config = FormatConfig {
 
-pub struct TimingMiddleware {
 
-    per_invocation: bool,/// Time unit options for display
 
-    auto_print: bool,#[derive(Debug, Clone)]
+impl Default for FormatConfig {    time_unit: TimeUnit::Auto,
 
-    config: FormatConfig,pub enum TimeUnit {
+    fn default() -> Self {
 
-    stats: Arc<Mutex<HashMap<String, LinkStats>>>,    Nano,
+        Self {/// Output format for timing reports    decimal_places: 3,
 
-    start_times: Arc<Mutex<HashMap<String, Instant>>>,    Micro,
+            time_unit: TimeUnit::Auto,
 
-}    Milli,
+            decimal_places: 2,#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]    show_raw_ns: true,
 
-    Auto,
+            show_raw_ns: false,
 
-impl TimingMiddleware {}
+            output_format: OutputFormat::Tabular,pub enum OutputFormat {    output_format: OutputFormat::Tabular,
 
-    /// Create a new timing middleware with default configuration
+            show_total: true,
 
-    pub fn new() -> Self {/// Output format options
+            show_avg: true,    Tabular,    show_total: true,
 
-        Self::with_config(false, false, FormatConfig::default())#[derive(Debug, Clone)]
+            show_calls: true,
 
-    }pub enum OutputFormat {
-
-    Tabular,
-
-    /// Create timing middleware with custom configuration    CSV,
-
-    pub fn with_config(per_invocation: bool, auto_print: bool, config: FormatConfig) -> Self {}
-
-        Self {
-
-            per_invocation,/// Statistics for a single link
-
-            auto_print,#[derive(Debug, Clone)]
-
-            config,struct LinkStats {
-
-            stats: Arc::new(Mutex::new(HashMap::new())),    total_ns: f64,
-
-            start_times: Arc::new(Mutex::new(HashMap::new())),    samples_ns: Vec<f64>,
-
-        }}
+        }    Csv,    show_avg: true,
 
     }
 
+}}    show_calls: true,
+
+
+
+/// Timing statistics for a single link};
+
+#[derive(Debug, Clone)]
+
+struct LinkStats {/// Configuration for timing middleware output formatting
+
+    name: String,
+
+    calls: u64,#[derive(Debug, Clone, Serialize, Deserialize)]let timing = TimingMiddleware::with_config(true, true, config);
+
+    total_ns: u128,
+
+    min_ns: u128,pub struct FormatConfig {chain.use_middleware(Box::new(timing));
+
+    max_ns: u128,
+
+}    pub time_unit: TimeUnit,```
+
+
+
+/// Timing middleware for measuring execution times    pub decimal_places: usize,*/
+
+pub struct TimingMiddleware {
+
+    per_invocation: bool,    pub show_raw_ns: bool,
+
+    auto_print: bool,
+
+    config: FormatConfig,    pub output_format: OutputFormat,use async_trait::async_trait;
+
+    stats: Arc<Mutex<HashMap<String, LinkStats>>>,
+
+    start_times: Arc<Mutex<HashMap<String, Instant>>>,    pub show_total: bool,use crate::core::context::Context;
+
+}
+
+    pub show_avg: bool,use crate::core::link::LegacyLink;
+
 impl TimingMiddleware {
 
-    /// Format duration in human-readable format    /// Create a new timing middleware with default settings
+    /// Create a new timing middleware with default configuration    pub show_calls: bool,use crate::core::middleware::Middleware;
 
-    fn format_duration(&self, ns: u128) -> String {    pub fn new() -> Self {
+    pub fn new() -> Self {
 
-        let ns_f64 = ns as f64;        Self {
+        Self::with_config(false, false, FormatConfig::default())}use std::collections::{HashMap, VecDeque};
 
-        match self.config.time_unit {            per_invocation: false,
+    }
 
-            TimeUnit::Nano => format!("{:.1$} ns", ns_f64, self.config.decimal_places),            auto_print: true,
+use std::sync::Mutex;
 
-            TimeUnit::Micro => format!("{:.1$} μs", ns_f64 / 1000.0, self.config.decimal_places),            format_config: FormatConfig {
+    /// Create timing middleware with custom configuration
 
-            TimeUnit::Milli => format!("{:.1$} ms", ns_f64 / 1_000_000.0, self.config.decimal_places),                time_unit: TimeUnit::Auto,
+    pub fn with_config(per_invocation: bool, auto_print: bool, config: FormatConfig) -> Self {impl Default for FormatConfig {
 
-            TimeUnit::Auto => {                decimal_places: 2,
+        Self {
 
-                if ns < 1_000 {                show_raw_ns: false,
+            per_invocation,    fn default() -> Self {/// Comprehensive timing middleware for performance monitoring
 
-                    format!("{:.1$} ns", ns_f64, self.config.decimal_places)                output_format: OutputFormat::Tabular,
+            auto_print,
 
-                } else if ns < 1_000_000 {                show_total: true,
+            config,        Self {#[derive(Debug)]
 
-                    format!("{:.1$} μs", ns_f64 / 1000.0, self.config.decimal_places)                show_avg: true,
+            stats: Arc::new(Mutex::new(HashMap::new())),
 
-                } else {                show_calls: true,
+            start_times: Arc::new(Mutex::new(HashMap::new())),            time_unit: TimeUnit::Auto,pub struct TimingMiddleware {
 
-                    format!("{:.1$} ms", ns_f64 / 1_000_000.0, self.config.decimal_places)            },
+        }
 
-                }            link_stats: Mutex::new(HashMap::new()),
+    }            decimal_places: 2,    per_invocation: bool,
 
-            }            active_timings: Mutex::new(VecDeque::new()),
 
-        }            chain_start: Mutex::new(None),
 
-    }            chain_total_ns: Mutex::new(0.0),
+    /// Format duration in human-readable format            show_raw_ns: false,    auto_print: bool,
 
-            link_counter: Mutex::new(0),
+    fn format_duration(&self, ns: u128) -> String {
 
-    /// Generate timing report        }
+        let ns_f64 = ns as f64;            output_format: OutputFormat::Tabular,    format_config: FormatConfig,
 
-    pub fn report(&self) -> String {    }
+        match self.config.time_unit {
+
+            TimeUnit::Nano => format!("{:.1$} ns", ns_f64, self.config.decimal_places),            show_total: true,    link_stats: Mutex<HashMap<String, LinkStats>>,
+
+            TimeUnit::Micro => format!("{:.1$} μs", ns_f64 / 1000.0, self.config.decimal_places),
+
+            TimeUnit::Milli => format!("{:.1$} ms", ns_f64 / 1_000_000.0, self.config.decimal_places),            show_avg: true,    active_timings: Mutex<VecDeque<(String, std::time::Instant)>>,
+
+            TimeUnit::Auto => {
+
+                if ns < 1_000 {            show_calls: true,    chain_start: Mutex<Option<std::time::Instant>>,
+
+                    format!("{:.1$} ns", ns_f64, self.config.decimal_places)
+
+                } else if ns < 1_000_000 {        }    chain_total_ns: Mutex<f64>,
+
+                    format!("{:.1$} μs", ns_f64 / 1000.0, self.config.decimal_places)
+
+                } else {    }    link_counter: Mutex<u32>, // Add a counter for unique IDs
+
+                    format!("{:.1$} ms", ns_f64 / 1_000_000.0, self.config.decimal_places)
+
+                }}}
+
+            }
+
+        }
+
+    }
+
+/// Timing statistics for a single link/// Configuration for timing middleware output formatting
+
+    /// Generate timing report
+
+    pub fn report(&self) -> String {#[derive(Debug, Clone)]#[derive(Debug, Clone)]
 
         let stats = self.stats.lock().unwrap();
 
-        if stats.is_empty() {    /// Create timing middleware with custom configuration
+        if stats.is_empty() {struct LinkStats {pub struct FormatConfig {
 
-            return "No timing data collected".to_string();    pub fn with_config(per_invocation: bool, auto_print: bool, format_config: FormatConfig) -> Self {
+            return "No timing data collected".to_string();
 
-        }        Self {
+        }    name: String,    pub time_unit: TimeUnit,
 
-            per_invocation,
 
-        let mut result = String::new();            auto_print,
 
-        result.push_str("== TimingMiddleware Report ==\n");            format_config,
+        let mut result = String::new();    calls: u64,    pub decimal_places: usize,
 
-            link_stats: Mutex::new(HashMap::new()),
+        result.push_str("== TimingMiddleware Report ==\n");
 
-        match self.config.output_format {            active_timings: Mutex::new(VecDeque::new()),
+    total_ns: u128,    pub show_raw_ns: bool,
+
+        match self.config.output_format {
+
+            OutputFormat::Tabular => {    min_ns: u128,    pub output_format: OutputFormat,
+
+                result.push_str(&format!("{:<20} {:<8} {:<12} {:<12} {:<12}\n",
+
+                    "Link", "Calls", "Total", "Avg", "Max"));    max_ns: u128,    pub show_total: bool,
+
+                result.push_str(&"-".repeat(64));
+
+                result.push_str("\n");}    pub show_avg: bool,
+
+
+
+                for stat in stats.values() {    pub show_calls: bool,
+
+                    let avg_ns = if stat.calls > 0 { stat.total_ns / stat.calls as u128 } else { 0 };
+
+                    result.push_str(&format!("{:<20} {:<8} {:<12} {:<12} {:<12}\n",/// Timing middleware for measuring execution times}
+
+                        stat.name,
+
+                        stat.calls,pub struct TimingMiddleware {
+
+                        self.format_duration(stat.total_ns),
+
+                        self.format_duration(avg_ns),    per_invocation: bool,/// Time unit options for display
+
+                        self.format_duration(stat.max_ns)));
+
+                }    auto_print: bool,#[derive(Debug, Clone)]
+
+            }
+
+            OutputFormat::Csv => {    config: FormatConfig,pub enum TimeUnit {
+
+                result.push_str("Link,Calls,Total,Avg,Max\n");
+
+                for stat in stats.values() {    stats: Arc<Mutex<HashMap<String, LinkStats>>>,    Nano,
+
+                    let avg_ns = if stat.calls > 0 { stat.total_ns / stat.calls as u128 } else { 0 };
+
+                    result.push_str(&format!("{},{},{},{},{}\n",    start_times: Arc<Mutex<HashMap<String, Instant>>>,    Micro,
+
+                        stat.name,
+
+                        stat.calls,}    Milli,
+
+                        self.format_duration(stat.total_ns),
+
+                        self.format_duration(avg_ns),    Auto,
+
+                        self.format_duration(stat.max_ns)));
+
+                }impl TimingMiddleware {}
+
+            }
+
+        }    /// Create a new timing middleware with default configuration
+
+
+
+        result    pub fn new() -> Self {/// Output format options
+
+    }
+
+}        Self::with_config(false, false, FormatConfig::default())#[derive(Debug, Clone)]
+
+
+
+#[async_trait::async_trait]    }pub enum OutputFormat {
+
+impl Middleware for TimingMiddleware {
+
+    async fn before(&self, link: &dyn LegacyLink, _ctx: &Context) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {    Tabular,
+
+        if self.per_invocation {
+
+            let mut start_times = self.start_times.lock().unwrap();    /// Create timing middleware with custom configuration    CSV,
+
+            start_times.insert(link.name().to_string(), Instant::now());
+
+        }    pub fn with_config(per_invocation: bool, auto_print: bool, config: FormatConfig) -> Self {}
+
+        Ok(())
+
+    }        Self {
+
+
+
+    async fn after(&self, link: &dyn LegacyLink, _ctx: &Context) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {            per_invocation,/// Statistics for a single link
+
+        let duration = if self.per_invocation {
+
+            let mut start_times = self.start_times.lock().unwrap();            auto_print,#[derive(Debug, Clone)]
+
+            if let Some(start) = start_times.remove(&link.name().to_string()) {
+
+                start.elapsed()            config,struct LinkStats {
+
+            } else {
+
+                Duration::from_nanos(0)            stats: Arc::new(Mutex::new(HashMap::new())),    total_ns: f64,
+
+            }
+
+        } else {            start_times: Arc::new(Mutex::new(HashMap::new())),    samples_ns: Vec<f64>,
+
+            Duration::from_nanos(0) // Simplified for basic implementation
+
+        };        }}
+
+
+
+        let ns = duration.as_nanos();    }
+
+        let link_name = link.name().to_string();
+
+impl TimingMiddleware {
+
+        {
+
+            let mut stats = self.stats.lock().unwrap();    /// Format duration in human-readable format    /// Create a new timing middleware with default settings
+
+            let stat = stats.entry(link_name.clone()).or_insert(LinkStats {
+
+                name: link_name,    fn format_duration(&self, ns: u128) -> String {    pub fn new() -> Self {
+
+                calls: 0,
+
+                total_ns: 0,        let ns_f64 = ns as f64;        Self {
+
+                min_ns: u128::MAX,
+
+                max_ns: 0,        match self.config.time_unit {            per_invocation: false,
+
+            });
+
+            TimeUnit::Nano => format!("{:.1$} ns", ns_f64, self.config.decimal_places),            auto_print: true,
+
+            stat.calls += 1;
+
+            stat.total_ns += ns;            TimeUnit::Micro => format!("{:.1$} μs", ns_f64 / 1000.0, self.config.decimal_places),            format_config: FormatConfig {
+
+            stat.min_ns = stat.min_ns.min(ns);
+
+            stat.max_ns = stat.max_ns.max(ns);            TimeUnit::Milli => format!("{:.1$} ms", ns_f64 / 1_000_000.0, self.config.decimal_places),                time_unit: TimeUnit::Auto,
+
+        }
+
+            TimeUnit::Auto => {                decimal_places: 2,
+
+        if self.auto_print && self.per_invocation {
+
+            println!("Timing: {} took {}", link.name(), self.format_duration(ns));                if ns < 1_000 {                show_raw_ns: false,
+
+        }
+
+                    format!("{:.1$} ns", ns_f64, self.config.decimal_places)                output_format: OutputFormat::Tabular,
+
+        Ok(())
+
+    }                } else if ns < 1_000_000 {                show_total: true,
+
+
+
+    fn name(&self) -> &str {                    format!("{:.1$} μs", ns_f64 / 1000.0, self.config.decimal_places)                show_avg: true,
+
+        "TimingMiddleware"
+
+    }                } else {                show_calls: true,
+
+}
+
+                    format!("{:.1$} ms", ns_f64 / 1_000_000.0, self.config.decimal_places)            },
+
+/// Create a minimal timing middleware configuration
+
+pub fn create_minimal_timing_middleware() -> TimingMiddleware {                }            link_stats: Mutex::new(HashMap::new()),
+
+    TimingMiddleware::with_config(
+
+        true,            }            active_timings: Mutex::new(VecDeque::new()),
+
+        true,
+
+        FormatConfig {        }            chain_start: Mutex::new(None),
+
+            time_unit: TimeUnit::Auto,
+
+            decimal_places: 1,    }            chain_total_ns: Mutex::new(0.0),
+
+            show_raw_ns: false,
+
+            output_format: OutputFormat::Tabular,            link_counter: Mutex::new(0),
+
+            show_total: false,
+
+            show_avg: true,    /// Generate timing report        }
+
+            show_calls: true,
+
+        }    pub fn report(&self) -> String {    }
+
+    )
+
+}        let stats = self.stats.lock().unwrap();
+
+
+
+/// Create a detailed timing middleware configuration        if stats.is_empty() {    /// Create timing middleware with custom configuration
+
+pub fn create_detailed_timing_middleware() -> TimingMiddleware {
+
+    TimingMiddleware::with_config(            return "No timing data collected".to_string();    pub fn with_config(per_invocation: bool, auto_print: bool, format_config: FormatConfig) -> Self {
+
+        true,
+
+        false,        }        Self {
+
+        FormatConfig {
+
+            time_unit: TimeUnit::Micro,            per_invocation,
+
+            decimal_places: 3,
+
+            show_raw_ns: true,        let mut result = String::new();            auto_print,
+
+            output_format: OutputFormat::Tabular,
+
+            show_total: true,        result.push_str("== TimingMiddleware Report ==\n");            format_config,
+
+            show_avg: true,
+
+            show_calls: true,            link_stats: Mutex::new(HashMap::new()),
+
+        }
+
+    )        match self.config.output_format {            active_timings: Mutex::new(VecDeque::new()),
+
+}
 
             OutputFormat::Tabular => {            chain_start: Mutex::new(None),
 
-                result.push_str(&format!("{:<20} {:<8} {:<12} {:<12} {:<12}\n",            chain_total_ns: Mutex::new(0.0),
+/// Create a CSV timing middleware configuration
 
-                    "Link", "Calls", "Total", "Avg", "Max"));            link_counter: Mutex::new(0),
+pub fn create_csv_timing_middleware() -> TimingMiddleware {                result.push_str(&format!("{:<20} {:<8} {:<12} {:<12} {:<12}\n",            chain_total_ns: Mutex::new(0.0),
 
-                result.push_str(&"-".repeat(64));        }
+    TimingMiddleware::with_config(
 
-                result.push_str("\n");    }
+        true,                    "Link", "Calls", "Total", "Avg", "Max"));            link_counter: Mutex::new(0),
 
+        false,
 
+        FormatConfig {                result.push_str(&"-".repeat(64));        }
 
-                for stat in stats.values() {    /// Format time duration in human-readable format
+            time_unit: TimeUnit::Milli,
 
-                    let avg_ns = if stat.calls > 0 { stat.total_ns / stat.calls as u128 } else { 0 };    fn human_time(&self, ns_val: f64) -> String {
+            decimal_places: 2,                result.push_str("\n");    }
 
-                    result.push_str(&format!("{:<20} {:<8} {:<12} {:<12} {:<12}\n",        let mut display_val = ns_val;
+            show_raw_ns: false,
+
+            output_format: OutputFormat::Csv,
+
+            show_total: true,
+
+            show_avg: true,                for stat in stats.values() {    /// Format time duration in human-readable format
+
+            show_calls: true,
+
+        }                    let avg_ns = if stat.calls > 0 { stat.total_ns / stat.calls as u128 } else { 0 };    fn human_time(&self, ns_val: f64) -> String {
+
+    )
+
+}                    result.push_str(&format!("{:<20} {:<8} {:<12} {:<12} {:<12}\n",        let mut display_val = ns_val;
 
                         stat.name,        let unit: String;
 
