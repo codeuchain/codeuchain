@@ -1,32 +1,49 @@
-# CodeUChain (Pseudocode) - LLM Reference
+# CodeUChain (Pseudocode) – Cheat Sheet
 
-**Name:** CodeUChain (Pseudocode)  
-**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/pseudo  
-**Docs:** https://codeuchain.github.io/codeuchain/pseudo/  
-**Version:** 1.0.0  
-**License:** MIT  
-**Repository:** git+https://github.com/codeuchain/codeuchain.git  
-**Contact:** https://github.com/codeuchain/codeuchain/issues  
+Full reference: `docs/pseudo/llm-full.txt`
 
-**Description:** Language-agnostic pseudocode and philosophy that describes the CodeUChain primitives and patterns.
+## Quick Start
+Conceptual only – adapt to target language.
 
-**Key Features:**
-- Universal conceptual foundation
-- Language-agnostic patterns
-- Philosophy and design principles
-- Translation guides for implementations
-- Core concept documentation
+## Primitives
+- Link: `call(ctx: Context<Input>) -> Context<Output>`
+- Context: immutable map; `insert`, `insert_as`
+- Chain: sequence + `catch`
+- Middleware: `before/after/error`
 
-**Core Concepts:**
-- **Link**: Processing unit that transforms input to output
-- **Context**: Immutable data container with insertion methods
-- **Chain**: Orchestrator that composes links together
-- **Middleware**: Cross-cutting concerns and error handling
-
-**Basic Pattern:**
+## Minimal Link
 ```
-Input Context → Link → Output Context → Next Link → Final Result
+class Parse implements Link<any, any>:
+	call(ctx): return ctx.insert("parsed", true)
 ```
 
-**Philosophy:**
-CodeUChain isn't just a framework—it's the natural way software should be built. It aligns with how humans think, how systems evolve, and how complexity should be managed.
+## Chain Example
+```
+chain = Chain()
+	.then(Validate())
+	.then(Parse())
+	.catch( (name, err, ctx) => ctx.insert("error", err.message) )
+```
+
+## Type Evolution
+```
+ctx2 = ctx1.insert_as("parsed", Parsed(tokens))
+```
+
+## Error Classification
+Retry transient (network/backoff). Propagate validation/security.
+
+## Performance Tips
+- Keep links pure
+- Avoid large structure copies
+- Classify errors early
+
+## ASCII Pipeline
+```
+[In] -> (Validate) -> (Parse) -> (Enrich) -> [Out]
+```
+
+## TL;DR
+Composable pure steps over an evolving immutable context.
+
+© 2025 Orchestrate LLC – Apache 2.0

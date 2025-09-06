@@ -1,0 +1,65 @@
+# CodeUChain ASCII Pipeline Diagrams
+
+(See individual language cheat sheets for focused variants.)
+
+## Linear Enrichment
+```
+[Input] -> (Validate) -> (Parse) -> (Enrich) -> (Persist) -> [Output]
+```
+
+## Branch + Merge
+```
+              +-> (Normalize A) -+
+[Input] -> (Fan)                (Merge) -> (Aggregate) -> [Output]
+              +-> (Normalize B) -+
+```
+
+## Error Classification Side Path
+```
+(Link) -X-> [Error?]--yes--> (Classify) -> (Retry or Fail)
+   | no
+   v
+ Next Link
+```
+
+## Retry with Backoff (Conceptual)
+```
++---------+  failure   +-----------+
+| Attempt | ---------> | Backoff n | --+
++----+----+            +-----------+   |
+     ^                                  |
+     +-------------- success <----------+
+```
+
+## Middleware Wrap
+```
+[Ctx] -> [Before MW] -> (Link) -> [After MW] -> [Ctx']
+              | error
+              v
+          [OnError MW]
+```
+
+## Parallel Fan-Out & Join
+```
+          +-> (Link A) --+
+[Ctx] -> ( Split  )      ( Join ) -> [Ctx']
+          +-> (Link B) --+
+```
+
+## Saga (Compensations)
+```
+(Do Step 1) -> (Do Step 2) -> (Do Step 3)
+     |             |             |
+     v             v             v
+ (Push C1)    (Push C2)     (Push C3)
+
+On failure -> Pop & run compensations: C3, C2, C1
+```
+
+## Type Evolution Layers
+```
+Context<T0>
+  add validated -> Context<T1>
+  add parsed    -> Context<T2>
+  add enriched  -> Context<T3>
+```

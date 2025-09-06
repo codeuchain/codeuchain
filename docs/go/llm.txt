@@ -1,35 +1,60 @@
-# CodeUChain (Go) - LLM Reference
+# CodeUChain (Go) – Cheat Sheet
 
-**Name:** CodeUChain (Go)  
-**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/go  
-**Docs:** https://codeuchain.github.io/codeuchain/go/  
-**Version:** 1.0.0  
-**License:** MIT  
-**Repository:** git+https://github.com/codeuchain/codeuchain.git  
-**Contact:** https://github.com/codeuchain/codeuchain/issues  
+Full reference: `docs/go/llm-full.txt`
 
-**Description:** Go implementation of the CodeUChain primitives (Link, Chain, Context, Middleware). Documentation and examples are available via the project docs.
-
-**Key Features:**
-- Full Go implementation of CodeUChain patterns
-- Async/await support with goroutines
-- Comprehensive test coverage (97.5%)
-- Production-ready with error handling
-- Compatible with Go 1.18+ generics
-
-**Installation:**
+## Quick Start
 ```bash
-go get github.com/codeuchain/codeuchain/packages/go
+go get github.com/codeuchain/codeuchain/go
 ```
-
-**Usage:**
 ```go
-// Basic usage example
-link := codeuchain.NewLink(func(ctx codeuchain.Context) (codeuchain.Context, error) {
-    // Your processing logic here
-    return ctx, nil
-})
-
-chain := codeuchain.NewChain().Then(link)
-result, err := chain.Call(initialContext)
+ctx := codeuchain.NewContext[any](map[string]any{"payload":"hi"})
+res, err := chain.Call(ctx)
 ```
+
+## Primitives
+- Link: `Call(ctx Context[TIn]) (Context[TOut], error)`
+- Context: immutable map-like, `Insert`, `InsertAs` (type evolution)
+- Chain: ordered link composition + `Catch`
+- Middleware: `Before/After/OnError` (optional)
+
+## Minimal Link
+```go
+type Parse struct{}
+func (p *Parse) Call(c codeuchain.Context[any]) (codeuchain.Context[any], error) {
+    // transform
+    return c.Insert("parsed", true), nil
+}
+```
+
+## Chain Example
+```go
+chain := codeuchain.NewChain().
+  Then(&Validate{}).
+  Then(&Parse{}).
+  Catch(func(name string, err error, ctx codeuchain.Context[any]) (codeuchain.Context[any], error) {
+      return ctx.Insert("error", err.Error()), nil
+  })
+```
+
+## Type Evolution
+```go
+c2 := c1.InsertAs[Parsed]("parsed", Parsed{Tokens: toks})
+```
+
+## Error Classification
+Retry transient (network/timeouts); propagate permanent (validation, security).
+
+## Performance Tips
+- Batch small synchronous logic
+- Avoid unnecessary alloc copies
+- Log keys not large payload bodies
+
+## ASCII Pipeline
+```
+[In] -> (Validate) -> (Parse) -> (Enrich) -> [Out]
+```
+
+## TL;DR
+Selfless links + immutable contexts + evolvable types + gentle middleware.
+
+© 2025 Orchestrate LLC – Apache 2.0

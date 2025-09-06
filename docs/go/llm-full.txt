@@ -1,95 +1,342 @@
-# CodeUChain (Go) - Full LLM Reference
+# CodeUChain (Go) – Full LLM Reference (Comprehensive Guide)
 
 **Name:** CodeUChain (Go)  
 **Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/go  
 **Docs:** https://codeuchain.github.io/codeuchain/go/  
 **Version:** 1.0.0  
-**License:** MIT  
+**License:** Apache 2.0  
 **Repository:** git+https://github.com/codeuchain/codeuchain.git  
 **Contact:** https://github.com/codeuchain/codeuchain/issues  
 **Authors:** CodeUChain contributors  
 **Language:** Go 1.18+  
-**Platform:** Cross-platform (Linux, macOS, Windows)  
+**Platform:** Linux / macOS / Windows  
+**Paradigm Keywords:** Composable, Typed, Immutable-by-default, Selfless Links, Middleware Observability, Type Evolution
 
-## Description
+---
+## 1. Purpose & Philosophy
+CodeUChain is a compassionate, composable processing framework. You build flows from small, selfless units called **Links** that transform a **Context**. Chains express intent, not mechanics. Middleware gently observes or enriches without forcing coupling. Types evolve cleanly—moving from specific to generalized forms without unsafe casting. Everything is designed for:
 
-This is the Go implementation of CodeUChain, providing a production-ready, high-performance framework for building composable software systems. It features comprehensive type safety, excellent error handling, and full async support.
+| Principle | Meaning | Benefit |
+|-----------|---------|---------|
+| Selfless Links | No retained mutable state in links | Pure, testable units |
+| Immutable Context (default) | Insert returns a new context | Predictability & TDD clarity |
+| Type Evolution | `InsertAs` widens shape generically | Progressive enrichment |
+| Gentle Middleware | Opt-in lifecycle hooks | Zero friction observability |
+| Mixed Typed/Untyped | `any` fallback always works | Gradual adoption |
+| Zero-Cost Abstractions | No reflection in hot path | Performance parity |
 
-## Key Features
+---
+## 2. Architectural Overview
+Execution pipeline (linear example):
+```
+Incoming Data --> Context[T0]
+    │ (Link A)
+    ▼
+Context[T1]  (added validation results)
+    │ (Link B)
+    ▼
+Context[T2]  (added domain model)
+    │ (Link C + Middleware metrics/logging)
+    ▼
+Context[T3]  (final enriched output)
+```
+Branching & error handling can fork or re-route to compensating links. Middleware wraps each link call.
 
-- **Full Type Safety:** Leverages Go generics for compile-time guarantees
-- **Async Support:** Native goroutine and channel integration
-- **High Performance:** Zero-cost abstractions with Go's efficiency
-- **Comprehensive Testing:** 97.5% test coverage with edge cases
-- **Production Ready:** Battle-tested with error recovery patterns
-- **Composable Architecture:** Clean separation of concerns
+Key components:
+- **Context[T]**: Immutable map-backed data + typed evolution.
+- **Link[TIn, TOut]**: Pure transformer. Returns `Context[TOut]` + `error`.
+- **Chain**: Ordered Link composition with optional branching / error routing.
+- **Middleware**: Optional wrappers (Before / After / Error) with default no-ops.
+- **Error Routing**: Register handlers per link or pattern.
 
-## Installation
+---
+## 3. Core Types & Interfaces
+```go
+type Context[T any] interface {
+    Get(key string) (any, bool)
+    Insert(key string, val any) Context[T]          // preserves T
+    InsertAs[U any](key string, val any) Context[U] // evolves to U
+    Keys() []string
+    ToMap() map[string]any
+}
 
-```bash
-# Add to go.mod
-go get github.com/codeuchain/codeuchain/packages/go
+type Link[TIn any, TOut any] interface {
+    Call(ctx Context[TIn]) (Context[TOut], error)
+}
 
-# Or clone and build
-git clone https://github.com/codeuchain/codeuchain.git
-cd packages/go
-go build ./...
+type Middleware interface {
+    Before(linkName string, ctx Context[any]) error
+    After(linkName string, ctx Context[any]) error
+    OnError(linkName string, ctx Context[any], err error) error
+}
+```
+Minimal concrete constructors (simplified excerpt):
+```go
+func NewContext[T any](m map[string]any) Context[T]
+func NewChain() *Chain
 ```
 
-## Core API
-
-### Link Interface
+---
+## 4. Building Links
+Links should remain pure: derive output *only* from input context.
 ```go
-type Link[TInput any, TOutput any] interface {
-    Call(ctx Context[TInput]) (Context[TOutput], error)
+type ValidateUser struct{}
+
+func (v *ValidateUser) Call(ctx codeuchain.Context[any]) (codeuchain.Context[any], error) {
+    raw, _ := ctx.Get("user_email")
+    email, _ := raw.(string)
+    if !strings.Contains(email, "@") {
+        return ctx, fmt.Errorf("invalid_email")
+    }
+    return ctx.Insert("validated", true), nil
 }
 ```
 
-### Chain Composition
+### Type Evolution Example
+```go
+type InputShape struct{ Raw string }
+type ParsedShape struct{ Raw string; Tokens []string }
+
+type Parse struct{}
+func (p *Parse) Call(c codeuchain.Context[InputShape]) (codeuchain.Context[ParsedShape], error) {
+    val, _ := c.Get("payload")
+    s := val.(string)
+    tokens := strings.Split(s, " ")
+    return c.InsertAs[ParsedShape]("parsed", ParsedShape{Raw: s, Tokens: tokens}), nil
+}
+```
+
+---
+## 5. Chain Composition & Branching
 ```go
 chain := codeuchain.NewChain().
-    Then(validationLink).
-    Then(processingLink).
-    Catch(errorHandler)
+    Then(&ValidateUser{}).
+    Then(&Parse{}).
+    Then(&EnrichProfile{}).
+    Catch(func(link string, err error, ctx codeuchain.Context[any]) (codeuchain.Context[any], error) {
+        // centralized fallback
+        return ctx.Insert("error_tag", err.Error()), nil
+    })
 ```
+Potential advanced patterns:
+- Conditional skip (middleware injects decision flag)
+- Parallel fan-out (custom orchestrator spawning sub-chains, then merge)
+- Retry wrapper link for transient operations
 
-### Context Usage
+---
+## 6. Middleware Lifecycle
+Typical middleware (logging + timing):
 ```go
-ctx := codeuchain.NewContext(map[string]any{
-    "user_id": 123,
-    "data": inputData,
-})
+type MetricsMiddleware struct{}
 
-result := ctx.Insert("processed", true)
+func (m *MetricsMiddleware) Before(name string, ctx codeuchain.Context[any]) error {
+    ctxStart := time.Now()
+    fmt.Printf("➡️  %s start (%d keys)\n", name, len(ctx.Keys()))
+    ctx = ctx.Insert("_start_ts", ctxStart)
+    return nil
+}
+func (m *MetricsMiddleware) After(name string, ctx codeuchain.Context[any]) error {
+    if tsRaw, ok := ctx.Get("_start_ts"); ok {
+        if ts, ok2 := tsRaw.(time.Time); ok2 {
+            fmt.Printf("✅ %s done in %s\n", name, time.Since(ts))
+        }
+    }
+    return nil
+}
+func (m *MetricsMiddleware) OnError(name string, ctx codeuchain.Context[any], err error) error {
+    fmt.Printf("❌ %s error: %v\n", name, err)
+    return nil
+}
 ```
 
-## Testing
+Key points:
+- Unimplemented methods = no-op (embed a nop struct if provided in library).
+- Non-blocking: avoid long-running logic inside hooks.
 
+---
+## 7. Error Handling Patterns
+Approaches:
+| Pattern | Use Case | Example |
+|---------|----------|---------|
+| Central Catch | Uniform logging / tagging | `.Catch(handler)` |
+| Per-Link Guard | Known fragile link | Wrap link with retry adapter |
+| Classification | Route by error type | Map error → handler link |
+| Retry | Transient network / IO | Exponential backoff wrapper |
+
+Simple retry decorator:
+```go
+func WithRetry[TIn any, TOut any](inner codeuchain.Link[TIn, TOut], attempts int) codeuchain.Link[TIn, TOut] {
+    return codeuchain.LinkFunc[TIn, TOut](func(c codeuchain.Context[TIn]) (codeuchain.Context[TOut], error) {
+        var last error
+        for i := 0; i < attempts; i++ {
+            out, err := inner.Call(c)
+            if err == nil { return out, nil }
+            last = err
+            time.Sleep(time.Duration(i+1) * 10 * time.Millisecond)
+        }
+        return c.InsertAs[TOut]("retry_exhausted", true), last
+    })
+}
+```
+
+---
+## 8. Testing & Test-Driven Development (TDD)
+Why CodeUChain is ideal:
+- Pure links = deterministic
+- Context is explicit contract
+- Type evolution clarifies shape transitions
+- Middleware can be mocked or omitted
+
+Recommended pattern per link:
+```go
+func TestValidateUser(t *testing.T) {
+    ctx := codeuchain.NewContext[any](map[string]any{"user_email": "a@b.com"})
+    out, err := (&ValidateUser{}).Call(ctx)
+    if err != nil { t.Fatalf("unexpected: %v", err) }
+    if v, _ := out.Get("validated"); v != true { t.Fatalf("expected validated flag") }
+}
+```
+
+Table-driven chain tests:
+```go
+cases := []struct{ email string; ok bool }{
+    {"x@y.com", true}, {"broken", false},
+}
+for _, cse := range cases {
+    base := codeuchain.NewContext[any](map[string]any{"user_email": cse.email})
+    out, err := fullChain.Call(base)
+    if cse.ok && err != nil { t.Errorf("expected success: %s", cse.email) }
+    if !cse.ok && err == nil { t.Errorf("expected failure: %s", cse.email) }
+}
+```
+
+Coverage tools:
 ```bash
-go test ./... -v
-go test ./... -coverprofile=coverage.out
-go tool cover -html=coverage.out
+go test -cover ./...
+go test -coverprofile=cover.out ./...
+go tool cover -func=cover.out | grep total
 ```
 
-## Examples
+---
+## 9. Observability & Debugging
+Tactics:
+- Add middleware for structured logging
+- Inject correlation IDs at chain start
+- Dump context keys (avoid large payload dumps in prod)
+- Expose metrics: per-link duration, error counts
 
-See `packages/go/examples/` for comprehensive usage examples including:
-- Basic chain composition
-- Error handling patterns
-- Middleware implementation
-- Performance benchmarks
-- Typed features demonstration
+Sample debug printer:
+```go
+type Debug struct{}
+func (d *Debug) After(name string, ctx codeuchain.Context[any]) error {
+    fmt.Printf("DBG %s keys=%v\n", name, ctx.Keys())
+    return nil
+}
+```
 
-## Contributing
+---
+## 10. Performance Guidance
+| Concern | Guidance |
+|---------|----------|
+| Allocation churn | Reuse maps only in controlled mutable variant |
+| Large payloads | Store references/pointers, not deep copies |
+| Hot path logging | Use sampling middleware |
+| Parallel work | Build sub-chains + goroutines, merge results |
+| Generics overhead | Near-zero; avoid unnecessary interface{} assertions |
 
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
+Benchmark harness idea:
+```bash
+go test -bench "Chain" -benchmem ./...
+```
 
-## Support
+---
+## 11. Advanced Patterns
+- Fan-Out / Fan-In: run N derived chains then aggregate into a parent context
+- Saga Compensation: register reversal links for mutating operations
+- Streaming: adapt a link that emits items into channel consumers
+- Progressive Enrichment: early links validate, mid links enrich, late links format
 
-- **Issues:** https://github.com/codeuchain/codeuchain/issues
-- **Discussions:** https://github.com/codeuchain/codeuchain/discussions
-- **Documentation:** https://codeuchain.github.io/codeuchain/go/
+---
+## 12. Integration Examples
+### With HTTP Handler
+```go
+func handler(w http.ResponseWriter, r *http.Request) {
+    base := codeuchain.NewContext[any](map[string]any{"path": r.URL.Path})
+    out, err := httpChain.Call(base)
+    if err != nil { http.Error(w, err.Error(), 500); return }
+    if body, ok := out.Get("body"); ok { fmt.Fprint(w, body) }
+}
+```
+### With Database
+Wrap DB client in a link; return rows or domain aggregates.
+
+---
+## 13. Migration & Mixed Typing
+Start untyped (`Context[any]`) for speed. As shapes stabilize, introduce domain structs and let `InsertAs` evolve your chain. Mixed typed/untyped links coexist seamlessly.
+
+---
+## 14. Anti-Patterns
+| Anti-Pattern | Why Harmful | Preferred |
+|--------------|-------------|-----------|
+| Mutating internal shared map | Hidden coupling | Use returned Context |
+| Embedding heavy IO in middleware | Latency inflation | Make IO a link |
+| Overusing `any` after stabilization | Loses guarantees | Introduce typed structs |
+| Catch-all swallowing errors | Masks failures | Classify & tag errors |
+| Storing gigantic blobs in context | Memory bloat | External cache / reference |
+
+---
+## 15. FAQ
+**Q: Can I short-circuit a chain?**  
+A: Yes—return an error or include a sentinel value & conditional branch logic.
+
+**Q: How do I share config?**  
+A: Inject immutable config via closure or constructor; keep links pure.
+
+**Q: Is context thread-safe?**  
+A: Each returned context is a new instance; don't reuse mutable internals concurrently.
+
+**Q: How do I profile?**  
+A: Use `pprof` + per-link duration metrics.
+
+**Q: Can I mutate for performance?**  
+A: Provide a specialized mutable context variant only in tight loops.
+
+**Q: Retry at middleware or link?**  
+A: Prefer a retry decorator wrapping a link for clarity.
+
+**Q: Support cancellation?**  
+A: Wrap chain execution inside a standard Go `context.Context` at orchestration layer.
+
+---
+## 16. Glossary
+- **Link**: Stateless transformer from Context[TIn] → Context[TOut].
+- **Chain**: Ordered link orchestration with optional error routing.
+- **Context**: Immutable key-value store with typed evolution semantics.
+- **Middleware**: Observers invoked around link execution.
+- **Type Evolution**: Transition to a new generic shape via `InsertAs`.
+- **Compassionate Error Handling**: Non-punitive routing & tagging of failures.
+
+---
+## 17. TL;DR (Rapid Recall)
+```text
+Install: go get github.com/codeuchain/codeuchain/packages/go
+Mental Model: Links (pure) + Chain (composition) + Context (immutable) + Middleware (optional) + Type Evolution
+Write Links: stateless, return new context only
+Evolve Types: InsertAs to widen shape safely
+Observability: Middleware Before/After/OnError
+Testing: Table-driven + per-link unit tests first
+Performance: Zero-cost abstractions; avoid unnecessary allocations
+Adoption Path: Start untyped -> gradually introduce strong types
+Error Handling: Central catch or decorators (retry, classify)
+Avoid: hidden state, over-logging, massive blobs in context
+```
+
+---
+### Support & Resources
+- Issues: https://github.com/codeuchain/codeuchain/issues
+- Discussions: https://github.com/codeuchain/codeuchain/discussions
+- Examples: `packages/go/examples/`
+- License: Apache 2.0 (copy in repo root and package)
+
+---
+© 2025 Orchestrate LLC (Joshua @orchestrate.solutions) – Apache 2.0
