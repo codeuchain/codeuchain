@@ -2,13 +2,91 @@
 
 > **The simple, elegant idea that transforms how you build software.** Write normal methods, chain them together, and watch beautiful systems emerge.
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![C#](https://img.shields.io/badge/C%23-9.0-blue)](https://docs.microsoft.com/en-us/dotnet/csharp/)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES2020-yellow)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![Python](https://img.shields.io/badge/Python-3.8+-blue)](https://www.python.org/)
 [![Java](https://img.shields.io/badge/Java-11+-red)](https://www.oracle.com/java/)
+[![C#](https://img.shields.io/badge/C%23-9.0-blue)](https://docs.microsoft.com/en-us/dotnet/csharp/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)](https://www.typescriptlang.org/)
+[![C++](https://img.shields.io/badge/C%2B%2B-20-blue)](https://en.cppreference.com/)
 [![Go](https://img.shields.io/badge/Go-1.19+-blue)](https://golang.org/)
 [![Rust](https://img.shields.io/badge/Rust-1.70+-orange)](https://www.rust-lang.org/)
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
+## Architecture (Mermaid Diagram)
+
+The diagram below shows the high-level flow: a `Chain` contains ordered `Links`; a `Context` (the force applied to the chain) flows through each link, and `Middleware` acts like dampeners placed between links to observe or modify the context as it moves along.
+
+```mermaid
+%%{init: {'themeCSS': ".node.cctx circle, .node.cctx rect {fill:#0b5fff; stroke:#08306b;} .node.cctx text {fill:#fff;} .node.cctx {transition:opacity .2s;} .node.cctx.c0 circle, .node.cctx.c0 rect{animation: appear 4.5s linear infinite 0s;} .node.cctx.c1 circle, .node.cctx.c1 rect{animation: appear 4.5s linear infinite 1.125s;} .node.cctx.c2 circle, .node.cctx.c2 rect{animation: appear 4.5s linear infinite 2.25s;} .node.cctx.c3 circle, .node.cctx.c3 rect{animation: appear 4.5s linear infinite 3.375s;} .linkNode rect, .linkNode circle {fill:#f3f4f6; stroke:#111; stroke-width:2px;} .linkNode text{fill:#111;} .node.final circle, .node.final rect {fill:#06b875; stroke:#054a36;} .node.final text{fill:#fff;} .observer rect, .observer circle{fill:#fff3cd; stroke:#8a6d1f;} .observer text{fill:#000;} .observer.obs1 rect, .observer.obs1 circle{animation: observeBlink 4.5s linear infinite 0.6s;} .observer.obs2 rect, .observer.obs2 circle{animation: observeBlink 4.5s linear infinite 2.5s;} .edgePath path{stroke-dasharray:6 6; stroke-width:2px; stroke:#9aa; animation: dash 4.5s linear infinite;} .edgePath:nth-of-type(1) path{animation-delay:0.6s;} .edgePath:nth-of-type(2) path{animation-delay:2.1s;} .edgePath:nth-of-type(3) path{animation-delay:3.6s;} @keyframes observeBlink {0%{opacity:0.5}12%{opacity:1}33%{opacity:1}45%{opacity:0.5}100%{opacity:0.5}} @keyframes dash {to{stroke-dashoffset:-72}} @keyframes appear {0%{opacity:0}12%{opacity:1}33%{opacity:1}45%{opacity:0}100%{opacity:0}} "}}%%
+flowchart LR
+    subgraph observers[Middleware Observers]
+    direction LR
+        MW1([Middleware 1])
+        MW2([Middleware 2])
+        MW3([Middleware 3])
+    end
+
+    classDef mw fill:#717,stroke:#000,stroke-width:1px;
+    class MW1,MW2 mw;
+
+    %% Dashed observer connections (observing from outside)
+    MW1 -. *do-before* .- starting_ctx
+    MW1 -. *do-after* .- ctx1
+    MW2 -. *do-before* .- ctx1
+    MW2 -. *do-after* .- ctx2
+    MW3 -. *do-before* .- ctx2
+    MW3 -. *do-after* .- ctx3
+
+    class MW1,MW2,MW3 mw;
+    class MW1 observer;
+    class MW2 observer;
+    class MW3 observer;
+    
+    %% Chain with links and animated context nodes
+    subgraph Chain[Chain]
+        direction LR
+        L1["link1"]
+        ctx1(("ctx"))
+        L2["link2"]
+        ctx2(("ctx"))
+        L3["link3"]
+    end
+
+    starting_ctx((ctx)) -->|in| L1
+    L1 -->|out| ctx1
+    ctx1 -->|in| L2
+    L2 -->|out| ctx2
+    ctx2 -->|in| L3
+
+    %% Final emitted context node (end of chain)
+    ctx3(("ctx"))
+    L3 -->|out| ctx3
+
+    %% Assign simple class names so themeCSS can target specific nodes
+    class starting_ctx cctx;
+    class starting_ctx c0;
+    class ctx1 cctx;
+    class ctx1 c1;
+    class ctx2 cctx;
+    class ctx2 c2;
+    class ctx3 cctx;
+    class ctx3 c3;
+
+    %% Class link nodes so themeCSS can animate them
+    class L1 linkNode;
+    class L1 l1;
+    class L2 linkNode;
+    class L2 l2;
+    class L3 linkNode;
+    class L3 l3;
+```
+
+Notes:
+- The `Chain` is an ordered sequence of `Links`.
+- `Context` is the data that flows (the "force" applied to the chain) and is passed from link to link.
+- `Middleware` sits between links (like dampeners) and may inspect, transform, or short-circuit the context.
+- If GitHub doesn't render the diagram in your viewer, paste the `mermaid` block into https://mermaid.live to preview.
 
 ## Table of Contents
 
@@ -60,6 +138,11 @@ pip install codeuchain
 ### Go
 ```bash
 go get github.com/codeuchain/codeuchain/packages/go@latest
+```
+
+### Rust
+```bash
+cargo install codeuchain
 ```
 
 ### C# (Coming Soon)
@@ -200,7 +283,6 @@ public async ValueTask<Context> ProcessAsync(Context context) {
 **Status**: Complete with typed features and C++20 coroutines
 
 - **Modern C++20**: Full coroutine support with RAII and smart pointers
-- **Performance Optimized**: Zero-cost abstractions and efficient data structures
 - **Typed Features**: Opt-in generics for compile-time type safety
 - **Branching Support**: Advanced conditional branching with return-to-main functionality
 - **Conan Package**: Available via Conan Center for easy installation
