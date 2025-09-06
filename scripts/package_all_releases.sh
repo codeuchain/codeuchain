@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/releases"
 mkdir -p "$OUT"
 
-langs=(csharp javascript python go pseudo)
+langs=(rust)
 version="v1.0.0"
 
 for lang in "${langs[@]}"; do

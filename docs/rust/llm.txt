@@ -1,42 +1,59 @@
-# CodeUChain (Rust) - LLM Reference
+# CodeUChain (Rust) – Cheat Sheet
 
-**Name:** CodeUChain (Rust)  
-**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/rust  
-**Docs:** https://codeuchain.github.io/codeuchain/rust/  
-**Version:** 1.0.0  
-**License:** MIT  
-**Repository:** git+https://github.com/codeuchain/codeuchain.git  
-**Contact:** https://github.com/codeuchain/codeuchain/issues  
+Full reference: `docs/rust/llm-full.txt`
 
-**Description:** Rust implementation with memory safety, performance, and Cargo ecosystem integration.
-
-**Key Features:**
-- Memory-safe implementation
-- Zero-cost abstractions
-- Async support with tokio
-- Cargo package ready
-- Comprehensive testing
-
-**Installation:**
+## Quick Start
 ```bash
 cargo add codeuchain
-# or
-cargo build
+```
+```rust
+let ctx = Context::new(json!({"payload":"hi"}));
+let res = chain.call(ctx).await?;
 ```
 
-**Usage:**
+## Primitives
+- Trait Link: `async fn call(&self, ctx: Context<In>) -> Result<Context<Out>, Error>`
+- Context<T=Value>: immutable; `insert`, `insert_as` (serde_json::Value backed)
+- Chain: builder + `.catch()`
+- Middleware: wrappers with pre/post/error around `call`
+
+## Minimal Link
 ```rust
-use codeuchain::{Link, Chain, Context};
-
-struct MyLink;
-
-impl Link<InputType, OutputType> for MyLink {
-    async fn call(&self, ctx: Context<InputType>) -> Result<Context<OutputType>, Error> {
-        // Your processing logic
-        Ok(ctx.insert("result", processed_data))
+struct Parse;
+#[async_trait]
+impl Link<Value, Value> for Parse {
+    async fn call(&self, ctx: Context<Value>) -> Result<Context<Value>, Error> {
+        Ok(ctx.insert("parsed", json!(true)))
     }
 }
-
-let chain = Chain::new().then(MyLink);
-let result = chain.call(initial_context).await?;
 ```
+
+## Chain Example
+```rust
+let chain = Chain::new()
+    .then(Parse)
+    .catch(|name, err, ctx| Ok(ctx.insert("error", json!(err.to_string()))));
+```
+
+## Type Evolution
+```rust
+let evolved: Context<Parsed> = ctx.insert_as("parsed", Parsed { tokens });
+```
+
+## Error Classification
+Implement `ErrorKind` (Transient, Validation, Security). Retry only `Transient`.
+
+## Performance Tips
+- Minimize cloning of large Values
+- Use borrowed data where viable
+- Integrate `tracing` spans per link
+
+## ASCII Pipeline
+```
+[In] -> (Validate) -> (Parse) -> (Enrich) -> [Out]
+```
+
+## TL;DR
+Async traits + serde-backed evolving contexts + layered middleware.
+
+© 2025 Orchestrate LLC – Apache 2.0

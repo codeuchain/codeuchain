@@ -1,98 +1,310 @@
-# CodeUChain (Python) - Full LLM Reference
+# CodeUChain (Python) – Full LLM Reference (Canonical Implementation)
 
 **Name:** CodeUChain (Python)  
 **Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/python  
 **Docs:** https://codeuchain.github.io/codeuchain/python/  
 **Version:** 1.0.0  
-**License:** MIT  
+**License:** Apache 2.0  
 **Repository:** git+https://github.com/codeuchain/codeuchain.git  
 **Contact:** https://github.com/codeuchain/codeuchain/issues  
 **Authors:** CodeUChain contributors  
-**Language:** Python 3.8+  
+**Language:** Python 3.8+ (async-first)  
 **Platform:** Cross-platform  
+**Paradigm Keywords:** Composable, Async, Generics, Immutable Context, Type Evolution, Selfless Links
 
-## Description
+---
+## 1. Purpose & Philosophy
+Python is the *reference* implementation: every concept is demonstrated here first. Emphasis: clarity over cleverness, explicit transformations, compassionate error handling, and strong optional typing.
 
-The Python implementation serves as the reference for CodeUChain patterns. It provides a clean, idiomatic Python API with full async support and comprehensive type safety.
+| Principle | Python Expression | Benefit |
+|-----------|-------------------|---------|
+| Selfless Links | `async def call(ctx)` | Pure async units |
+| Immutable Context | `ctx2 = ctx.insert(...)` | Predictable test state |
+| Type Evolution | `ctx3 = ctx.insert_as("key", value)` | Safe shape widening |
+| Mixed Typed/Untyped | `Context[Any]` default | Gradual adoption |
+| Async Everywhere | `await chain.call()` | Natural concurrency |
 
-## Key Features
+---
+## 2. Architectural Overview
+```
+Raw Input --> Context[T0]
+   │ then (validation_link)
+   ▼
+Context[T1]
+   │ then (parse_link)
+   ▼
+Context[T2]
+   │ then (enrich_link) + middleware(before/after/error)
+   ▼
+Context[T3] (final)
+```
+Advanced flows: branching, conditional execution, retry wrapping, error redirection.
 
-- **Reference Implementation:** Defines the canonical CodeUChain patterns
-- **Async First:** Native asyncio integration
-- **Type Safety:** Full generic type support with mypy compatibility
-- **Rich Ecosystem:** Integrates with popular Python libraries
-- **Educational:** Extensive examples and documentation
+---
+## 3. Core Types (Conceptual Signatures)
+```python
+class Context(Generic[T]):
+    def get(self, key: str, default: Any = None) -> Any: ...
+    def insert(self, key: str, value: Any) -> "Context[T]": ...
+    def insert_as(self, key: str, value: Any) -> "Context[Any]": ...  # evolves type
+    def keys(self) -> list[str]: ...
+    def to_dict(self) -> dict[str, Any]: ...
 
-## Installation
+class Link(Generic[TInput, TOutput]):
+    async def call(self, ctx: Context[TInput]) -> Context[TOutput]: ...
 
-```bash
-# From source
-git clone https://github.com/codeuchain/codeuchain.git
-cd packages/python
-pip install -e .
-
-# Or via PyPI (when published)
-pip install codeuchain
+class Middleware:  # All optional
+    async def before(self, name: str, ctx: Context[Any]) -> None: ...
+    async def after(self, name: str, ctx: Context[Any]) -> None: ...
+    async def on_error(self, name: str, ctx: Context[Any], err: Exception) -> None: ...
 ```
 
-## Core API
-
-### Link Definition
+---
+## 4. Creating Links
 ```python
-from typing import Generic, TypeVar
 from codeuchain import Link, Context
 
-TInput = TypeVar('TInput')
-TOutput = TypeVar('TOutput')
-
-class MyLink(Link[TInput, TOutput]):
-    async def call(self, ctx: Context[TInput]) -> Context[TOutput]:
-        # Process and return
-        return ctx.insert("processed", True)
+class ValidateEmail(Link[Any, Any]):
+    async def call(self, ctx: Context[Any]) -> Context[Any]:
+        email = ctx.get("email")
+        if not email or "@" not in email:
+            raise ValueError("invalid_email")
+        return ctx.insert("validated", True)
 ```
 
-### Chain Composition
+### Type Evolution
+```python
+from dataclasses import dataclass
+
+@dataclass
+class RawInput:
+    text: str
+
+@dataclass
+class Parsed:
+    text: str
+    tokens: list[str]
+
+class Parse(Link[RawInput, Parsed]):
+    async def call(self, ctx: Context[RawInput]) -> Context[Parsed]:
+        raw: RawInput = ctx.get("raw")
+        parsed = Parsed(text=raw.text, tokens=raw.text.split())
+        return ctx.insert_as("parsed", parsed)
+```
+
+---
+## 5. Chain Composition & Error Handling
 ```python
 from codeuchain import Chain
 
 chain = (Chain()
-    .then(validation_link)
-    .then(processing_link)
-    .catch(error_handler))
+    .then(ValidateEmail())
+    .then(Parse())
+    .catch(lambda link, err, ctx: ctx.insert("error_tag", str(err))))
 
-result = await chain.call(initial_context)
+result = await chain.call(Context[Any]({"email": "a@b.com", "raw": RawInput("hello world")}))
+```
+Branching strategies: implement conditional link wrappers or pre-insert flags used by downstream links.
+
+Retry decorator pattern:
+```python
+def with_retry(link: Link[TInput, TOutput], attempts: int) -> Link[TInput, TOutput]:
+    class Retry(Link[TInput, TOutput]):
+        async def call(self, ctx: Context[TInput]) -> Context[TOutput]:
+            last = None
+            for i in range(attempts):
+                try:
+                    return await link.call(ctx)
+                except Exception as e:  # narrow if needed
+                    last = e
+                    await asyncio.sleep(0.01 * (i + 1))
+            raise last  # surfaced after exhaustion
+    return Retry()
 ```
 
-## Testing
+---
+## 6. Middleware Lifecycle
+```python
+class MetricsMiddleware:
+    async def before(self, name: str, ctx: Context[Any]) -> None:
+        ctx = ctx.insert("_t0", time.perf_counter())
+    async def after(self, name: str, ctx: Context[Any]) -> None:
+        t0 = ctx.get("_t0")
+        if t0:
+            dt = time.perf_counter() - t0
+            print(f"{name} took {dt*1000:.2f}ms")
+    async def on_error(self, name: str, ctx: Context[Any], err: Exception) -> None:
+        print(f"ERROR in {name}: {err}")
+```
+Guidelines:
+- Side-effect work should be fast; offload heavy operations.
+- Middleware ordering = registration order.
 
+---
+## 7. Error Handling Patterns
+| Pattern | Usage | Example |
+|---------|-------|---------|
+| Central catch | Uniform tagging | `.catch(handler)` |
+| Retry wrapper | Transient failures | `with_retry(link, 3)` |
+| Classification | Route by error type | branching inside catch |
+| Enrichment | Attach context diagnostics | insert stack or counters |
+
+Graceful classification snippet:
+```python
+def classify_catch(link_name: str, err: Exception, ctx: Context[Any]) -> Context[Any]:
+    tag = "transient" if isinstance(err, TimeoutError) else "fatal"
+    return ctx.insert("error_kind", tag).insert("error_msg", str(err))
+
+chain = Chain().then(work_link).catch(classify_catch)
+```
+
+---
+## 8. Testing & TDD
+Why ideal:
+- Pure async functions
+- Context = explicit contract
+- Type evolution clarifies transitions
+Recommended test style:
+```python
+import pytest
+
+@pytest.mark.asyncio
+async def test_validate_email_ok():
+    ctx = Context[Any]({"email": "a@b.com"})
+    out = await ValidateEmail().call(ctx)
+    assert out.get("validated") is True
+
+@pytest.mark.asyncio
+async def test_validate_email_fail():
+    ctx = Context[Any]({"email": "broken"})
+    with pytest.raises(ValueError):
+        await ValidateEmail().call(ctx)
+```
+
+Chain table-driven style:
+```python
+cases = [
+    ("a@b.com", True),
+    ("invalid", False),
+]
+for email, ok in cases:
+    ctx = Context[Any]({"email": email, "raw": RawInput("hi all")})
+    try:
+        await chain.call(ctx)
+        assert ok
+    except Exception:
+        assert not ok
+```
+
+Coverage & typing:
 ```bash
-# Run tests
-pytest
-
-# With coverage
-pytest --cov=codeuchain --cov-report=html
-
-# Type checking
+pytest --cov=codeuchain --cov-report=term-missing
 mypy codeuchain/
 ```
 
-## Examples
+---
+## 9. Observation & Debugging
+Tools:
+- Middleware logging
+- Context key introspection
+- Timing via perf_counter
+- Assertion helpers in tests
 
-See `packages/python/examples/` for:
-- Basic chain composition
-- Typed features demonstration
-- Error handling patterns
-- Integration with popular libraries
-- Performance benchmarks
-
-## Development
-
-```bash
-# Setup development environment
-pip install -e ".[dev]"
-
-# Run linting
-black codeuchain/
-isort codeuchain/
-flake8 codeuchain/
+Debug middleware example:
+```python
+class Debug:
+    async def after(self, name: str, ctx: Context[Any]) -> None:
+        print("DBG", name, "keys=", ctx.keys())
 ```
+
+---
+## 10. Performance Notes
+| Concern | Strategy |
+|---------|----------|
+| Excess object churn | Reuse builders; limit deep copies |
+| Serialization overhead | Defer (store raw payload) |
+| Async fan-out | `asyncio.gather` with sub-chains |
+| Logging cost | Structured logger + sampling |
+| Type conversions | Narrow casts once; reuse typed vars |
+
+Micro-bench idea:
+```bash
+pytest tests/perf/test_chain_perf.py -k bench --maxfail=1
+```
+
+---
+## 11. Advanced Patterns
+- Dynamic branching: insert a `route` key; have a dispatcher link
+- Partial failure aggregation: collect errors and continue (`best-effort` mode)
+- Saga compensation: pair forward links with compensators
+- Streaming adaptation: wrap async generators as link outputs
+
+---
+## 12. Ecosystem Integrations
+Examples:
+- FastAPI endpoint: call chain inside request handler
+- Celery task: each link is pure → easy unit test / idempotency
+- Pydantic models: used as typed payload shapes evolving through `insert_as`
+- Observability: integrate with OpenTelemetry in middleware
+
+---
+## 13. Migration & Mixed Typing
+Start with `Context[Any]`. Once stable, replace hotspots with domain dataclasses + generics. Intermix freely—no rewrite required.
+
+---
+## 14. Anti-Patterns
+| Issue | Why | Fix |
+|-------|-----|-----|
+| Storing huge blobs | Memory strain | External store + reference id |
+| Overuse of `insert_as` without typing | Loses clarity | Introduce dataclasses |
+| Catch-all `except` hiding bugs | Silent failures | Classify & rethrow critical |
+| Middleware doing business logic | Breaks separation | Move into a link |
+
+---
+## 15. FAQ
+**Q: Can I use sync links?**  
+A: Wrap them: `async def call(): return sync_link(ctx)` inside an async link.
+
+**Q: How to cancel?**  
+A: Pass an `asyncio.Task` cancellation upstream; chain surfaces errors naturally.
+
+**Q: Is context thread-safe?**  
+A: It is immutable; each `insert` returns a new instance.
+
+**Q: Where to validate types?**  
+A: Early links + optional Pydantic models.
+
+**Q: Retry location?**  
+A: A decorator/wrapper link for clarity.
+
+---
+## 16. Glossary
+- **Link**: Async transformer from Context[TIn] → Context[TOut].
+- **Chain**: Ordered link composition.
+- **Context**: Immutable mapping with type evolution helpers.
+- **Middleware**: Observers for before/after/error phases.
+- **Type Evolution**: Safe widening via `insert_as` returning new generic context.
+
+---
+## 17. TL;DR
+```text
+Install: pip install codeuchain
+Model: Links (pure async) + Chain (composition) + Context (immutable) + Middleware (observability) + Type Evolution
+Typing: Start Any → introduce dataclasses → use insert_as to evolve
+Testing: Per-link async tests + chain table cases
+Observability: Lightweight middleware; avoid business logic there
+Performance: Avoid deep copies; batch IO with asyncio.gather
+Error Handling: Central catch + targeted retry decorators
+Adoption: Gradual—mix typed/untyped seamlessly
+Avoid: giant blobs, silent excepts, coupling in middleware
+```
+
+---
+### Support & Resources
+- Issues: https://github.com/codeuchain/codeuchain/issues
+- Discussions: https://github.com/codeuchain/codeuchain/discussions
+- Examples: `packages/python/examples/`
+- License: Apache 2.0
+
+---
+© 2025 Orchestrate LLC (Joshua @orchestrate.solutions) – Apache 2.0

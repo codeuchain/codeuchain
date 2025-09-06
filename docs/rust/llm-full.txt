@@ -1,164 +1,293 @@
-# CodeUChain (Rust) - Full LLM Reference
+# CodeUChain (Rust) – Full LLM Reference
 
 **Name:** CodeUChain (Rust)  
 **Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/rust  
 **Docs:** https://codeuchain.github.io/codeuchain/rust/  
 **Version:** 1.0.0  
-**License:** MIT  
+**License:** Apache 2.0  
 **Repository:** git+https://github.com/codeuchain/codeuchain.git  
 **Contact:** https://github.com/codeuchain/codeuchain/issues  
 **Authors:** CodeUChain contributors  
-**Language:** Rust 1.70+  
-**Platform:** Cross-platform (Linux, macOS, Windows)  
+**Language:** Rust 1.70+ (2021 Edition)  
+**Paradigm Keywords:** Zero‑cost, Ownership, Async Traits, Type Evolution, Middleware Observability
 
-## Description
+---
+## 1. Purpose & Philosophy
+Provide memory-safe, high‑performance composable pipelines leveraging ownership, borrowing, and async without sacrificing ergonomics. Immutable context evolution, pure links, optional middleware instrumentation.
 
-The Rust implementation provides memory-safe, high-performance CodeUChain patterns with full ownership system integration and zero-cost abstractions.
+| Principle | Rust Expression | Benefit |
+|-----------|----------------|---------|
+| Zero‑cost Abstraction | Generics + monomorphization | No runtime penalty |
+| Deterministic Purity | `fn/async fn call(&self, ctx)` | Predictable outcomes |
+| Type Evolution | `insert_as::<New>()` pattern | Progressive modeling |
+| Observability | Middleware traits | Centralized instrumentation |
+| Ergonomic Async | `async_trait` + executors | Uniform interface |
 
-## Key Features
+---
+## 2. Architectural Overview
+```
+Context<Stage0>
+  | validate_link
+  v
+Context<Stage1>
+  | parse_link (middleware before/after/error)
+  v
+Context<Stage2>
+  | enrich_link
+  v
+Context<Stage3>
+```
+Branching: conditional chain assembly. Retry / backoff via wrapper combinators.
 
-- **Memory Safety:** Rust's ownership system prevents memory errors
-- **Performance:** Zero-cost abstractions with native speed
-- **Async Support:** Tokio integration for async patterns
-- **Type Safety:** Compile-time guarantees with Rust's type system
-- **Ecosystem:** Full Cargo integration and crate ecosystem
+---
+## 3. Core Traits (Representative)
+```rust
+#[async_trait::async_trait]
+pub trait Link<Input, Output>: Send + Sync {
+    async fn call(&self, ctx: Context<Input>) -> Result<Context<Output>, Error>;
+}
 
-## Installation
+pub struct Context<T> {
+    // internals: Arc<HashMap<String, Value>>
+}
 
+impl<T> Context<T> {
+    pub fn get<V: DeserializeOwned>(&self, key: &str) -> Result<V, Error> { /* ... */ }
+    pub fn has(&self, key: &str) -> bool { /* ... */ }
+    pub fn insert(self, key: impl Into<String>, value: impl Serialize) -> Self { /* ... */ }
+    pub fn insert_as<U>(self, key: impl Into<String>, value: impl Serialize) -> Context<U> { /* ... */ }
+    pub fn keys(&self) -> impl Iterator<Item=&str> { /* ... */ }
+}
+
+pub trait Middleware: Send + Sync {
+    fn before(&self, _name: &str, _ctx: &ErasedContext) {}
+    fn after(&self, _name: &str, _ctx: &ErasedContext) {}
+    fn on_error(&self, _name: &str, _ctx: &ErasedContext, _err: &Error) {}
+}
+```
+
+---
+## 4. Installation
 ```bash
-# Add to Cargo.toml
 cargo add codeuchain
-
-# Or manually
+# or in Cargo.toml
 [dependencies]
 codeuchain = "1.0.0"
-
-# From source
+```
+From source:
+```bash
 git clone https://github.com/codeuchain/codeuchain.git
 cd packages/rust
 cargo build --release
 ```
 
-## Core API
-
-### Link Implementation
+---
+## 5. Implementing a Link
 ```rust
-use codeuchain::{Link, Context, Error};
 use async_trait::async_trait;
+use codeuchain::{Link, Context, Error};
 
-pub struct ValidationLink;
+#[derive(serde::Deserialize, serde::Serialize)]
+struct Inbound { email: String, body: String }
+#[derive(serde::Deserialize, serde::Serialize)]
+struct Parsed { email: String, tokens: Vec<String> }
+
+struct ParseLink;
 
 #[async_trait]
-impl Link<UserInput, ValidatedUser> for ValidationLink {
-    async fn call(&self, ctx: Context<UserInput>) -> Result<Context<ValidatedUser>, Error> {
-        let input = ctx.get("user")?;
-        // Validation logic
-        let validated = ValidatedUser::new(/* ... */)?;
-        Ok(ctx.insert("validated", validated))
+impl Link<Inbound, Parsed> for ParseLink {
+    async fn call(&self, ctx: Context<Inbound>) -> Result<Context<Parsed>, Error> {
+        let inbound: Inbound = ctx.get("inbound")?;
+        if !inbound.email.contains('@') { return Err(Error::validation("invalid_email")); }
+        let tokens = inbound.body.split_whitespace().map(|s| s.to_string()).collect();
+        Ok(ctx.insert_as("parsed", Parsed { email: inbound.email, tokens }))
     }
 }
 ```
-
 ### Chain Composition
 ```rust
-use codeuchain::Chain;
-
 let chain = Chain::new()
-    .then(ValidationLink)
-    .then(ProcessingLink)
-    .catch_error(|err| {
-        eprintln!("Error: {}", err);
-        // Error handling
+    .then(ParseLink)
+    .then(EnrichLink)
+    .catch(|name, err, ctx| {
+        tracing::error!(link=name, %err, "chain error");
+        Ok(ctx.insert("error", err.to_string()))
     });
 
-let result = chain.call(initial_context).await?;
+let ctx = Context::start(json!({"inbound": {"email":"a@b.com","body":"hello world"}}));
+let final_ctx = chain.call(ctx).await?;
 ```
 
-## Testing
+---
+## 6. Error Handling & Retry
+Classification approach:
+```
+Error -> classify(): Transient | Permanent | Validation | Security
+Transient -> backoff + retry; others propagate or tag
+```
+Wrapper:
+```rust
+fn with_retry<L, In, Out>(link: L, attempts: usize) -> impl Link<In, Out>
+where L: Link<In, Out> + Clone + 'static, In: Send + 'static, Out: Send + 'static {
+    RetryLink { inner: link, attempts }
+}
+```
 
+---
+## 7. Middleware Lifecycle
+```rust
+struct MetricsMw;
+impl Middleware for MetricsMw {
+    fn before(&self, name: &str, _ctx: &ErasedContext) {
+        tracing::trace!(link=name, "start");
+    }
+    fn after(&self, name: &str, ctx: &ErasedContext) {
+        tracing::trace!(link=name, keys=?ctx.keys().collect::<Vec<_>>(), "end");
+    }
+    fn on_error(&self, name: &str, _ctx: &ErasedContext, err: &Error) {
+        tracing::error!(link=name, %err, "failed");
+    }
+}
+```
+Guidelines:
+- Avoid blocking operations inside middleware.
+- Provide span-based tracing (tracing crate) for hierarchical visibility.
+
+---
+## 8. Type Evolution Example
+```rust
+#[derive(Serialize, Deserialize)] struct Stage1 { raw: String }
+#[derive(Serialize, Deserialize)] struct Stage2 { raw: String, tokens: Vec<String> }
+#[derive(Serialize, Deserialize)] struct Stage3 { raw: String, tokens: Vec<String>, score: f64 }
+
+ctx = ctx.insert_as("stage2", Stage2 { raw: ctx.get::<Stage1>("stage1")?.raw.clone(), tokens: tokenize(&ctx.get::<Stage1>("stage1")?.raw) });
+ctx = ctx.insert_as("stage3", Stage3 { raw: ctx.get::<Stage2>("stage2")?.raw.clone(), tokens: ctx.get::<Stage2>("stage2")?.tokens.clone(), score: 0.91 });
+```
+Benefits: compile-time struct evolution, serde-backed runtime flexibility.
+
+---
+## 9. Testing & TDD
 ```bash
-# Run tests
 cargo test
+```
+Example test:
+```rust
+#[tokio::test]
+async fn parses_tokens() {
+    let ctx = Context::start(json!({"inbound": {"email":"a@b.com","body":"hello world"}}));
+    let out = ParseLink.call(ctx).await.unwrap();
+    let parsed: Parsed = out.get("parsed").unwrap();
+    assert_eq!(parsed.tokens.len(), 2);
+}
+```
+Property testing: `proptest` for tokenization invariants. Benchmarks: `criterion`.
 
-# With coverage (requires cargo-tarpaulin)
-cargo tarpaulin --out Html
+---
+## 10. Observability & Diagnostics
+Strategies:
+- `tracing` spans per link
+- metrics via `metrics` or `opentelemetry` exporters
+- context key audits (log only key names, not full values)
+- error classification tags inserted into context
 
-# Doc tests
-cargo test --doc
-
-# Benchmarks
-cargo bench
+Debug helper:
+```rust
+struct DebugMw;
+impl Middleware for DebugMw { fn after(&self, name: &str, ctx: &ErasedContext){ eprintln!("DBG {name}: {:?}", ctx.keys().collect::<Vec<_>>()); } }
 ```
 
-## Project Structure
+---
+## 11. Performance Guidance
+| Concern | Strategy |
+|---------|----------|
+| Allocation churn | Reuse buffers, use `SmallVec` for short lists |
+| Serde overhead | Pre-validate types; avoid unnecessary serialize/deserialize cycles |
+| Arc cloning | Keep contexts lean; avoid large payload copies |
+| Logging cost | Use trace level sparingly; compile-time filters |
+| Async task overhead | Batch small synchronous links; avoid needless `.await` boundaries |
 
-```
-packages/rust/
-├── src/
-│   ├── lib.rs
-│   ├── core/
-│   │   ├── mod.rs
-│   │   ├── link.rs
-│   │   ├── chain.rs
-│   │   └── context.rs
-│   └── utils/
-│       ├── mod.rs
-│       └── error_handling.rs
-├── tests/
-│   └── integration_test.rs
-├── examples/
-│   └── basic_usage.rs
-├── Cargo.toml
-└── README.md
-```
-
-## Examples
-
-See `packages/rust/examples/` for:
-- Basic chain composition
-- Error handling patterns
-- Async usage examples
-- Performance benchmarks
-- Integration with popular crates
-
-## Development
-
-```bash
-# Check code
-cargo check
-
-# Format code
-cargo fmt
-
-# Lint code
-cargo clippy
-
-# Run examples
-cargo run --example basic_usage
-
-# Generate docs
-cargo doc --open
+Benchmark sketch (criterion):
+```rust
+fn bench_chain(c: &mut Criterion) {
+  c.bench_function("simple_chain", |b| {
+    let chain = build_chain();
+    let ctx = seed();
+    b.to_async(tokio::runtime::Runtime::new().unwrap()).iter(|| chain.call(ctx.clone()));
+  });
+}
 ```
 
-## Cargo Configuration
+---
+## 12. Advanced Patterns
+- Fan-out with `futures::join!` then merge contexts
+- Conditional link insertion (feature flags)
+- Saga compensation (store compensator closures in context)
+- Streaming adaptation (wrap each chunk as ephemeral context)
+- Partial failure tagging (accumulate vector of soft errors)
+- Retry + backoff classification (transient only)
 
-```toml
-[package]
-name = "codeuchain"
-version = "1.0.0"
-edition = "2021"
-description = "CodeUChain Rust implementation"
-license = "MIT"
+---
+## 13. Migration & Adoption
+Phases:
+1. Start with synchronous link prototypes (feature gating)  
+2. Introduce async where I/O-bound  
+3. Add middleware (tracing + metrics)  
+4. Introduce classification + retry wrappers  
+5. Optimize hotspots (allocation / serde)  
+6. Extract reusable chain fragments to crates  
 
-[dependencies]
-tokio = { version = "1.0", features = ["full"] }
-serde = { version = "1.0", features = ["derive"] }
-anyhow = "1.0"
+Backward compatibility: prefer additive trait impls; avoid breaking Link signatures.
 
-[dev-dependencies]
-criterion = "0.5"
+---
+## 14. Anti-Patterns
+| Anti-Pattern | Problem | Remedy |
+|--------------|---------|--------|
+| Excess cloning of large payloads | Memory & latency | Borrow slices / use Arc smart sharing |
+| Blocking in async link | Runtime starvation | Offload to blocking pool (`spawn_blocking`) |
+| Panicking for recoverable errors | Crash risk | Return structured `Error` variants |
+| Overuse of `Any`/erased dynamic | Lost type guarantees | Keep generics as long as feasible |
+| Logging full payload JSON | PII & performance | Log keys or hashed summaries |
 
-[[bench]]
-name = "chain_benchmarks"
-harness = false
+---
+## 15. FAQ
+**Q:** Why `async_trait`?  
+**A:** Ergonomic async in traits until `async fn` in traits stabilizes.  
+**Q:** Can I share context across tasks?  
+**A:** Yes—immutable + internal Arc; avoid mutating external captured state.  
+**Q:** How to short-circuit a chain?  
+**A:** Return early error or have a link insert a sentinel consumed by a conditional link.  
+**Q:** How to avoid serde overhead?  
+**A:** Store strongly typed structs directly; only serialize at boundaries.  
+**Q:** Do I need lifetimes in Link?  
+**A:** Typically no; own data or use Arc to simplify.  
+
+---
+## 16. Glossary
+- **Link**: Async transformation unit.
+- **Chain**: Ordered executor applying links.
+- **Context**: Immutable state map with evolution support.
+- **Middleware**: Observers (before/after/error) around link calls.
+- **Type Evolution**: Widening context’s modeled shape.
+- **Classification**: Mapping errors to semantic categories.
+
+---
+## 17. TL;DR
+```text
+cargo add codeuchain
+Primitives: Link + Chain + Context + Middleware + Type Evolution
+Adopt: Start sync → add async where I/O-bound → add tracing/metrics → optimize
+Perf: Minimize clones, reduce serde churn, batch small tasks
+Errors: Classify, retry transient, propagate permanent
+Observability: tracing spans + key-only logging
+Avoid: blocking in async, panic for recoverable, payload over-logging
 ```
+
+---
+### Support & Resources
+- Issues: https://github.com/codeuchain/codeuchain/issues
+- Discussions: https://github.com/codeuchain/codeuchain/discussions
+- Examples: `packages/rust/examples/`
+- License: Apache 2.0
+
+---
+© 2025 Orchestrate LLC (Joshua @orchestrate.solutions) – Apache 2.0
