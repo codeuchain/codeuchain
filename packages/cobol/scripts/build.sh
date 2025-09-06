@@ -85,10 +85,20 @@ run_tests() {
 # Create distribution package
 create_dist() {
     log_info "Creating distribution package..."
-    VERSION=$(cat VERSION | grep VERSION | cut -d'=' -f2)
+    if [ ! -f VERSION ]; then
+        log_error "VERSION file not found."
+        exit 1
+    fi
+    if ! grep -q '^VERSION=' VERSION; then
+        log_error "VERSION file does not contain a 'VERSION=' line."
+        exit 1
+    fi
+    VERSION=$(grep '^VERSION=' VERSION | head -n1 | cut -d'=' -f2)
+    if [ -z "$VERSION" ]; then
+        log_error "VERSION value is empty in VERSION file."
+        exit 1
+    fi
     DIST_DIR="dist/codeuchain-cobol-${VERSION}"
-
-    mkdir -p "$DIST_DIR"
     cp -r lib/ "$DIST_DIR/"
     cp -r examples/ "$DIST_DIR/"
     cp -r docs/ "$DIST_DIR/"
