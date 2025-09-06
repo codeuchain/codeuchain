@@ -1,40 +1,54 @@
-# CodeUChain (C++) - LLM Reference
+# CodeUChain (C++) – Cheat Sheet
 
-**Name:** CodeUChain (C++)  
-**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/cpp  
-**Docs:** https://codeuchain.github.io/codeuchain/cpp/  
-**Version:** 1.0.0  
-**License:** MIT  
-**Repository:** git+https://github.com/codeuchain/codeuchain.git  
-**Contact:** https://github.com/codeuchain/codeuchain/issues  
+Full reference: `docs/cpp/llm-full.txt`
 
-**Description:** C++ implementation with CMake build system and high-performance features.
+## Quick Start
+(Add library to your build system – header-only pattern suggested.)
 
-**Key Features:**
-- C++17/20 template support
-- CMake build system
-- High-performance implementation
-- Cross-platform compatibility
-- Comprehensive testing
+## Primitives
+- Link: `Context<Out> call(const Context<In>&)` (or async via coroutines)
+- Context<T>: copy-on-write style; `insert`, `insert_as<U>`
+- Chain: fluent composition; `catch_handler`
+- Middleware: wrappers around `call`
 
-**Installation:**
-```bash
-# CMake build
-mkdir build && cd build
-cmake ..
-make
-make install
-```
-
-**Usage:**
+## Minimal Link
 ```cpp
-#include <codeuchain/chain.hpp>
-
-auto myLink = [](Context<InputType> ctx) -> Context<OutputType> {
-    // Your processing logic
-    return ctx.insert("result", processedData);
+struct Parse : ILink<any_t, any_t> {
+    Context<any_t> call(const Context<any_t>& c) override {
+        return c.insert("parsed", true);
+    }
 };
-
-auto chain = Chain().then(myLink);
-auto result = chain.call(initialContext);
 ```
+
+## Chain Example
+```cpp
+auto chain = Chain{}
+    .then(std::make_shared<Validate>())
+    .then(std::make_shared<Parse>())
+    .catch_handler([](auto name, const std::exception& ex, auto ctx){
+            return ctx.insert("error", ex.what());
+    });
+```
+
+## Type Evolution
+```cpp
+auto evolved = ctx.insert_as<Parsed>("parsed", Parsed{tokens});
+```
+
+## Error Classification
+Transient (retry) vs Permanent (validation/security). Distinguish via custom exception types.
+
+## Performance Tips
+- Prefer move semantics
+- Reserve container capacity early
+- Avoid unnecessary heap allocations in links
+
+## ASCII Pipeline
+```
+[In] -> (Validate) -> (Parse) -> (Enrich) -> [Out]
+```
+
+## TL;DR
+Template links + move-aware immutable contexts + layered middleware.
+
+© 2025 Orchestrate LLC – Apache 2.0

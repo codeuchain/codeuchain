@@ -1,34 +1,56 @@
-# CodeUChain (COBOL) - LLM Reference
+# CodeUChain (COBOL) – Cheat Sheet
 
-**Name:** CodeUChain (COBOL)  
-**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/cobol  
-**Docs:** https://codeuchain.github.io/codeuchain/cobol/  
-**Version:** 1.0.0  
-**License:** MIT  
-**Repository:** git+https://github.com/codeuchain/codeuchain.git  
-**Contact:** https://github.com/codeuchain/codeuchain/issues  
+Full reference: `docs/cobol/llm-full.txt`
 
-**Description:** COBOL reference materials and examples for CodeUChain patterns in legacy systems.
+## Quick Start
+Conceptual adaptation for batch COBOL/JCL pipelines (no direct library yet).
 
-**Key Features:**
-- COBOL implementation examples
-- Legacy system integration
-- Mainframe compatibility
-- Batch processing patterns
-- Database integration examples
+## Primitives (Mapped)
+- Link => PROGRAM step (or paragraph)
+- Context => WORKING-STORAGE + temp dataset (key/value emulation)
+- Chain => JCL sequence / PROC with ordered EXEC steps
+- Middleware => Wrapper step (pre/post), condition codes, logging exit
 
-**Usage:**
-```cobol
-IDENTIFICATION DIVISION.
-PROGRAM-ID. VALIDATION-LINK.
-
-DATA DIVISION.
-WORKING-STORAGE SECTION.
-    01 INPUT-DATA PIC X(100).
-    01 OUTPUT-DATA PIC X(100).
-
-PROCEDURE DIVISION.
-    CALL 'PROCESS-DATA' USING INPUT-DATA OUTPUT-DATA.
-    DISPLAY 'Processing complete'.
-    STOP RUN.
+## Minimal Link (Sketch)
 ```
+IDENTIFICATION DIVISION.
+PROGRAM-ID. PARSE.
+WORKING-STORAGE SECTION.
+01 CONTEXT-AREA.
+   05 PARSED-FLAG PIC X VALUE 'N'.
+PROCEDURE DIVISION.
+    MOVE 'Y' TO PARSED-FLAG.
+    GOBACK.
+```
+
+## Chain Example (JCL)
+```
+//JOB ...
+//STEP1 EXEC PGM=VALIDATE
+//STEP2 EXEC PGM=PARSE,COND=(0,EQ,STEP1)
+//STEP3 EXEC PGM=ENRICH,COND=(0,EQ,STEP2)
+```
+
+## Type Evolution
+New copybook level added; propagate via INCLUDE in subsequent steps.
+
+## Error Classification
+- 0000 OK
+- 0004 Warning (continue)
+- 0012+ Permanent (validation/security)
+- Retry: controlled by scheduler (transient dataset lock, contention)
+
+## Performance Tips
+- Minimize dataset I/O passes
+- Use packed fields where possible
+- Consolidate small transforms in single step
+
+## ASCII Pipeline
+```
+[In DSN] -> STEP1(VALIDATE) -> STEP2(PARSE) -> STEP3(ENRICH) -> [Out DSN]
+```
+
+## TL;DR
+Batch steps as links; copybook evolution as types; JCL drives the chain.
+
+© 2025 Orchestrate LLC – Apache 2.0

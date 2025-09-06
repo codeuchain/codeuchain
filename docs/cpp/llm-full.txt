@@ -1,179 +1,287 @@
-# CodeUChain (C++) - Full LLM Reference
+# CodeUChain (C++) – Full LLM Reference
 
 **Name:** CodeUChain (C++)  
 **Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/cpp  
 **Docs:** https://codeuchain.github.io/codeuchain/cpp/  
 **Version:** 1.0.0  
-**License:** MIT  
+**License:** Apache 2.0  
 **Repository:** git+https://github.com/codeuchain/codeuchain.git  
 **Contact:** https://github.com/codeuchain/codeuchain/issues  
 **Authors:** CodeUChain contributors  
-**Language:** C++17/20  
-**Platform:** Cross-platform (Linux, macOS, Windows)  
+**Language:** C++20 (C++17 fallback)  
+**Platforms:** Linux / macOS / Windows  
+**Paradigm Keywords:** Zero‑cost Composition, Immutable Context, Type Evolution, Middleware Observability
 
-## Description
+---
+## 1. Purpose & Philosophy
+High‑performance composable data transformation pipelines with predictable memory & exception safety. Favor value semantics, RAII, constexpr friendliness, and keep link interfaces minimal. Composition over inheritance; explicit over implicit.
 
-The C++ implementation provides high-performance CodeUChain patterns with modern C++ features, template metaprogramming, and cross-platform compatibility.
+| Principle | C++ Expression | Benefit |
+|----------|----------------|---------|
+| Zero‑cost Abstraction | Templates + inline | No runtime penalty |
+| Determinism | Pure call with const ctx | Easier reasoning |
+| Evolution | `insert_as<T>()` pattern | Progressive modeling |
+| Observability | Middleware wrappers | Central instrumentation |
+| Async Option | Coroutines (co_await) | Integrate non-blocking I/O |
 
-## Key Features
-
-- **High Performance:** Template-based zero-cost abstractions
-- **Modern C++:** C++17/20 features with concepts and coroutines
-- **Cross-platform:** CMake-based build system
-- **Type Safety:** Compile-time guarantees with templates
-- **Async Support:** C++20 coroutines integration
-
-## Installation
-
-```bash
-# Clone and build
-git clone https://github.com/codeuchain/codeuchain.git
-cd packages/cpp
-
-# Create build directory
-mkdir build && cd build
-
-# Configure with CMake
-cmake .. -DCMAKE_BUILD_TYPE=Release
-
-# Build
-make -j$(nproc)
-
-# Install (optional)
-make install
+---
+## 2. Architectural Overview
 ```
+Context<Stage0>
+  | ValidateLink
+  v
+Context<Stage1>
+  | ParseLink (middleware before/after/error)
+  v
+Context<Stage2>
+  | EnrichLink
+  v
+Context<Stage3>
+```
+Branching via conditional inclusion; retries & circuit breakers via wrappers.
 
-## Core API
-
-### Link Implementation
+---
+## 3. Core Interfaces (Representative)
 ```cpp
-#include <codeuchain/link.hpp>
-#include <codeuchain/context.hpp>
-
-template<typename TInput, typename TOutput>
-class ValidationLink : public Link<TInput, TOutput> {
+template<class T> class Context {
 public:
-    Context<TOutput> call(const Context<TInput>& ctx) override {
-        auto input = ctx.get("user");
-        // Validation logic
-        auto validated = validateUser(input);
-        return ctx.insert("validated", validated);
-    }
+  using storage_type = std::unordered_map<std::string, std::any>; // impl detail
+  bool has(std::string_view key) const;
+  template<class V> const V& get(std::string_view key) const; // throws if missing / bad_cast
+  Context<T> insert(std::string key, std::any value) const;                 // preserve T
+  template<class U> Context<U> insert_as(std::string key, std::any value) const; // evolve
+  std::vector<std::string> keys() const;
+};
+
+template<class In, class Out>
+struct Link {
+  virtual ~Link() = default;
+  virtual Context<Out> call(const Context<In>& ctx) = 0;
+};
+
+struct Middleware {
+  virtual void before(std::string_view linkName, const Context<std::any>& ctx) {}
+  virtual void after(std::string_view linkName, const Context<std::any>& ctx) {}
+  virtual void on_error(std::string_view linkName, const Context<std::any>& ctx, const std::exception& e) {}
+  virtual ~Middleware() = default;
+};
+```
+Optional coroutine interface:
+```cpp
+template<class In, class Out>
+struct AsyncLink {
+  virtual ~AsyncLink() = default;
+  virtual task<Context<Out>> call_async(Context<In> ctx) = 0; // task<T> custom awaitable
 };
 ```
 
+---
+## 4. Installation
+```bash
+git clone https://github.com/codeuchain/codeuchain.git
+cd packages/cpp
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make -j$(nproc)
+```
+Optional: `sudo make install` (set `CMAKE_INSTALL_PREFIX`).
+
+---
+## 5. Implementing a Link
+```cpp
+struct Inbound { std::string email; std::string body; };
+struct Parsed  { std::string email; std::vector<std::string> tokens; };
+
+class ParseLink : public Link<Inbound, Parsed> {
+public:
+  Context<Parsed> call(const Context<Inbound>& ctx) override {
+    const auto& in = ctx.template get<Inbound>("inbound");
+    if (in.email.find('@') == std::string::npos)
+      throw std::invalid_argument("invalid_email");
+    auto toks = tokenize(in.body);
+    return ctx.insert_as<Parsed>("parsed", Parsed{in.email, std::move(toks)});
+  }
+};
+```
 ### Chain Composition
 ```cpp
-#include <codeuchain/chain.hpp>
-
-auto chain = Chain()
-    .then(std::make_shared<ValidationLink>())
-    .then(std::make_shared<ProcessingLink>())
-    .catch([](const std::exception& e) {
-        // Error handling
-        std::cerr << "Error: " << e.what() << std::endl;
+auto chain = Chain::start(std::make_shared<ParseLink>())
+    .then(std::make_shared<EnrichLink>())
+    .catching([](std::string_view name, const std::exception& e, auto ctx){
+        return ctx.insert("error", std::string(e.what()));
     });
 
-auto result = chain.call(initialContext);
+auto finalCtx = chain.call(initialCtx);
 ```
 
-## Testing
-
-```bash
-# Run tests (requires Google Test)
-cd build
-ctest --output-on-failure
-
-# With coverage (requires gcov/lcov)
-make coverage
-
-# Benchmarks (requires Google Benchmark)
-make benchmark
+---
+## 6. Error Handling & Wrappers
+Strategy: classify exceptions (transient vs permanent) → decide retry / escalate.
+```cpp
+template<class In, class Out>
+auto with_retry(std::shared_ptr<Link<In,Out>> inner, int attempts = 3) {
+  struct Retrying : Link<In,Out> {
+    std::shared_ptr<Link<In,Out>> inner; int attempts;
+    Context<Out> call(const Context<In>& ctx) override {
+      for (int i=0;i<attempts;i++) {
+        try { return inner->call(ctx); }
+        catch (const transient_error&) { /* backoff */ }
+      }
+      return inner->call(ctx); // final attempt propagate
+    }
+  };
+  return std::make_shared<Retrying>(Retrying{inner, attempts});
+}
 ```
 
-## Project Structure
-
+---
+## 7. Middleware Lifecycle
+```cpp
+class MetricsMiddleware : public Middleware {
+  void before(std::string_view name, const Context<std::any>& ctx) override {
+    // record start time
+  }
+  void after(std::string_view name, const Context<std::any>& ctx) override {
+    // compute duration
+  }
+  void on_error(std::string_view name, const Context<std::any>& ctx, const std::exception& e) override {
+    // log error
+  }
+};
 ```
-packages/cpp/
-├── CMakeLists.txt
-├── include/
-│   └── codeuchain/
-│       ├── chain.hpp
-│       ├── context.hpp
-│       ├── link.hpp
-│       └── middleware.hpp
-├── src/
-│   ├── chain.cpp
-│   ├── context.cpp
-│   └── link.cpp
-├── tests/
-│   ├── CMakeLists.txt
-│   └── chain_test.cpp
-├── examples/
-│   ├── CMakeLists.txt
-│   └── basic_usage.cpp
-└── README.md
-```
+Guidelines:
+- Keep allocation minimal.
+- Avoid throwing from middleware.
+- Tag errors; never silently swallow unless policy demands it.
 
-## Examples
+---
+## 8. Type Evolution Example
+```cpp
+struct Stage1 { std::string raw; };
+struct Stage2 { std::string raw; std::vector<std::string> tokens; };
+struct Stage3 { std::string raw; std::vector<std::string> tokens; double score; };
 
-See `packages/cpp/examples/` for:
-- Basic chain composition
-- Template usage examples
-- Error handling patterns
-- Performance benchmarks
-- CMake integration examples
-
-## Development
-
-```bash
-# Configure for development
-cmake .. -DCMAKE_BUILD_TYPE=Debug -DCODEUCHAIN_BUILD_TESTS=ON
-
-# Build
-make -j$(nproc)
-
-# Run tests
-make test
-
-# Format code (requires clang-format)
-find . -name "*.cpp" -o -name "*.hpp" | xargs clang-format -i
+ctx = ctx.insert_as<Stage2>("stage2", Stage2{ctx.get<Stage1>("stage1").raw, tokenize(ctx.get<Stage1>("stage1").raw)});
+ctx = ctx.insert_as<Stage3>("stage3", Stage3{ctx.get<Stage2>("stage2").raw, ctx.get<Stage2>("stage2").tokens, 0.91});
 ```
 
-## CMake Configuration
-
-```cmake
-cmake_minimum_required(VERSION 3.16)
-project(codeuchain VERSION 1.0.0 LANGUAGES CXX)
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-# Find dependencies
-find_package(Threads REQUIRED)
-
-# Library target
-add_library(codeuchain
-    src/chain.cpp
-    src/context.cpp
-    src/link.cpp
-)
-
-target_include_directories(codeuchain
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
-)
-
-target_link_libraries(codeuchain
-    PUBLIC
-        Threads::Threads
-)
-
-# Tests
-option(CODEUCHAIN_BUILD_TESTS "Build tests" ON)
-if(CODEUCHAIN_BUILD_TESTS)
-    enable_testing()
-    add_subdirectory(tests)
-endif()
+---
+## 9. Testing Strategy
+Frameworks: GoogleTest / Catch2. Property: rapidcheck. Benchmark: Google Benchmark.
+```cpp
+TEST(ParseLink, ParsesTokens) {
+  auto ctx = Context<Inbound>::start({{"inbound", Inbound{"a@b.com","hello world"}}});
+  ParseLink link;
+  auto out = link.call(ctx);
+  const auto& parsed = out.get<Parsed>("parsed");
+  EXPECT_EQ(parsed.tokens.size(), 2u);
+}
 ```
+
+---
+## 10. Observability & Diagnostics
+Approaches:
+- Middleware instrumentation (timers, counters)
+- Conditional compile logging macros
+- Error classification tags inside context
+- Log only keys (privacy & noise control)
+```cpp
+class DebugMiddleware : public Middleware {
+  void after(std::string_view n, const Context<std::any>& c) override {
+    std::cerr << "DBG " << n << ":"; for (auto& k : c.keys()) std::cerr << ' ' << k; std::cerr << '\n';
+  }
+};
+```
+
+---
+## 11. Performance Guidance
+| Concern | Strategy |
+|---------|----------|
+| Unnecessary copies | Move semantics; NRVO |
+| std::any overhead | Use variant / typed specializations in hot paths |
+| Exception cost | Classify quickly; avoid using for control flow |
+| Allocation churn | Reserve vectors; pool transient buffers |
+| Logging overhead | Defer formatting; compile-time flags |
+```cpp
+static void ChainBench(benchmark::State& st) {
+  auto chain = /* build */;
+  auto ctx = /* seed context */;
+  for (auto _ : st) benchmark::DoNotOptimize(chain.call(ctx));
+}
+BENCHMARK(ChainBench);
+```
+
+---
+## 12. Advanced Patterns
+- Fan-out / fan-in (threads or coroutines)
+- Conditional link selection (predicate functor)
+- Retry + circuit breaker layering (middleware + wrapper)
+- Partial failure accumulation (vector of error tags)
+- Streaming ingestion (batch contexts)
+- SAGA compensation (undo lambda registry)
+
+---
+## 13. Migration & Adoption
+Phases:
+1. Minimal sync links
+2. Add templates & strong types
+3. Add middleware (metrics/logging)
+4. Parallel fan-out (threads / tasks)
+5. Optimize allocations / replace any in hot paths
+6. Introduce coroutine async links (only if needed)
+
+Backward compatibility: add new templates; avoid signature breakage.
+
+---
+## 14. Anti-Patterns
+| Anti-Pattern | Problem | Remedy |
+|--------------|---------|--------|
+| Raw void* context | UB risk | Use std::any / variant |
+| Throw for control flow | Slow & unclear | Sentinel / classification |
+| Heavy IO in middleware | Latency | Queue/batch async |
+| Copying large payload each link | Memory/time waste | Structural sharing / references |
+| Logging full payloads | Privacy & cost | Redact / hash / sample |
+
+---
+## 15. FAQ
+**Q:** Do I need coroutines?  
+**A:** Only if you have real async I/O; CPU steps stay sync.  
+**Q:** Store references?  
+**A:** Yes if lifetime exceeds chain; prefer value/shared_ptr for safety.  
+**Q:** Short-circuit?  
+**A:** Throw classified exception or conditional link sentinel.  
+**Q:** Replace std::any?  
+**A:** Use variant for closed type sets; or specialized context.  
+**Q:** Thread safety?  
+**A:** Context immutable; share safely. Avoid global mutable singletons.  
+
+---
+## 16. Glossary
+- **Link**: Transformation functor/object.
+- **Chain**: Ordered executor of links.
+- **Context**: Immutable key-value store with evolution helpers.
+- **Middleware**: Observers around link invocation.
+- **Type Evolution**: Widening of context’s conceptual schema.
+- **Classification**: Mapping exceptions → semantic categories.
+
+---
+## 17. TL;DR
+```text
+Build: cmake .. && make -j
+Primitives: Link + Chain + Context + Middleware + Type Evolution
+Performance: Move semantics, minimal allocations, benchmark hot paths
+Observability: Middleware metrics + debug-after keys
+Errors: Classify, retry transient, surface permanent
+Adoption: Start sync → add async only if needed
+Avoid: heavy IO middleware, control-flow exceptions, raw void*
+```
+
+---
+### Support & Resources
+- Issues: https://github.com/codeuchain/codeuchain/issues
+- Discussions: https://github.com/codeuchain/codeuchain/discussions
+- Examples: `packages/cpp/examples/`
+- License: Apache 2.0
+
+---
+© 2025 Orchestrate LLC (Joshua @orchestrate.solutions) – Apache 2.0

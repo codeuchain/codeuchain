@@ -1,41 +1,60 @@
-# CodeUChain (Java) - LLM Reference
+# CodeUChain (Java) – Cheat Sheet
 
-**Name:** CodeUChain (Java)  
-**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/java  
-**Docs:** https://codeuchain.github.io/codeuchain/java/  
-**Version:** 1.0.0  
-**License:** MIT  
-**Repository:** git+https://github.com/codeuchain/codeuchain.git  
-**Contact:** https://github.com/codeuchain/codeuchain/issues  
+Full reference: `docs/java/llm-full.txt`
 
-**Description:** Java implementation with Maven support and enterprise Java features.
-
-**Key Features:**
-- Full Java generic support
-- Maven build system
-- Enterprise Java patterns
-- Comprehensive testing with JUnit
-- Spring Boot integration ready
-
-**Installation:**
+## Quick Start
 ```bash
-# Add to pom.xml
-<dependency>
-    <groupId>com.codeuchain</groupId>
-    <artifactId>codeuchain</artifactId>
-    <version>1.0.0</version>
-</dependency>
+# Gradle
+implementation "org.codeuchain:codeuchain:1.0.0"
 ```
-
-**Usage:**
 ```java
-import com.codeuchain.*;
-
-Link<InputType, OutputType> myLink = ctx -> {
-    // Your processing logic
-    return ctx.insert("result", processedData);
-};
-
-Chain chain = new Chain().then(myLink);
-Context result = chain.call(initialContext).get();
+var ctx = Context.of(Map.of("payload", "hi"));
+var res = chain.call(ctx).get();
 ```
+
+## Primitives
+- Link: `CompletableFuture<Context<O>> call(Context<I> ctx)`
+- Context<T>: immutable; `insert`, `<U> insertAs`
+- Chain: fluent + `.catchHandler()`
+- Middleware: pre/post/error wrappers
+
+## Minimal Link
+```java
+final class Parse implements Link<Object, Object> {
+    public CompletableFuture<Context<Object>> call(Context<Object> ctx){
+        return completedFuture(ctx.insert("parsed", true));
+    }
+}
+```
+
+## Chain Example
+```java
+var chain = Chain.builder()
+    .then(new Validate())
+    .then(new Parse())
+    .catchHandler((name, ex, ctx) -> completedFuture(ctx.insert("error", ex.getMessage())))
+    .build();
+```
+
+## Type Evolution
+```java
+Context<Parsed> evolved = ctx.insertAs("parsed", new Parsed(tokens));
+```
+
+## Error Classification
+Retry transient (IO, 5xx); surface validation/security. Map using sealed hierarchy or enums.
+
+## Performance Tips
+- Avoid blocking joins; stay async
+- Reuse thread pools (virtual threads ready)
+- Minimize intermediate map copies
+
+## ASCII Pipeline
+```
+[In] -> (Validate) -> (Parse) -> (Enrich) -> [Out]
+```
+
+## TL;DR
+CompletableFuture links + immutable context + evolving typed payload.
+
+© 2025 Orchestrate LLC – Apache 2.0
