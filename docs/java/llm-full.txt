@@ -1,148 +1,298 @@
-# CodeUChain (Java) - Full LLM Reference
+# CodeUChain (Java) – Full LLM Reference
 
 **Name:** CodeUChain (Java)  
 **Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/java  
 **Docs:** https://codeuchain.github.io/codeuchain/java/  
 **Version:** 1.0.0  
-**License:** MIT  
+**License:** Apache 2.0  
 **Repository:** git+https://github.com/codeuchain/codeuchain.git  
 **Contact:** https://github.com/codeuchain/codeuchain/issues  
 **Authors:** CodeUChain contributors  
-**Language:** Java 11+  
-**Platform:** JVM (OpenJDK, Oracle JDK, etc.)  
+**Language:** Java 11+ (Loom-ready for virtual threads ≥19)  
+**Paradigm Keywords:** Composable Pipelines, CompletableFuture, Type Evolution, Middleware Observability
 
-## Description
+---
+## 1. Purpose & Philosophy
+Deliver production-grade composable transformation chains with strong typing, predictable async behavior, and zero disruption to existing untyped Java code. Opt‑in generics, evolvable context, deterministic middleware lifecycle.
 
-The Java implementation provides enterprise-grade CodeUChain patterns with full JVM ecosystem integration, comprehensive error handling, and production-ready features for Java applications.
+| Principle | Java Mechanism | Benefit |
+|-----------|----------------|---------|
+| Gradual Typing | Generics + raw fallback | Incremental adoption |
+| Async Uniformity | `CompletableFuture` | Interop with existing async APIs |
+| Type Evolution | `insertAs()` returning new `Context<U>` | Progressive modeling without casts |
+| Observability | Middleware interface | Centralized cross-cutting logic |
+| Backpressure Friendly | Composition + batching | Resource stability |
 
-## Key Features
+---
+## 2. Architectural Overview
+```
+Context<T0>
+    | validateLink
+    v
+Context<T1>
+    | enrichLink  (middleware before/after/error around each call)
+    v
+Context<T2>  --(conditional branch)--> Context<T2a>
+    | aggregateLink
+    v
+Context<T3>
+```
+Error classification drives retry wrappers, metrics capture durations & outcomes, context evolves structurally with each successful link.
 
-- **Enterprise Java:** Full JVM ecosystem integration
-- **Type Safety:** Java generics with compile-time guarantees
-- **Async Support:** CompletableFuture integration
-- **Build System:** Maven with comprehensive dependency management
-- **Testing:** JUnit 5 with high coverage
-- **Spring Integration:** Ready for Spring Boot applications
+---
+## 3. Core Interfaces (Representative)
+```java
+public interface Link<I, O> {
+        CompletableFuture<Context<O>> call(Context<I> ctx);
+}
 
-## Installation
+public final class Context<T> {
+        private final Map<String,Object> data; // immutable wrapper
+        private Context(Map<String,Object> data) { this.data = Map.copyOf(data); }
+        public static <T> Context<T> start(Map<String,Object> seed) { return new Context<>(seed); }
+        @SuppressWarnings("unchecked")
+        public <V> V get(String key) { return (V) data.get(key); }
+        public boolean has(String key) { return data.containsKey(key); }
+        public Context<T> insert(String key, Object value) {
+                var copy = new HashMap<>(data); copy.put(key, value); return new Context<>(copy);
+        }
+        public <U> Context<U> insertAs(String key, Object value) {
+                var copy = new HashMap<>(data); copy.put(key, value); return new Context<>(copy);
+        }
+        public Set<String> keys() { return data.keySet(); }
+}
 
+public interface Middleware {
+        default void before(String linkName, Context<?> ctx) {}
+        default void after(String linkName, Context<?> ctx) {}
+        default void onError(String linkName, Context<?> ctx, Throwable error) {}
+}
+```
+
+---
+## 4. Installation
 ```xml
-<!-- Add to pom.xml -->
 <dependency>
     <groupId>com.codeuchain</groupId>
     <artifactId>codeuchain</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
+Gradle:
+```gradle
+implementation "com.codeuchain:codeuchain:1.0.0"
+```
 
-## Core API
-
-### Link Implementation
+---
+## 5. Implementing a Link
 ```java
-import com.codeuchain.*;
+public record Inbound(String email, String body) {}
+public record Parsed(String email, List<String> tokens) {}
 
-public class ValidationLink implements Link<UserInput, ValidatedUser> {
+public class ParseLink implements Link<Inbound, Parsed> {
     @Override
-    public CompletableFuture<Context<ValidatedUser>> call(Context<UserInput> ctx) {
-        UserInput input = ctx.get("user");
-        // Validation logic
-        ValidatedUser validated = new ValidatedUser(/* ... */);
+    public CompletableFuture<Context<Parsed>> call(Context<Inbound> ctx) {
+        Inbound inbound = ctx.get("inbound");
+        if (inbound.email() == null || !inbound.email().contains("@")) {
+                return CompletableFuture.failedFuture(new ValidationException("invalid_email"));
+        }
+        List<String> tokens = List.of(inbound.body().split("\\s+"));
         return CompletableFuture.completedFuture(
-            ctx.insert("validated", validated)
+                ctx.insertAs("parsed", new Parsed(inbound.email(), tokens))
         );
     }
 }
 ```
-
 ### Chain Composition
 ```java
-Chain chain = new Chain()
-    .then(new ValidationLink())
-    .then(new ProcessingLink())
-    .catch(new ErrorHandler());
+Chain<Inbound, Parsed> chain = Chain.<Inbound>builder()
+        .then(new ParseLink())
+        .then(new EnrichLink())
+        .withMiddleware(new MetricsMiddleware())
+        .onError((name, err, c) -> c.insert("error", err.getMessage()))
+        .build();
 
-CompletableFuture<Context> result = chain.call(initialContext);
+Context<Inbound> start = Context.start(Map.of("inbound", new Inbound("a@b.com","hello world")));
+Context<Parsed> out = chain.call(start).get();
 ```
 
-## Testing
+---
+## 6. Error Handling & Retry
+Classification pattern:
+```
+Throwable -> classify(): TRANSIENT | PERMANENT | VALIDATION | SECURITY
+TRANSIENT -> retry with exponential backoff; others propagate or tag in context
+```
+Retry wrapper:
+```java
+static <I,O> Link<I,O> withRetry(Link<I,O> inner, int attempts, Duration backoff) {
+    return ctx -> attempt(inner, ctx, attempts, backoff, 0);
+}
+private static <I,O> CompletableFuture<Context<O>> attempt(Link<I,O> inner, Context<I> ctx, int max, Duration backoff, int n){
+    return inner.call(ctx).handle((val, err) -> {
+        if (err == null) return CompletableFuture.completedFuture(val);
+        if (n+1 >= max || !isTransient(err)) return CompletableFuture.failedFuture(err);
+        try { Thread.sleep(backoff.toMillis() * (1L << n)); } catch (InterruptedException e){ Thread.currentThread().interrupt(); }
+        return attempt(inner, ctx, max, backoff, n+1);
+    }).thenCompose(Function.identity());
+}
+```
 
+---
+## 7. Middleware Lifecycle
+```java
+public class MetricsMiddleware implements Middleware {
+    private final MeterRegistry registry;
+    public MetricsMiddleware(MeterRegistry registry){ this.registry = registry; }
+    @Override public void before(String link, Context<?> ctx){ registry.counter("link.calls", "link", link).increment(); }
+    @Override public void after(String link, Context<?> ctx){ registry.counter("link.success", "link", link).increment(); }
+    @Override public void onError(String link, Context<?> ctx, Throwable error){
+         registry.counter("link.errors", "link", link, "type", classify(error).name()).increment();
+    }
+}
+```
+Guidelines:
+* Keep side-effects idempotent.
+* Avoid blocking I/O (prefer async instrumentation or virtual threads in Loom-enabled JVMs).
+* Log keys not full payloads for PII compliance.
+
+---
+## 8. Type Evolution Example
+```java
+record Stage1(String raw) {}
+record Stage2(String raw, List<String> tokens) {}
+record Stage3(String raw, List<String> tokens, double score) {}
+
+Context<Stage1> c1 = Context.start(Map.of("stage1", new Stage1("hello world")));
+Context<Stage2> c2 = c1.insertAs("stage2", new Stage2(c1.get("stage1").raw(), List.of("hello","world")));
+Context<Stage3> c3 = c2.insertAs("stage3", new Stage3(c2.get("stage2").raw(), c2.get("stage2").tokens(), 0.91));
+```
+Benefits: progressive modeling, no raw casts, generics maintain intent while runtime map preserves flexibility.
+
+---
+## 9. Testing & TDD
 ```bash
-# Run tests
-mvn test
+mvn -q test
+```
+Example JUnit test:
+```java
+@Test
+void parsesTokens() throws Exception {
+    Chain<Inbound, Parsed> chain = Chain.<Inbound>builder().then(new ParseLink()).build();
+    Context<Inbound> start = Context.start(Map.of("inbound", new Inbound("a@b.com","hi all")));
+    Context<Parsed> out = chain.call(start).get();
+    Parsed parsed = out.get("parsed");
+    assertEquals(2, parsed.tokens().size());
+}
+```
+Add property tests with jqwik for randomized inputs. For performance, JMH harness on hot links.
 
-# With coverage
-mvn test jacoco:report
+---
+## 10. Observability & Diagnostics
+* Metrics: Micrometer / Prometheus counters & timers per link
+* Logging: Structured (link name, duration, classification, keys count)
+* Tracing: OpenTelemetry spans wrap middleware `before/after`
+* Context introspection: expose only key set, not full values
+* Error tagging: classification inserted as `error.classification`
 
-# Integration tests
-mvn verify
+Minimal logging middleware:
+```java
+class LoggingMw implements Middleware {
+    private static final Logger log = LoggerFactory.getLogger(LoggingMw.class);
+    public void before(String n, Context<?> c){ log.debug("start link={} keys={}", n, c.keys().size()); }
+    public void after(String n, Context<?> c){ log.debug("end link={} keys={}", n, c.keys().size()); }
+    public void onError(String n, Context<?> c, Throwable e){ log.warn("error link={} type={} msg={}", n, e.getClass().getSimpleName(), e.getMessage()); }
+}
 ```
 
-## Project Structure
+---
+## 11. Performance Guidance
+| Concern | Strategy |
+|---------|----------|
+| Excess object churn | Reuse immutable value records; pool large buffers |
+| CompletableFuture chaining overhead | Combine synchronous steps; avoid needless async boundaries |
+| Blocking during retry | Use scheduled executor or virtual threads (Loom) |
+| GC pressure | Prefer records & small collections; avoid large intermediate maps |
+| Logging overhead | Guard debug logs; structured logging with parameterized templates |
 
-```
-packages/java/
-├── src/
-│   ├── main/java/com/codeuchain/
-│   │   ├── Chain.java
-│   │   ├── Context.java
-│   │   ├── Link.java
-│   │   └── Middleware.java
-│   └── test/java/com/codeuchain/
-│       └── ChainTest.java
-├── pom.xml
-└── README.md
-```
-
-## Examples
-
-See `packages/java/src/main/java/com/codeuchain/examples/` for:
-- Basic chain composition
-- Generic type usage
-- Error handling patterns
-- Spring Boot integration
-- Performance benchmarks
-
-## Development
-
-```bash
-# Compile
-mvn compile
-
-# Run tests
-mvn test
-
-# Package
-mvn package
-
-# Install locally
-mvn install
+JMH sketch:
+```java
+@Benchmark
+public Context<Parsed> simpleChain() throws Exception {
+    return chain.call(start).get();
+}
 ```
 
-## Maven Configuration
+---
+## 12. Advanced Patterns
+* Parallel fan-out: submit multiple links with `CompletableFuture.allOf` then merge
+* Conditional branching: dynamic chain assembly via builder
+* Circuit breaker: wrap link with failure counter + half-open probe
+* Bulk batching: accumulate N contexts then process in batch link
+* Saga compensation: store compensators inside context list
+* Partial failures: attach `List<ErrorInfo>` while still producing primary output
 
-```xml
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    
-    <groupId>com.codeuchain</groupId>
-    <artifactId>codeuchain</artifactId>
-    <version>1.0.0</version>
-    
-    <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-    </properties>
-    
-    <dependencies>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>5.9.0</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-</project>
+---
+## 13. Migration & Adoption
+Phases:
+1. Wrap current imperative steps into single Link (raw types)  
+2. Introduce generics & typed records  
+3. Add middleware (metrics + logging)  
+4. Introduce retry + classification  
+5. Optimize hotspots (profiling + allocation review)  
+6. Extract shared chain fragments to library module  
+
+Compatibility: raw `Context` continues working; adding `<T>` is non-breaking.
+
+---
+## 14. Anti-Patterns
+| Anti-Pattern | Problem | Remedy |
+|--------------|---------|--------|
+| Nested blocking `.get()` inside links | Thread starvation | Compose futures / use `thenCompose` |
+| Casting from raw context | Fragile, runtime errors | Use typed `insertAs` evolution |
+| Logging full payload bodies | PII risk & noise | Log keys or hashed identifiers |
+| Embedding business logic in middleware | Coupling, test pain | Keep middleware cross-cutting only |
+| Oversharding chains into tiny async steps | Overhead dominates | Batch synchronous logic into one link |
+
+---
+## 15. FAQ
+**Q:** Why `CompletableFuture` vs reactive types?  
+**A:** Ubiquitous in JDK; reactive wrappers can adapt later.  
+**Q:** Can I integrate with Spring?  
+**A:** Yes—register Links as beans; compose chains in configuration.  
+**Q:** How to short-circuit?  
+**A:** Return failed future or have link insert sentinel consumed by conditional assembly.  
+**Q:** How to handle partial failures?  
+**A:** Accumulate into `errors` key; downstream decides severity.  
+**Q:** Virtual threads support?  
+**A:** Works transparently; blocking retries become cheaper.  
+
+---
+## 16. Glossary
+* **Link**: Asynchronous (or synchronous) transformation unit returning `CompletableFuture`.
+* **Chain**: Ordered composition orchestrating links + middleware.
+* **Context**: Immutable key-value map with typed evolution.
+* **Middleware**: Cross-cutting observers (before/after/error).
+* **Type Evolution**: Structural broadening of context’s modeled record type.
+* **Classification**: Mapping errors to semantic categories driving policy.
+
+---
+## 17. TL;DR
+```text
+Add dependency.
+Define Link<I,O> -> CompletableFuture<Context<O>>.
+Chain.then(...).withMiddleware(...).onError(...).build().call(ctx).
+Use insertAs() for type evolution, no casts.
+Classify errors; retry transient; log keys not payloads.
+Batch sync steps; minimize pointless futures.
 ```
+
+---
+### Support & Resources
+- Issues: https://github.com/codeuchain/codeuchain/issues
+- Discussions: https://github.com/codeuchain/codeuchain/discussions
+- License: Apache 2.0
+- Examples: `packages/java/src/main/java/com/codeuchain/examples/`
+
+---
+© 2025 Orchestrate LLC (Joshua @orchestrate.solutions) – Apache 2.0
