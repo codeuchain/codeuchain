@@ -1,151 +1,298 @@
-/*!/*!/*!
+/*!/*!/*!/*!
 
 Timing Middleware
 
-Timing MiddlewareTiming Middleware Utility: High-Performance Timing Component
+Timing Middleware
 
-High-performance timing middleware for measuring link execution times with multiple output formats.
+High-performance timing middleware for measuring link execution times.
 
-*/
+*/Timing MiddlewareTiming Middleware Utility: High-Performance Timing Component
 
 
 
-use crate::core::{Context, Middleware, LegacyLink};High-performance timing middleware for measuring link execution times with multiple output formats.A comprehensive timing middleware utility for CodeUChain that provides:
+use crate::core::{Context, Middleware, LegacyLink};High-performance timing middleware for measuring link execution times with multiple output formats.
 
 use std::collections::HashMap;
 
-use std::sync::{Arc, Mutex};*/- Per-invocation and aggregate timing statistics
+use std::sync::{Arc, Mutex};*/
 
 use std::time::{Duration, Instant};
 
-use serde::{Deserialize, Serialize};- Multiple output formats (Tabular, CSV)
 
 
+/// Timing middleware for measuring execution times
 
-/// Time unit for formatting durationsuse crate::core::{Context, Middleware, LegacyLink};- Configurable time units and precision
+pub struct TimingMiddleware {use crate::core::{Context, Middleware, LegacyLink};High-performance timing middleware for measuring link execution times with multiple output formats.A comprehensive timing middleware utility for CodeUChain that provides:
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+    per_invocation: bool,
 
-pub enum TimeUnit {use std::collections::HashMap;- Thread-safe operation
-
-    Nano,
-
-    Micro,use std::sync::{Arc, Mutex};- Auto-print functionality
-
-    Milli,
-
-    Auto,use std::time::{Duration, Instant};- Marketplace-ready component design
-
-}
-
-use serde::{Deserialize, Serialize};
-
-/// Output format for timing reports
-
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]Usage:
-
-pub enum OutputFormat {
-
-    Tabular,/// Time unit for formatting durations```rust
-
-    Csv,
-
-}#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]use codeuchain::utils::timing_middleware::{TimingMiddleware, FormatConfig, TimeUnit, OutputFormat};
-
-
-
-/// Configuration for timing middleware output formattingpub enum TimeUnit {
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-
-pub struct FormatConfig {    Nano,let timing = TimingMiddleware::new();
-
-    pub time_unit: TimeUnit,
-
-    pub decimal_places: usize,    Micro,chain.use_middleware(Box::new(timing));
-
-    pub show_raw_ns: bool,
-
-    pub output_format: OutputFormat,    Milli,
-
-    pub show_total: bool,
-
-    pub show_avg: bool,    Auto,// Or with custom config
-
-    pub show_calls: bool,
-
-}}let config = FormatConfig {
-
-
-
-impl Default for FormatConfig {    time_unit: TimeUnit::Auto,
-
-    fn default() -> Self {
-
-        Self {/// Output format for timing reports    decimal_places: 3,
-
-            time_unit: TimeUnit::Auto,
-
-            decimal_places: 2,#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]    show_raw_ns: true,
-
-            show_raw_ns: false,
-
-            output_format: OutputFormat::Tabular,pub enum OutputFormat {    output_format: OutputFormat::Tabular,
-
-            show_total: true,
-
-            show_avg: true,    Tabular,    show_total: true,
-
-            show_calls: true,
-
-        }    Csv,    show_avg: true,
-
-    }
-
-}}    show_calls: true,
-
-
-
-/// Timing statistics for a single link};
-
-#[derive(Debug, Clone)]
-
-struct LinkStats {/// Configuration for timing middleware output formatting
-
-    name: String,
-
-    calls: u64,#[derive(Debug, Clone, Serialize, Deserialize)]let timing = TimingMiddleware::with_config(true, true, config);
-
-    total_ns: u128,
-
-    min_ns: u128,pub struct FormatConfig {chain.use_middleware(Box::new(timing));
-
-    max_ns: u128,
-
-}    pub time_unit: TimeUnit,```
-
-
-
-/// Timing middleware for measuring execution times    pub decimal_places: usize,*/
-
-pub struct TimingMiddleware {
-
-    per_invocation: bool,    pub show_raw_ns: bool,
-
-    auto_print: bool,
-
-    config: FormatConfig,    pub output_format: OutputFormat,use async_trait::async_trait;
+    auto_print: bool,use std::collections::HashMap;
 
     stats: Arc<Mutex<HashMap<String, LinkStats>>>,
 
-    start_times: Arc<Mutex<HashMap<String, Instant>>>,    pub show_total: bool,use crate::core::context::Context;
+    start_times: Arc<Mutex<HashMap<String, Instant>>>,use std::sync::{Arc, Mutex};*/- Per-invocation and aggregate timing statistics
 
 }
 
-    pub show_avg: bool,use crate::core::link::LegacyLink;
+use std::time::{Duration, Instant};
 
-impl TimingMiddleware {
+#[derive(Debug, Clone)]
 
+struct LinkStats {use serde::{Deserialize, Serialize};- Multiple output formats (Tabular, CSV)
+
+    name: String,
+
+    calls: u64,
+
+    total_ns: u128,
+
+    min_ns: u128,/// Time unit for formatting durationsuse crate::core::{Context, Middleware, LegacyLink};- Configurable time units and precision
+
+    max_ns: u128,
+
+}#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+
+
+
+impl TimingMiddleware {pub enum TimeUnit {use std::collections::HashMap;- Thread-safe operation
+
+    /// Create a new timing middleware with default configuration
+
+    pub fn new() -> Self {    Nano,
+
+        Self {
+
+            per_invocation: false,    Micro,use std::sync::{Arc, Mutex};- Auto-print functionality
+
+            auto_print: false,
+
+            stats: Arc::new(Mutex::new(HashMap::new())),    Milli,
+
+            start_times: Arc::new(Mutex::new(HashMap::new())),
+
+        }    Auto,use std::time::{Duration, Instant};- Marketplace-ready component design
+
+    }
+
+}
+
+    /// Create timing middleware with custom configuration
+
+    pub fn with_config(per_invocation: bool, auto_print: bool) -> Self {use serde::{Deserialize, Serialize};
+
+        Self {
+
+            per_invocation,/// Output format for timing reports
+
+            auto_print,
+
+            stats: Arc::new(Mutex::new(HashMap::new())),#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]Usage:
+
+            start_times: Arc::new(Mutex::new(HashMap::new())),
+
+        }pub enum OutputFormat {
+
+    }
+
+    Tabular,/// Time unit for formatting durations```rust
+
+    /// Generate timing report
+
+    pub fn report(&self) -> String {    Csv,
+
+        let stats = self.stats.lock().unwrap();
+
+        if stats.is_empty() {}#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]use codeuchain::utils::timing_middleware::{TimingMiddleware, FormatConfig, TimeUnit, OutputFormat};
+
+            return "No timing data collected".to_string();
+
+        }
+
+
+
+        let mut result = String::new();/// Configuration for timing middleware output formattingpub enum TimeUnit {
+
+        result.push_str("== TimingMiddleware Report ==\n");
+
+        result.push_str(&format!("{:<20} {:<8} {:<12} {:<12} {:<12}\n",#[derive(Debug, Clone, Serialize, Deserialize)]
+
+            "Link", "Calls", "Total", "Avg", "Max"));
+
+        result.push_str(&"-".repeat(64));pub struct FormatConfig {    Nano,let timing = TimingMiddleware::new();
+
+        result.push_str("\n");
+
+    pub time_unit: TimeUnit,
+
+        for stat in stats.values() {
+
+            let avg_ns = if stat.calls > 0 { stat.total_ns / stat.calls as u128 } else { 0 };    pub decimal_places: usize,    Micro,chain.use_middleware(Box::new(timing));
+
+            let total_ms = stat.total_ns as f64 / 1_000_000.0;
+
+            let avg_ms = avg_ns as f64 / 1_000_000.0;    pub show_raw_ns: bool,
+
+            let max_ms = stat.max_ns as f64 / 1_000_000.0;
+
+    pub output_format: OutputFormat,    Milli,
+
+            result.push_str(&format!("{:<20} {:<8} {:<12.2} {:<12.2} {:<12.2}\n",
+
+                stat.name,    pub show_total: bool,
+
+                stat.calls,
+
+                total_ms,    pub show_avg: bool,    Auto,// Or with custom config
+
+                avg_ms,
+
+                max_ms));    pub show_calls: bool,
+
+        }
+
+}}let config = FormatConfig {
+
+        result
+
+    }
+
+}
+
+impl Default for FormatConfig {    time_unit: TimeUnit::Auto,
+
+#[async_trait::async_trait]
+
+impl Middleware for TimingMiddleware {    fn default() -> Self {
+
+    async fn before(&self, link: &dyn LegacyLink, _ctx: &Context) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+
+        if self.per_invocation {        Self {/// Output format for timing reports    decimal_places: 3,
+
+            let mut start_times = self.start_times.lock().unwrap();
+
+            start_times.insert(link.name().to_string(), Instant::now());            time_unit: TimeUnit::Auto,
+
+        }
+
+        Ok(())            decimal_places: 2,#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]    show_raw_ns: true,
+
+    }
+
+            show_raw_ns: false,
+
+    async fn after(&self, link: &dyn LegacyLink, _ctx: &Context) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+
+        let duration = if self.per_invocation {            output_format: OutputFormat::Tabular,pub enum OutputFormat {    output_format: OutputFormat::Tabular,
+
+            let mut start_times = self.start_times.lock().unwrap();
+
+            if let Some(start) = start_times.remove(&link.name().to_string()) {            show_total: true,
+
+                start.elapsed()
+
+            } else {            show_avg: true,    Tabular,    show_total: true,
+
+                Duration::from_nanos(0)
+
+            }            show_calls: true,
+
+        } else {
+
+            Duration::from_nanos(0)        }    Csv,    show_avg: true,
+
+        };
+
+    }
+
+        let ns = duration.as_nanos();
+
+        let link_name = link.name().to_string();}}    show_calls: true,
+
+
+
+        {
+
+            let mut stats = self.stats.lock().unwrap();
+
+            let stat = stats.entry(link_name.clone()).or_insert(LinkStats {/// Timing statistics for a single link};
+
+                name: link_name,
+
+                calls: 0,#[derive(Debug, Clone)]
+
+                total_ns: 0,
+
+                min_ns: u128::MAX,struct LinkStats {/// Configuration for timing middleware output formatting
+
+                max_ns: 0,
+
+            });    name: String,
+
+
+
+            stat.calls += 1;    calls: u64,#[derive(Debug, Clone, Serialize, Deserialize)]let timing = TimingMiddleware::with_config(true, true, config);
+
+            stat.total_ns += ns;
+
+            stat.min_ns = stat.min_ns.min(ns);    total_ns: u128,
+
+            stat.max_ns = stat.max_ns.max(ns);
+
+        }    min_ns: u128,pub struct FormatConfig {chain.use_middleware(Box::new(timing));
+
+
+
+        if self.auto_print && self.per_invocation {    max_ns: u128,
+
+            println!("Timing: {} took {} ms", link.name(), ns as f64 / 1_000_000.0);
+
+        }}    pub time_unit: TimeUnit,```
+
+
+
+        Ok(())
+
+    }
+
+/// Timing middleware for measuring execution times    pub decimal_places: usize,*/
+
+    fn name(&self) -> &str {
+
+        "TimingMiddleware"pub struct TimingMiddleware {
+
+    }
+
+}    per_invocation: bool,    pub show_raw_ns: bool,
+
+
+
+/// Create a minimal timing middleware configuration    auto_print: bool,
+
+pub fn create_minimal_timing_middleware() -> TimingMiddleware {
+
+    TimingMiddleware::with_config(true, true)    config: FormatConfig,    pub output_format: OutputFormat,use async_trait::async_trait;
+
+}
+
+    stats: Arc<Mutex<HashMap<String, LinkStats>>>,
+
+/// Create a detailed timing middleware configuration
+
+pub fn create_detailed_timing_middleware() -> TimingMiddleware {    start_times: Arc<Mutex<HashMap<String, Instant>>>,    pub show_total: bool,use crate::core::context::Context;
+
+    TimingMiddleware::with_config(true, false)
+
+}}
+
+
+
+/// Create a CSV timing middleware configuration    pub show_avg: bool,use crate::core::link::LegacyLink;
+
+pub fn create_csv_timing_middleware() -> TimingMiddleware {
+
+    TimingMiddleware::with_config(true, false)impl TimingMiddleware {
+
+}
     /// Create a new timing middleware with default configuration    pub show_calls: bool,use crate::core::middleware::Middleware;
 
     pub fn new() -> Self {
