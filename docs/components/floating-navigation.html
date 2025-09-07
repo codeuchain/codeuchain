@@ -1,0 +1,615 @@
+<!-- Floating Navigation Component - Dynamic Pill Design -->
+<div id="floatingNav" class="fixed bottom-6 inset-x-0 z-40 opacity-0 translate-y-4 mx-auto transition-all duration-300" style="width: fit-content;">
+    <!-- Collapsed State - Small Pill Indicator -->
+    <div id="navCollapsed" class="hidden glass-morphism rounded-full px-3 py-2 shadow-xl cursor-pointer hover:shadow-2xl transition-all duration-300 nav-glow">
+        <div class="flex items-center space-x-2">
+            <svg class="w-4 h-4 text-code-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+            <span class="text-xs text-code-accent font-medium">NAV</span>
+        </div>
+    </div>
+
+    <!-- Expanded State - Full Pill Navigation -->
+    <div id="navExpanded" class="glass-morphism rounded-full px-4 py-3 shadow-2xl nav-glow">
+        <div class="flex items-center space-x-3">
+            <!-- Collapse Button -->
+            <button id="navToggle" class="w-8 h-8 glass-morphism hover:bg-white/10 border border-code-accent/30 hover:border-code-accent/50 rounded-full flex items-center justify-center text-code-accent transition-all duration-200 hover:scale-110 group relative">
+                <svg class="w-4 h-4 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 glass-morphism text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                    Collapse (Esc)
+                </div>
+            </button>
+
+            <!-- Navigation Buttons -->
+            <div class="flex items-center space-x-2">
+                <!-- Back to Top -->
+                <button id="backToTop" class="w-8 h-8 frosted-gradient hover:bg-gradient-to-br hover:from-code-accent hover:to-code-purple border border-code-accent/30 hover:border-code-accent/50 rounded-full flex items-center justify-center text-white transition-all duration-200 hover:scale-110 group relative">
+                    <svg class="w-4 h-4 transition-transform group-hover:-translate-y-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                    </svg>
+                    <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 glass-morphism text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                        Back to Top (↑)
+                    </div>
+                </button>
+
+                <!-- Section Navigation -->
+                <button id="prevSection" class="w-7 h-7 glass-morphism hover:bg-code-accent/10 border border-code-accent/20 hover:border-code-accent/50 rounded-full flex items-center justify-center text-gray-400 hover:text-code-accent transition-all duration-200 hover:scale-105 relative group">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 glass-morphism text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                        Previous (←)
+                    </div>
+                </button>
+
+                <button id="nextSection" class="w-7 h-7 glass-morphism hover:bg-code-accent/10 border border-code-accent/20 hover:border-code-accent/50 rounded-full flex items-center justify-center text-gray-400 hover:text-code-accent transition-all duration-200 hover:scale-105 relative group">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                    <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 glass-morphism text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                        Next (→)
+                    </div>
+                </button>
+            </div>
+
+            <!-- Dynamic Quick Jump Buttons Container -->
+            <div id="jumpButtonsContainer" class="flex items-center space-x-1">
+                <!-- Buttons will be dynamically generated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Onboarding Hint -->
+    <div id="navHint" class="absolute -left-48 top-0 glass-morphism rounded-lg p-3 shadow-xl opacity-0 transform translate-x-4 transition-all duration-300 pointer-events-none">
+        <div class="text-white text-sm">
+            <div class="font-semibold text-code-accent mb-1">🚀 Quick Navigation</div>
+            <div class="text-gray-300 text-xs space-y-1">
+                <div>• Use ↑↓←→ arrow keys</div>
+                <div>• Press section keys to jump</div>
+                <div>• Hover for tooltips</div>
+            </div>
+        </div>
+        <div class="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 w-0 h-0 border-l-8 border-l-black/90 border-t-4 border-t-transparent border-b-4 border-b-transparent"></div>
+    </div>
+</div>
+
+<style>
+/* Floating Navigation Styles - Pill Design */
+#floatingNav.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#floatingNav.hide {
+    opacity: 0;
+    transform: translateY(4px);
+}
+
+/* Collapsed state */
+#navCollapsed {
+    min-width: 80px;
+}
+
+#navCollapsed:hover {
+    transform: scale(1.05);
+}
+
+/* Expanded state */
+#navExpanded {
+    min-width: 320px;
+}
+
+/* Pulse animation for collapsed state */
+#navCollapsed {
+    animation: gentle-pulse 3s ease-in-out infinite;
+}
+
+@keyframes gentle-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.4); }
+    50% { box-shadow: 0 0 0 4px rgba(0, 212, 255, 0.1); }
+}
+
+/* Active section highlighting */
+.floating-nav-btn.active {
+    background: rgba(0, 212, 255, 0.2) !important;
+    border-color: rgba(0, 212, 255, 0.5) !important;
+    color: #00d4ff !important;
+}
+
+.frosted-gradient {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.8) 0%, rgba(157, 78, 221, 0.8) 100%);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-glow {
+    position: relative;
+}
+
+.nav-glow::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg,
+        rgba(0, 212, 255, 0.15),
+        rgba(157, 78, 221, 0.1),
+        rgba(0, 212, 255, 0.15)
+    );
+    background-size: 200% 200%;
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0.3;
+    filter: blur(4px);
+    animation: gentle-gradient-flow 12s ease-in-out infinite;
+}
+
+.nav-glow {
+    box-shadow:
+        0 0 15px rgba(0, 212, 255, 0.25),
+        0 4px 20px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.nav-glow:hover::before {
+    opacity: 0.4;
+    filter: blur(5px);
+    animation-duration: 6s;
+}
+
+.nav-glow:hover {
+    box-shadow:
+        0 0 25px rgba(0, 212, 255, 0.4),
+        0 8px 30px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+@keyframes gentle-gradient-flow {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+/* Smooth transitions for state changes */
+#navCollapsed, #navExpanded {
+    transition: all 0.3s ease-in-out;
+}
+</style>
+
+<script>
+// Dynamic Floating Navigation Functionality - Pill Design
+document.addEventListener('DOMContentLoaded', function() {
+    const floatingNav = document.getElementById('floatingNav');
+    const navCollapsed = document.getElementById('navCollapsed');
+    const navExpanded = document.getElementById('navExpanded');
+    const navToggle = document.getElementById('navToggle');
+    const navHint = document.getElementById('navHint');
+    const backToTop = document.getElementById('backToTop');
+    const prevSection = document.getElementById('prevSection');
+    const nextSection = document.getElementById('nextSection');
+    const jumpButtonsContainer = document.getElementById('jumpButtonsContainer');
+
+    let isNavVisible = false;
+    let isNavExpanded = true; // Start expanded
+    let currentSectionIndex = 0;
+    let hasShownHint = localStorage.getItem('codeuchain-nav-hint-shown') === 'true';
+    let sections = [];
+    let jumpButtons = {};
+    let sectionKeyMap = {};
+    let inactivityTimer;
+    let wasManuallyExpanded = false; // Track if user manually expanded
+
+    // Section mapping for icons and keyboard shortcuts
+    const sectionConfig = {
+        'hero': { icon: '🏠', key: 'H', label: 'Hero' },
+        'concepts': { icon: '🎯', key: 'C', label: 'Concepts' },
+        'benefits': { icon: '⚡', key: 'B', label: 'Benefits' },
+        'ai-love': { icon: '🤖', key: 'A', label: 'AI Love' },
+        'quickstart': { icon: '🚀', key: 'Q', label: 'Quick Start' },
+        'languages': { icon: '🌍', key: 'L', label: 'Languages' },
+        'overview': { icon: '📋', key: 'O', label: 'Overview' },
+        'installation': { icon: '📦', key: 'I', label: 'Install' },
+        'examples': { icon: '💡', key: 'E', label: 'Examples' },
+        'api': { icon: '🔧', key: 'P', label: 'API' },
+        'contributing': { icon: '🤝', key: 'T', label: 'Contribute' },
+        'head': { icon: '📋', key: 'R', label: 'Header' },
+        'footer': { icon: '📝', key: 'F', label: 'Footer' }
+    };
+
+    // Detect sections on the page
+    function detectSections() {
+        // First, get all section elements with IDs
+        const sectionElements = document.querySelectorAll('section[id]');
+        sections = Array.from(sectionElements).map(section => section.id); // Use global sections variable
+
+        // Also check for head and footer elements
+        if (document.head) {
+            sections.unshift('head'); // Add to beginning
+        }
+        if (document.querySelector('footer')) {
+            sections.push('footer'); // Add to end
+        }
+
+        // Filter out sections that don't have meaningful content or are too small
+        sections = sections.filter(sectionId => {
+            if (sectionId === 'head') {
+                return document.head; // Head always exists
+            }
+            if (sectionId === 'footer') {
+                const footer = document.querySelector('footer');
+                return footer && footer.offsetHeight > 50; // Footer needs to be visible
+            }
+            const element = document.getElementById(sectionId);
+            return element && element.offsetHeight > 100; // Regular sections need to be tall enough
+        });
+
+        console.log('Detected sections:', sections);
+        return sections;
+    }
+
+    // Generate dynamic jump buttons
+    function generateJumpButtons() {
+        console.log('🚀 generateJumpButtons called!');
+        
+        jumpButtonsContainer.innerHTML = '';
+        jumpButtons = {};
+        sectionKeyMap = {};
+
+        console.log('Generating buttons for sections:', sections);
+
+        sections.forEach((sectionId, index) => {
+            const config = sectionConfig[sectionId] || {
+                icon: '📄',
+                key: String(index + 1),
+                label: sectionId.charAt(0).toUpperCase() + sectionId.slice(1)
+            };
+
+            console.log(`Creating button for ${sectionId} with config:`, config);
+
+            const button = document.createElement('button');
+            button.id = `jump${sectionId.charAt(0).toUpperCase() + sectionId.slice(1)}`;
+            button.className = 'w-8 h-8 glass-morphism hover:bg-code-accent/10 border border-code-accent/20 hover:border-code-accent/50 rounded-full flex items-center justify-center text-gray-400 hover:text-code-accent transition-all duration-200 hover:scale-105 text-sm font-medium group relative';
+            button.textContent = config.icon;
+            button.style.margin = '2px';
+
+            // Add tooltip
+            const tooltip = document.createElement('div');
+            tooltip.className = 'absolute -top-8 left-1/2 transform -translate-x-1/2 glass-morphism text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none';
+            tooltip.textContent = `${config.label} (${config.key})`;
+            button.appendChild(tooltip);
+
+            // Add click handler
+            button.addEventListener('click', () => {
+                console.log(`Button clicked for section: ${sectionId}`);
+                scrollToSection(sectionId);
+                addClickFeedback(button);
+                resetInactivityTimer(); // Reset timer on button click
+            });
+
+            // Add hover listeners to reset timer
+            button.addEventListener('mouseenter', resetInactivityTimer);
+            button.addEventListener('mouseleave', resetInactivityTimer);
+
+            jumpButtons[sectionId] = button;
+            sectionKeyMap[config.key.toLowerCase()] = sectionId;
+            jumpButtonsContainer.appendChild(button);
+            
+            console.log(`Button created and appended for ${sectionId}`);
+        });
+        
+        console.log('Total buttons created:', jumpButtonsContainer.children.length);
+    }    // Initialize state
+    function updateNavState() {
+        if (isNavExpanded) {
+            navCollapsed.classList.add('hidden');
+            navExpanded.classList.remove('hidden');
+        } else {
+            navCollapsed.classList.remove('hidden');
+            navExpanded.classList.add('hidden');
+        }
+    }
+
+    // Initialize navigation
+    function initializeNavigation() {
+        detectSections();
+        generateJumpButtons();
+        updateNavState();
+
+        // Show navigation immediately
+        floatingNav.classList.add('show');
+        isNavVisible = true;
+    }
+
+    // Show hint immediately for first-time users
+    if (!hasShownHint) {
+        setTimeout(() => {
+            navHint.classList.remove('opacity-0', 'translate-x-4');
+            navHint.classList.add('opacity-100', 'translate-x-0');
+            navHint.style.pointerEvents = 'auto';
+
+            setTimeout(() => {
+                navHint.classList.remove('opacity-100', 'translate-x-0');
+                navHint.classList.add('opacity-0', 'translate-x-4');
+                setTimeout(() => {
+                    navHint.style.pointerEvents = 'none';
+                }, 300);
+                localStorage.setItem('codeuchain-nav-hint-shown', 'true');
+                hasShownHint = true;
+            }, 6000);
+        }, 100);
+    }
+
+    // Toggle navigation expansion
+    function toggleNavExpansion() {
+        const wasCollapsed = !isNavExpanded;
+        isNavExpanded = !isNavExpanded;
+        updateNavState();
+
+        // If user is expanding it manually, mark as manually expanded
+        if (wasCollapsed && isNavExpanded) {
+            wasManuallyExpanded = true;
+        }
+
+        floatingNav.style.transform = 'scale(1.02)';
+        setTimeout(() => {
+            floatingNav.style.transform = '';
+        }, 100);
+    }
+
+    // Event listeners
+    navToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleNavExpansion();
+    });
+
+    navCollapsed.addEventListener('click', () => {
+        toggleNavExpansion();
+    });
+
+    backToTop.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+        addClickFeedback(backToTop);
+        resetInactivityTimer();
+    });
+
+    // Section navigation
+    function scrollToSection(sectionId) {
+        if (sectionId === 'head') {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            return;
+        }
+        
+        if (sectionId === 'footer') {
+            const footer = document.querySelector('footer');
+            if (footer) {
+                footer.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+            return;
+        }
+        
+        const section = document.getElementById(sectionId);
+        if (section) {
+            section.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    }
+
+    prevSection.addEventListener('click', () => {
+        currentSectionIndex = Math.max(0, currentSectionIndex - 1);
+        scrollToSection(sections[currentSectionIndex]);
+        addClickFeedback(prevSection);
+        resetInactivityTimer();
+    });
+
+    nextSection.addEventListener('click', () => {
+        currentSectionIndex = Math.min(sections.length - 1, currentSectionIndex + 1);
+        scrollToSection(sections[currentSectionIndex]);
+        addClickFeedback(nextSection);
+        resetInactivityTimer();
+    });
+
+    // Visual feedback function
+    function addClickFeedback(button) {
+        button.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            button.style.transform = '';
+        }, 150);
+    }
+
+    // Keyboard press animation function
+    function animateButtonPress(button) {
+        button.style.transform = 'scale(1.2)';
+        button.style.boxShadow = '0 0 15px rgba(0, 212, 255, 0.6)';
+        button.style.borderColor = 'rgba(0, 212, 255, 0.8)';
+
+        setTimeout(() => {
+            button.style.transform = '';
+            button.style.boxShadow = '';
+            button.style.borderColor = '';
+        }, 200);
+    }
+
+    // Update active section highlighting
+    function updateActiveSection() {
+        const scrollPosition = window.scrollY + 100;
+        const windowHeight = window.innerHeight;
+
+        sections.forEach((sectionId, index) => {
+            let isActive = false;
+
+            if (sectionId === 'head') {
+                // Head is active when near the top
+                isActive = scrollPosition < 300;
+            } else if (sectionId === 'footer') {
+                // Footer is active when footer is visible in viewport
+                const footer = document.querySelector('footer');
+                if (footer) {
+                    const footerRect = footer.getBoundingClientRect();
+                    const footerTop = footerRect.top + window.scrollY;
+                    const footerBottom = footerTop + footerRect.height;
+
+                    // Footer is active when it's visible in the viewport
+                    isActive = footerRect.top < windowHeight && footerRect.bottom > 0;
+                }
+            } else {
+                // Regular section logic
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.offsetHeight;
+                    isActive = scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight;
+                }
+            }
+
+            if (isActive) {
+                currentSectionIndex = index;
+
+                // Update button states
+                Object.values(jumpButtons).forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.style.background = '';
+                    btn.style.borderColor = '';
+                    btn.style.color = '';
+                });
+
+                const activeBtn = jumpButtons[sectionId];
+                if (activeBtn) {
+                    activeBtn.classList.add('active');
+                    activeBtn.style.background = 'rgba(0, 212, 255, 0.2)';
+                    activeBtn.style.borderColor = 'rgba(0, 212, 255, 0.5)';
+                    activeBtn.style.color = '#00d4ff';
+                }
+            }
+        });
+    }
+
+    // Keyboard navigation with dynamic section support
+    document.addEventListener('keydown', (e) => {
+        if (!isNavVisible || !isNavExpanded) return;
+
+        let handled = false;
+        let targetButton = null;
+
+        switch(e.key) {
+            case 'ArrowUp':
+                e.preventDefault();
+                targetButton = backToTop;
+                backToTop.click();
+                handled = true;
+                break;
+            case 'ArrowLeft':
+                e.preventDefault();
+                targetButton = prevSection;
+                prevSection.click();
+                handled = true;
+                break;
+            case 'ArrowRight':
+                e.preventDefault();
+                targetButton = nextSection;
+                nextSection.click();
+                handled = true;
+                break;
+            case 'ArrowDown':
+                e.preventDefault();
+                window.scrollBy({
+                    top: window.innerHeight * 0.8,
+                    behavior: 'smooth'
+                });
+                handled = true;
+                break;
+            case 'Escape':
+                e.preventDefault();
+                targetButton = navToggle;
+                toggleNavExpansion();
+                handled = true;
+                break;
+            default:
+                // Check for section-specific keys
+                const sectionId = sectionKeyMap[e.key.toLowerCase()];
+                if (sectionId) {
+                    e.preventDefault();
+                    targetButton = jumpButtons[sectionId];
+                    if (targetButton) {
+                        targetButton.click();
+                        handled = true;
+                    }
+                }
+                break;
+        }
+
+        if (handled) {
+            floatingNav.style.transform = 'scale(1.02)';
+            setTimeout(() => {
+                floatingNav.style.transform = '';
+            }, 100);
+
+            if (targetButton) {
+                animateButtonPress(targetButton);
+            }
+        }
+    });
+
+    // Initialize on page load
+    window.addEventListener('load', () => {
+        updateActiveSection();
+    });
+
+    // Initialize navigation immediately when DOM is ready
+    initializeNavigation();
+
+    // Update active section on scroll
+    window.addEventListener('scroll', updateActiveSection);
+
+    // Auto-hide after inactivity
+    function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(() => {
+            if (isNavVisible && isNavExpanded && !wasManuallyExpanded) {
+                isNavExpanded = false;
+                updateNavState();
+            }
+        }, 15000);
+    }
+
+    ['click', 'scroll', 'keydown'].forEach(event => {
+        document.addEventListener(event, resetInactivityTimer);
+    });
+
+    // Add hover listeners to reset timer on navigation interaction
+    [floatingNav, navCollapsed, navExpanded].forEach(element => {
+        element.addEventListener('mouseenter', resetInactivityTimer);
+        element.addEventListener('mouseleave', resetInactivityTimer);
+    });
+
+    // Add click listeners to all navigation buttons to reset timer
+    const allNavButtons = [navToggle, backToTop, prevSection, nextSection];
+    allNavButtons.forEach(button => {
+        button.addEventListener('click', resetInactivityTimer);
+        button.addEventListener('mouseenter', resetInactivityTimer);
+        button.addEventListener('mouseleave', resetInactivityTimer);
+    });
+
+    resetInactivityTimer();
+});
+</script></content>
+<parameter name="filePath">/Users/jwink/Documents/github/codeuchain/docs/components/floating-navigation.html

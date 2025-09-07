@@ -1,0 +1,7 @@
+{
+  "language_name": "Rust",
+  "title": "CodeUChain Rust - Memory-Safe Chain Architecture",
+  "hero_description": "Zero-cost abstractions with compile-time guarantees. Memory-safe chains that perform like C++.",
+  "source_link": "https://github.com/codeuchain/codeuchain/tree/main/packages/rust",
+  "import://base.json:logo_link": null
+}

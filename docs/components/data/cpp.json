@@ -1,0 +1,7 @@
+{
+  "language_name": "C++",
+  "title": "CodeUChain C++ - High-Performance Chain Architecture",
+  "hero_description": "Zero-cost abstractions with maximum performance. Modern C++ patterns for systems that demand speed and efficiency.",
+  "source_link": "https://github.com/codeuchain/codeuchain/tree/main/packages/cpp",
+  "import://base.json:logo_link": null
+}
