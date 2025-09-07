@@ -1,0 +1,7 @@
+{
+  "language_name": "Python",
+  "title": "CodeUChain Python - Async-First Chain Architecture",
+  "hero_description": "Beautiful async chains with type hints and runtime flexibility. The same elegant patterns, powered by Python's async ecosystem.",
+  "import://base.json:source_link": null,
+  "import://base.json:logo_link": null
+}

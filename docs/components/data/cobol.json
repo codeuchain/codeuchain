@@ -1,0 +1,7 @@
+{
+  "language_name": "COBOL",
+  "title": "CodeUChain COBOL - Enterprise Chain Architecture",
+  "hero_description": "Battle-tested chain patterns for enterprise systems. The reliability of COBOL meets the flexibility of modern architecture.",
+  "source_link": "https://github.com/codeuchain/codeuchain/tree/main/packages/cobol",
+  "import://base.json:logo_link": null
+}

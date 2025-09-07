@@ -1,0 +1,7 @@
+{
+  "language_name": "Go",
+  "title": "CodeUChain Go - High-Performance Chain Architecture",
+  "hero_description": "Lightning-fast concurrency with Go's goroutines and channels. Production-ready chains that scale beautifully.",
+  "import://base.json:source_link": null,
+  "import://base.json:logo_link": null
+}

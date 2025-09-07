@@ -1,0 +1,175 @@
+<!-- Language Navigation Component -->
+<!-- Language Navigation Component -->
+<section id="languages" class="py-16 bg-gradient-to-br from-code-darker to-code-dark">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold gradient-text mb-4">Explore Language Implementations</h2>
+      <p class="text-lg text-gray-300 max-w-3xl mx-auto">
+        CodeUChain is available in multiple programming languages, each with full feature parity and native idioms.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Pseudocode -->
+      <a href="{{#if (eq is_homepage true)}}pseudo/index.html{{else}}../pseudo/index.html{{/if}}" class="code-block rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover-lift {{#if (eq LANGUAGE_NAME 'Pseudocode')}}border-2 border-code-accent{{else}}border border-code-accent/20{{/if}}">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-3">
+            <span class="text-2xl">📝</span>
+            <h3 class="text-xl font-semibold {{#if (eq LANGUAGE_NAME 'Pseudocode')}}text-code-accent{{else}}text-gray-100{{/if}}">Pseudocode</h3>
+          </div>
+          {{#if (eq LANGUAGE_NAME 'Pseudocode')}}
+          <span class="px-3 py-1 bg-code-accent/20 text-code-accent text-sm font-medium rounded-full border border-code-accent/30">Current</span>
+          {{/if}}
+        </div>
+        <p class="text-gray-300 mb-4">Universal algorithmic representation for learning and planning.</p>
+        <div class="text-code-accent font-medium">View Documentation →</div>
+      </a>
+
+      <!-- Python -->
+      <a href="{{#if (eq is_homepage true)}}python/index.html{{else}}../python/index.html{{/if}}" class="code-block rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover-lift {{#if (eq LANGUAGE_NAME 'Python')}}border-2 border-code-accent{{else}}border border-code-accent/20{{/if}}">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-3">
+            <span class="text-2xl">🐍</span>
+            <h3 class="text-xl font-semibold {{#if (eq LANGUAGE_NAME 'Python')}}text-code-accent{{else}}text-gray-100{{/if}}">Python</h3>
+          </div>
+          {{#if (eq LANGUAGE_NAME 'Python')}}
+          <span class="px-3 py-1 bg-code-accent/20 text-code-accent text-sm font-medium rounded-full border border-code-accent/30">Current</span>
+          {{/if}}
+        </div>
+        <p class="text-gray-300 mb-4">Simple, readable syntax with powerful async capabilities.</p>
+        <div class="text-code-accent font-medium">View Documentation →</div>
+      </a>
+
+      <!-- Go -->
+      <a href="{{#if (eq is_homepage true)}}go/index.html{{else}}../go/index.html{{/if}}" class="code-block rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover-lift {{#if (eq LANGUAGE_NAME 'Go')}}border-2 border-code-accent{{else}}border border-code-accent/20{{/if}}">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-3">
+            <span class="text-2xl">🔵</span>
+            <h3 class="text-xl font-semibold {{#if (eq LANGUAGE_NAME 'Go')}}text-code-accent{{else}}text-gray-100{{/if}}">Go</h3>
+          </div>
+          {{#if (eq LANGUAGE_NAME 'Go')}}
+          <span class="px-3 py-1 bg-code-accent/20 text-code-accent text-sm font-medium rounded-full border border-code-accent/30">Current</span>
+          {{/if}}
+        </div>
+        <p class="text-gray-300 mb-4">Concurrent and efficient with excellent tooling.</p>
+        <div class="text-code-accent font-medium">View Documentation →</div>
+      </a>
+
+      <!-- JavaScript -->
+      <a href="{{#if (eq is_homepage true)}}javascript/index.html{{else}}../javascript/index.html{{/if}}" class="code-block rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover-lift {{#if (eq LANGUAGE_NAME 'JavaScript')}}border-2 border-code-accent{{else}}border border-code-accent/20{{/if}}">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-3">
+            <span class="text-2xl">🟨</span>
+            <h3 class="text-xl font-semibold {{#if (eq LANGUAGE_NAME 'JavaScript')}}text-code-accent{{else}}text-gray-100{{/if}}">JavaScript</h3>
+          </div>
+          {{#if (eq LANGUAGE_NAME 'JavaScript')}}
+          <span class="px-3 py-1 bg-code-accent/20 text-code-accent text-sm font-medium rounded-full border border-code-accent/30">Current</span>
+          {{/if}}
+        </div>
+        <p class="text-gray-300 mb-4">Universal runtime with modern async/await patterns.</p>
+        <div class="text-code-accent font-medium">View Documentation →</div>
+      </a>
+
+      <!-- C# -->
+      <a href="{{#if (eq is_homepage true)}}csharp/index.html{{else}}../csharp/index.html{{/if}}" class="code-block rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover-lift {{#if (eq LANGUAGE_NAME 'C#')}}border-2 border-code-accent{{else}}border border-code-accent/20{{/if}}">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-3">
+            <span class="text-2xl">🟣</span>
+            <h3 class="text-xl font-semibold {{#if (eq LANGUAGE_NAME 'C#')}}text-code-accent{{else}}text-gray-100{{/if}}">C#</h3>
+          </div>
+          {{#if (eq LANGUAGE_NAME 'C#')}}
+          <span class="px-3 py-1 bg-code-accent/20 text-code-accent text-sm font-medium rounded-full border border-code-accent/30">Current</span>
+          {{/if}}
+        </div>
+        <p class="text-gray-300 mb-4">Object-oriented with LINQ and async support.</p>
+        <div class="text-code-accent font-medium">View Documentation →</div>
+      </a>
+
+      <!-- Rust -->
+      <a href="{{#if (eq is_homepage true)}}rust/index.html{{else}}../rust/index.html{{/if}}" class="code-block rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover-lift {{#if (eq LANGUAGE_NAME 'Rust')}}border-2 border-code-accent{{else}}border border-code-accent/20{{/if}}">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-3">
+            <span class="text-2xl">🦀</span>
+            <h3 class="text-xl font-semibold {{#if (eq LANGUAGE_NAME 'Rust')}}text-code-accent{{else}}text-gray-100{{/if}}">Rust</h3>
+          </div>
+          {{#if (eq LANGUAGE_NAME 'Rust')}}
+          <span class="px-3 py-1 bg-code-accent/20 text-code-accent text-sm font-medium rounded-full border border-code-accent/30">Current</span>
+          {{/if}}
+        </div>
+        <p class="text-gray-300 mb-4">Memory-safe systems programming with zero-cost abstractions.</p>
+        <div class="text-code-accent font-medium">View Documentation →</div>
+      </a>
+
+      <!-- C++ -->
+      <a href="{{#if (eq is_homepage true)}}cpp/index.html{{else}}../cpp/index.html{{/if}}" class="code-block rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover-lift {{#if (eq LANGUAGE_NAME 'C++')}}border-2 border-code-accent{{else}}border border-code-accent/20{{/if}}">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-3">
+            <span class="text-2xl">➕</span>
+            <h3 class="text-xl font-semibold {{#if (eq LANGUAGE_NAME 'C++')}}text-code-accent{{else}}text-gray-100{{/if}}">C++</h3>
+          </div>
+          {{#if (eq LANGUAGE_NAME 'C++')}}
+          <span class="px-3 py-1 bg-code-accent/20 text-code-accent text-sm font-medium rounded-full border border-code-accent/30">Current</span>
+          {{/if}}
+        </div>
+        <p class="text-gray-300 mb-4">High-performance systems with modern C++ features.</p>
+        <div class="text-code-accent font-medium">View Documentation →</div>
+      </a>
+
+      <!-- Java -->
+      <a href="{{#if (eq is_homepage true)}}java/index.html{{else}}../java/index.html{{/if}}" class="code-block rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover-lift {{#if (eq LANGUAGE_NAME 'Java')}}border-2 border-code-accent{{else}}border border-code-accent/20{{/if}}">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-3">
+            <span class="text-2xl">☕</span>
+            <h3 class="text-xl font-semibold {{#if (eq LANGUAGE_NAME 'Java')}}text-code-accent{{else}}text-gray-100{{/if}}">Java</h3>
+          </div>
+          {{#if (eq LANGUAGE_NAME 'Java')}}
+          <span class="px-3 py-1 bg-code-accent/20 text-code-accent text-sm font-medium rounded-full border border-code-accent/30">Current</span>
+          {{/if}}
+        </div>
+        <p class="text-gray-300 mb-4">Enterprise-grade with comprehensive ecosystem.</p>
+        <div class="text-code-accent font-medium">View Documentation →</div>
+      </a>
+
+      <!-- COBOL -->
+      <a href="{{#if (eq is_homepage true)}}cobol/index.html{{else}}../cobol/index.html{{/if}}" class="code-block rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover-lift {{#if (eq LANGUAGE_NAME 'COBOL')}}border-2 border-code-accent{{else}}border border-code-accent/20{{/if}}">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-3">
+            <span class="text-2xl">🏛️</span>
+            <h3 class="text-xl font-semibold {{#if (eq LANGUAGE_NAME 'COBOL')}}text-code-accent{{else}}text-gray-100{{/if}}">COBOL</h3>
+          </div>
+          {{#if (eq LANGUAGE_NAME 'COBOL')}}
+          <span class="px-3 py-1 bg-code-accent/20 text-code-accent text-sm font-medium rounded-full border border-code-accent/30">Current</span>
+          {{/if}}
+        </div>
+        <p class="text-gray-300 mb-4">Legacy system modernization with modern patterns.</p>
+        <div class="text-code-accent font-medium">View Documentation →</div>
+      </a>
+    </div>
+
+    <!-- Special Pseudocode Section -->
+    {{#if (eq LANGUAGE_NAME 'Pseudocode')}}
+    <div class="mt-12 bg-gradient-to-r from-code-accent/10 to-code-purple/10 rounded-2xl p-8 border border-code-accent/20">
+      <div class="text-center mb-6">
+        <h3 class="text-2xl font-bold gradient-text mb-2">Why Pseudocode Matters</h3>
+        <p class="text-gray-300">The foundation of algorithmic thinking in CodeUChain</p>
+      </div>
+      <div class="grid md:grid-cols-2 gap-8">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-code-accent/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-code-accent/30">
+            <span class="text-2xl">🎯</span>
+          </div>
+          <h4 class="text-lg font-semibold text-code-accent mb-2">Universal Language</h4>
+          <p class="text-gray-300">Pseudocode transcends programming languages, making algorithms accessible to everyone.</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 bg-code-purple/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-code-purple/30">
+            <span class="text-2xl">🧠</span>
+          </div>
+          <h4 class="text-lg font-semibold text-code-purple mb-2">Algorithmic Thinking</h4>
+          <p class="text-gray-300">Focus on logic and problem-solving without getting bogged down in syntax details.</p>
+        </div>
+      </div>
+    </div>
+    {{/if}}
+  </div>
+</section>

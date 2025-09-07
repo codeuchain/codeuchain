@@ -1,0 +1,33 @@
+// Auto-generated Protocol Buffer schema
+// Generated at: 2025-09-07T15:57:33.838Z
+// Source: JSON configuration structure
+
+syntax = "proto3";
+
+package codeuchain;
+
+message Data {
+  // Buffer
+  string type = 1;
+  repeated int64 data = 2;
+}
+
+message Metadata {
+  int64 jsonSize = 1;
+  int64 protobufSize = 2;
+  // 0.614
+  string compressionRatio = 3;
+}
+
+message BasePb {
+  // 1.0.0
+  string version = 1;
+  // 2025-09-07T15:44:32.352Z
+  string compiledAt = 2;
+  // base.json
+  string originalFile = 3;
+  // base.proto
+  string protobufSchema = 4;
+  Data data = 5;
+  Metadata metadata = 6;
+}

@@ -1,0 +1,51 @@
+// CodeUChain Configuration Protocol Buffer Schema
+// This schema defines the structure for compiled JSON configurations
+
+syntax = "proto3";
+
+package codeuchain;
+
+// Generic value type that can hold different data types
+message Value {
+  oneof value_type {
+    string string_value = 1;
+    int64 int_value = 2;
+    double double_value = 3;
+    bool bool_value = 4;
+    ArrayValue array_value = 5;
+    ObjectValue object_value = 6;
+  }
+}
+
+// Array value for JSON arrays
+message ArrayValue {
+  repeated Value values = 1;
+}
+
+// Object value for JSON objects
+message ObjectValue {
+  map<string, Value> properties = 1;
+}
+
+// Configuration entry with metadata
+message ConfigEntry {
+  string key = 1;
+  Value value = 2;
+  string source_file = 3;
+  string export_key = 4; // For exported values
+}
+
+// Complete configuration file
+message ConfigFile {
+  string filename = 1;
+  repeated ConfigEntry entries = 2;
+  map<string, string> metadata = 3;
+}
+
+// Collection of all configuration files
+message ConfigCollection {
+  repeated ConfigFile files = 1;
+  map<string, ConfigEntry> global_exports = 2;
+  string version = 3;
+  string generated_at = 4;
+}

@@ -1,0 +1,9 @@
+{
+  "title": "CodeUChain - Universal Chain Architecture",
+  "language_name": "CodeUChain",
+  "language_description": "Universal Chain Architecture",
+  "hero_description": "The same elegant patterns, expressed in every programming language. A universal architecture that makes complex systems simple, beautiful, and maintainable across Python, Go, JavaScript, C#, Rust, and beyond.",
+  "import://base.json:source_link": null,
+  "import://base.json:logo_link": null,
+  "is_homepage": true
+}

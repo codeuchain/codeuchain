@@ -1,0 +1,7 @@
+{
+  "language_name": "C#",
+  "title": "CodeUChain C# - Enterprise Chain Architecture",
+  "hero_description": "Enterprise-grade chains with LINQ integration and async patterns. Production-ready for .NET ecosystems.",
+  "source_link": "https://github.com/codeuchain/codeuchain/tree/main/packages/csharp",
+  "import://base.json:logo_link": null
+}

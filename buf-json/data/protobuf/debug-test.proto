@@ -1,0 +1,14 @@
+// Auto-generated Protocol Buffer schema
+// Generated at: 2025-09-07T15:57:33.834Z
+// Source: JSON configuration structure
+
+syntax = "proto3";
+
+package codeuchain;
+
+message DebugTest {
+  // Test
+  string languageName = 1;
+  // Debug Test
+  string title = 2;
+}
