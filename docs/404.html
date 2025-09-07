@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeUChain - Page Not Found</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 2rem;
+        }
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .title {
+            font-size: 2rem;
+            color: #00d4ff;
+            margin-bottom: 1rem;
+        }
+        .message {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #00d4ff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .redirect-text {
+            color: #00ff88;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🔗</div>
+        <h1 class="title">CodeUChain Router</h1>
+        <p class="message">Finding the right page for you...</p>
+        <div class="loading"></div>
+        <p class="redirect-text" id="redirect-text">Redirecting...</p>
+    </div>
+
+    <script>
+        // CodeUChain Router - Clean URL Handler
+        class CodeUChainRouter {
+            constructor() {
+                this.routes = {
+                    // Language routes - clean URLs without index.html
+                    'go': '/docs/go/index.html',
+                    'python': '/docs/python/index.html',
+                    'javascript': '/docs/javascript/index.html',
+                    'typescript': '/docs/javascript/index.html', // alias
+                    'js': '/docs/javascript/index.html', // alias
+                    'csharp': '/docs/csharp/index.html',
+                    'c#': '/docs/csharp/index.html', // alias
+                    'rust': '/docs/rust/index.html',
+                    'cpp': '/docs/cpp/index.html',
+                    'c++': '/docs/cpp/index.html', // alias
+                    'java': '/docs/java/index.html',
+                    'cobol': '/docs/cobol/index.html',
+                    'pseudo': '/docs/pseudo/index.html',
+                    'pseudocode': '/docs/pseudo/index.html', // alias
+
+                    // Special routes
+                    'docs': '/docs/index.html',
+                    'home': '/docs/index.html',
+                    '': '/docs/index.html', // root path
+
+                    // Documentation sections
+                    'concepts': '/docs/index.html#concepts',
+                    'benefits': '/docs/index.html#benefits',
+                    'ai-love': '/docs/index.html#ai-love',
+                    'ai': '/docs/index.html#ai-love', // alias
+                    'quickstart': '/docs/index.html#quickstart',
+                    'quick-start': '/docs/index.html#quickstart', // alias
+                    'languages': '/docs/index.html#languages',
+                    'lang': '/docs/index.html#languages', // alias
+                };
+
+                this.currentPath = this.getCurrentPath();
+                this.redirectText = document.getElementById('redirect-text');
+            }
+
+            getCurrentPath() {
+                // Get the path from the current URL
+                const path = window.location.pathname;
+
+                // Remove leading slash and any trailing slashes
+                let cleanPath = path.replace(/^\/+|\/+$/g, '');
+
+                // Handle docs prefix
+                if (cleanPath.startsWith('docs/')) {
+                    cleanPath = cleanPath.substring(5);
+                }
+
+                return cleanPath.toLowerCase();
+            }
+
+            findRoute(path) {
+                // Direct match
+                if (this.routes[path]) {
+                    return this.routes[path];
+                }
+
+                // Check for partial matches (e.g., "go/something" -> "go")
+                const pathParts = path.split('/');
+                if (pathParts.length > 1 && this.routes[pathParts[0]]) {
+                    const baseRoute = this.routes[pathParts[0]];
+                    // If it's a directory route, append the rest of the path
+                    if (baseRoute.includes('/index.html')) {
+                        return baseRoute.replace('/index.html', '/' + pathParts.slice(1).join('/') + '/index.html');
+                    }
+                    return baseRoute;
+                }
+
+                // Handle language-specific sub-routes
+                const languagePrefixes = ['go', 'python', 'javascript', 'js', 'csharp', 'c#', 'rust', 'cpp', 'c++', 'java', 'cobol', 'pseudo'];
+                for (const prefix of languagePrefixes) {
+                    if (path.startsWith(prefix + '/')) {
+                        const baseRoute = this.routes[prefix];
+                        if (baseRoute) {
+                            const subPath = path.substring(prefix.length + 1);
+                            return baseRoute.replace('/index.html', '/' + subPath + '/index.html');
+                        }
+                    }
+                }
+
+                return null;
+            }
+
+            redirect() {
+                const route = this.findRoute(this.currentPath);
+
+                if (route) {
+                    this.redirectText.textContent = `Redirecting to ${route}...`;
+                    setTimeout(() => {
+                        window.location.href = route;
+                    }, 500);
+                } else {
+                    // No route found, redirect to main docs page
+                    this.redirectText.textContent = 'Page not found. Redirecting to main documentation...';
+                    setTimeout(() => {
+                        window.location.href = '/docs/index.html';
+                    }, 2000);
+                }
+            }
+
+            handleQueryParams() {
+                // Preserve query parameters and hash fragments
+                const url = new URL(window.location);
+                const queryParams = url.search;
+                const hash = url.hash;
+
+                if (queryParams || hash) {
+                    const route = this.findRoute(this.currentPath);
+                    if (route) {
+                        const finalUrl = route + queryParams + hash;
+                        this.redirectText.textContent = `Redirecting to ${finalUrl}...`;
+                        setTimeout(() => {
+                            window.location.href = finalUrl;
+                        }, 500);
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            init() {
+                console.log('CodeUChain Router initialized');
+                console.log('Current path:', this.currentPath);
+
+                // Handle query parameters and hash first
+                if (this.handleQueryParams()) {
+                    return;
+                }
+
+                // Handle regular routing
+                this.redirect();
+            }
+        }
+
+        // Initialize router when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const router = new CodeUChainRouter();
+            router.init();
+        });
+
+        // Fallback for immediate execution
+        if (document.readyState === 'loading') {
+            // Document still loading, router will init on DOMContentLoaded
+        } else {
+            // Document already loaded
+            const router = new CodeUChainRouter();
+            router.init();
+        }
+    </script>
+</body>
+</html>

@@ -16,13 +16,13 @@ function loadTemplate(templatePath) {
     return fs.readFileSync(templatePath, 'utf8');
 }
 
-function loadData(dataPath) {
+async function loadData(dataPath) {
     // Use the shared reader instance to resolve sharing markers
     const dataDir = path.dirname(dataPath);
     const dataFile = path.basename(dataPath);
     // Set the base directory for the shared reader
     sharedReader.baseDir = dataDir;
-    return sharedReader.readFile(dataFile, { resolveSharing: true, cache: true });
+    return await sharedReader.readFile(dataFile, { resolveSharing: true, cache: true });
 }
 
 function loadComponent(componentPath) {
@@ -34,8 +34,28 @@ function populateTemplate(template, data) {
 
     // Replace simple variables first
     Object.keys(data).forEach(key => {
-        const regex = new RegExp(`{{${key.toUpperCase()}}}`, 'g');
+        // Handle both direct keys and import-resolved keys
+        let templateKey = key.toUpperCase();
+
+        // If it's an import key like "import://base.json:logo_link", extract just "logo_link"
+        if (key.startsWith('import://')) {
+            const importMatch = key.match(/^import:\/\/[^:]+:(.+)$/);
+            if (importMatch) {
+                templateKey = importMatch[1].toUpperCase();
+            }
+        }
+
+        const regex = new RegExp(`{{${templateKey}}}`, 'g');
         result = result.replace(regex, data[key]);
+    });
+
+    // Also handle direct export keys for backward compatibility
+    Object.keys(data).forEach(key => {
+        if (key.startsWith('export://')) {
+            const exportKey = key.replace('export://', '').toUpperCase();
+            const regex = new RegExp(`{{${exportKey}}}`, 'g');
+            result = result.replace(regex, data[key]);
+        }
     });
 
     // Handle conditional blocks with else support
@@ -74,8 +94,28 @@ function populateTemplate(template, data) {
 
             // Replace variables in the component content
             Object.keys(data).forEach(key => {
-                const regex = new RegExp(`{{${key.toUpperCase()}}}`, 'g');
+                // Handle both direct keys and import-resolved keys
+                let templateKey = key.toUpperCase();
+
+                // If it's an import key like "import://base.json:logo_link", extract just "logo_link"
+                if (key.startsWith('import://')) {
+                    const importMatch = key.match(/^import:\/\/[^:]+:(.+)$/);
+                    if (importMatch) {
+                        templateKey = importMatch[1].toUpperCase();
+                    }
+                }
+
+                const regex = new RegExp(`{{${templateKey}}}`, 'g');
                 componentContent = componentContent.replace(regex, data[key]);
+            });
+
+            // Also handle direct export keys for backward compatibility
+            Object.keys(data).forEach(key => {
+                if (key.startsWith('export://')) {
+                    const exportKey = key.replace('export://', '').toUpperCase();
+                    const regex = new RegExp(`{{${exportKey}}}`, 'g');
+                    componentContent = componentContent.replace(regex, data[key]);
+                }
             });
 
             // Handle conditional blocks in component content
