@@ -3,5 +3,6 @@
   "title": "CodeUChain JavaScript - TypeScript Generics & Async Chains",
   "hero_description": "Modern JavaScript with TypeScript generics and async processing pipelines. The future of web development, today.",
   "source_link": "https://github.com/codeuchain/codeuchain/tree/main/packages/javascript",
-  "import://base.json:logo_link": null
+  "import://base.json:logo_link": null,
+  "is_homepage": false
 }

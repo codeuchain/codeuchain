@@ -3,5 +3,6 @@
   "title": "CodeUChain Pseudocode - The Architecture That Makes Sense",
   "hero_description": "The architecture that makes sense, explained in natural language. No programming required to understand the beauty.",
   "source_link": "https://github.com/codeuchain/codeuchain/tree/main/packages/pseudo",
-  "import://base.json:logo_link": null
+  "import://base.json:logo_link": null,
+  "is_homepage": false
 }
