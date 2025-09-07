@@ -4,6 +4,7 @@
 **/target/
 **/build/
 **/dist/
+**/megalinter-reports/
 
 # IDE files
 .vscode/
