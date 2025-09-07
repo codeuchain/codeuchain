@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Router Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .pass { background: #e8f5e8; border-color: #4caf50; }
+        .fail { background: #ffe8e8; border-color: #f44336; }
+    </style>
+</head>
+<body>
+    <h1>CodeUChain Router Test</h1>
+    <div id="results"></div>
+
+    <script>
+        // Test the router logic
+        class TestCodeUChainRouter {
+            constructor() {
+                this.routes = {
+                    'go': '/docs/go/index.html',
+                    'python': '/docs/python/index.html',
+                    'javascript': '/docs/javascript/index.html',
+                    'js': '/docs/javascript/index.html',
+                    'csharp': '/docs/csharp/index.html',
+                    'c#': '/docs/csharp/index.html',
+                    'rust': '/docs/rust/index.html',
+                    'cpp': '/docs/cpp/index.html',
+                    'c++': '/docs/cpp/index.html',
+                    'java': '/docs/java/index.html',
+                    'cobol': '/docs/cobol/index.html',
+                    'pseudo': '/docs/pseudo/index.html',
+                    'docs': '/docs/index.html',
+                    'home': '/docs/index.html',
+                    '': '/docs/index.html',
+                    'concepts': '/docs/index.html#concepts',
+                    'benefits': '/docs/index.html#benefits',
+                    'ai-love': '/docs/index.html#ai-love',
+                    'ai': '/docs/index.html#ai-love',
+                    'quickstart': '/docs/index.html#quickstart',
+                    'quick-start': '/docs/index.html#quickstart',
+                    'languages': '/docs/index.html#languages',
+                    'lang': '/docs/index.html#languages',
+                };
+            }
+
+            getCurrentPath(testPath) {
+                let path = testPath || window.location.pathname;
+                let cleanPath = path.replace(/^\/+|\/+$/g, '');
+                if (cleanPath.startsWith('docs/')) {
+                    cleanPath = cleanPath.substring(5);
+                }
+                return cleanPath.toLowerCase();
+            }
+
+            findRoute(path) {
+                if (this.routes[path]) {
+                    return this.routes[path];
+                }
+
+                const pathParts = path.split('/');
+                if (pathParts.length > 1 && this.routes[pathParts[0]]) {
+                    const baseRoute = this.routes[pathParts[0]];
+                    if (baseRoute.includes('/index.html')) {
+                        return baseRoute.replace('/index.html', '/' + pathParts.slice(1).join('/') + '/index.html');
+                    }
+                    return baseRoute;
+                }
+
+                const languagePrefixes = ['go', 'python', 'javascript', 'js', 'csharp', 'c#', 'rust', 'cpp', 'c++', 'java', 'cobol', 'pseudo'];
+                for (const prefix of languagePrefixes) {
+                    if (path.startsWith(prefix + '/')) {
+                        const baseRoute = this.routes[prefix];
+                        if (baseRoute) {
+                            const subPath = path.substring(prefix.length + 1);
+                            return baseRoute.replace('/index.html', '/' + subPath + '/index.html');
+                        }
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        // Run tests
+        function runTests() {
+            const router = new TestCodeUChainRouter();
+            const results = document.getElementById('results');
+
+            const testCases = [
+                { input: '/docs/go', expected: '/docs/go/index.html', description: 'Basic language route' },
+                { input: '/docs/python', expected: '/docs/python/index.html', description: 'Python route' },
+                { input: '/docs/javascript', expected: '/docs/javascript/index.html', description: 'JavaScript route' },
+                { input: '/docs/csharp', expected: '/docs/csharp/index.html', description: 'C# route' },
+                { input: '/docs/c#', expected: '/docs/csharp/index.html', description: 'C# alias route' },
+                { input: '/docs/rust', expected: '/docs/rust/index.html', description: 'Rust route' },
+                { input: '/docs/cpp', expected: '/docs/cpp/index.html', description: 'C++ route' },
+                { input: '/docs/c++', expected: '/docs/cpp/index.html', description: 'C++ alias route' },
+                { input: '/docs/java', expected: '/docs/java/index.html', description: 'Java route' },
+                { input: '/docs/cobol', expected: '/docs/cobol/index.html', description: 'COBOL route' },
+                { input: '/docs/pseudo', expected: '/docs/pseudo/index.html', description: 'Pseudocode route' },
+                { input: '/docs/', expected: '/docs/index.html', description: 'Root docs route' },
+                { input: '/docs', expected: '/docs/index.html', description: 'Root docs without slash' },
+                { input: '/docs/concepts', expected: '/docs/index.html#concepts', description: 'Section route' },
+                { input: '/docs/benefits', expected: '/docs/index.html#benefits', description: 'Benefits section' },
+                { input: '/docs/ai-love', expected: '/docs/index.html#ai-love', description: 'AI Love section' },
+                { input: '/docs/languages', expected: '/docs/index.html#languages', description: 'Languages section' },
+                { input: '/docs/go/examples', expected: '/docs/go/examples/index.html', description: 'Sub-route handling' },
+                { input: '/docs/python/tutorials', expected: '/docs/python/tutorials/index.html', description: 'Python sub-route' },
+            ];
+
+            testCases.forEach((testCase, index) => {
+                const path = router.getCurrentPath(testCase.input);
+                const result = router.findRoute(path);
+                const passed = result === testCase.expected;
+
+                const div = document.createElement('div');
+                div.className = `test ${passed ? 'pass' : 'fail'}`;
+                div.innerHTML = `
+                    <strong>Test ${index + 1}:</strong> ${testCase.description}<br>
+                    <strong>Input:</strong> ${testCase.input}<br>
+                    <strong>Expected:</strong> ${testCase.expected}<br>
+                    <strong>Got:</strong> ${result}<br>
+                    <strong>Status:</strong> ${passed ? '✅ PASS' : '❌ FAIL'}
+                `;
+                results.appendChild(div);
+            });
+        }
+
+        // Run tests when page loads
+        window.addEventListener('load', runTests);
+    </script>
+</body>
+</html>
