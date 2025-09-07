@@ -3,5 +3,6 @@
   "title": "CodeUChain Java - Enterprise-Grade Chain Architecture",
   "hero_description": "Robust, scalable chains for enterprise applications. The power of Java's ecosystem meets modern architectural patterns.",
   "source_link": "https://github.com/codeuchain/codeuchain/tree/main/packages/java",
-  "import://base.json:logo_link": null
+  "import://base.json:logo_link": null,
+  "is_homepage": false
 }
