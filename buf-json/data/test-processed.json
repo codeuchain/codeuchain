@@ -1,9 +1,0 @@
-{
-  "language_name": "Test Language",
-  "title": "CodeUChain Test - Shared Values Demo",
-  "logo_link": "../index.html",
-  "version": "v1.0.0",
-  "company": "Orchestrate LLC",
-  "repository": "https://github.com/codeuchain/codeuchain",
-  "custom_field": "This is unique to this file"
-}

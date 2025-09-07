@@ -1,9 +1,0 @@
-{
-  "language_name": "Test Language",
-  "title": "CodeUChain Test - Shared Values Demo",
-  "import://logo_link": null,
-  "import://version": null,
-  "import://base.json:company": null,
-  "import://base.json:repository": null,
-  "custom_field": "This is unique to this file"
-}
