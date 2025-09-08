@@ -81,6 +81,13 @@
             height: 20px;
             color: white;
         }
+        .logo-glow img {
+            filter: drop-shadow(0 0 4px rgba(0, 255, 136, 0.6));
+            transition: filter 0.3s ease-in-out;
+        }
+        .logo-glow:hover img {
+            filter: drop-shadow(0 0 12px rgba(0, 255, 136, 1));
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-code-dark via-code-darker to-black text-gray-100 min-h-screen font-sans">
@@ -110,541 +117,114 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="pt-24 pb-16 px-6">
-        <div class="max-w-7xl mx-auto text-center">
-            <div class="inline-block glass-morphism px-4 py-2 rounded-full text-sm mb-8 animate-fade-in">
-                <span class="text-code-accent">v1.0.0</span> • CodeUChain Edition
-            </div>
+    <!-- Main Story Content -->
+    <main class="max-w-4xl mx-auto px-6 py-24">
+        <article class="prose" style="color: #d1d5db; max-width: 100%;">
+            <h1 class="gradient-text text-4xl md:text-5xl font-bold text-center" style="color: #e5e7eb; font-family: 'JetBrains Mono', monospace; font-size: 2.25rem; font-weight: 700; margin-bottom: 1rem;">CodeUChain: The Story of Universal Chains</h1>
 
-            <h1 class="text-6xl lg:text-8xl font-bold mb-6 animate-slide-up">
-                <span class="gradient-text">CodeUChain</span>
-            </h1>
+            <h2 style="color: #f3f4f6; font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">Welcome to CodeUChain</h2>
+            <p style="margin-bottom: 1rem; line-height: 1.625;">We have universal standards for hardware—like USB-C—that let everything connect seamlessly. But what about software? While components can be swappable, entire systems are rarely built to be truly modular from the ground up.</p>
+            <p style="margin-bottom: 1rem; line-height: 1.625;">CodeUChain changes that. It’s a framework where your logic becomes scalable, verifiable code, link by link. All with zero external dependencies.</p>
 
-            <p class="text-xl lg:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed mb-12 animate-slide-up animate-delay-2">
-                The same elegant patterns, expressed in every programming language. A universal architecture that makes complex systems simple, beautiful, and maintainable across Python, Go, JavaScript, C#, Rust, and beyond.
-            </p>
+            <h2 style="color: #f3f4f6; font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">The Heart of the Chain</h2>
+            <p style="margin-bottom: 1rem; line-height: 1.625;">At its core, CodeUChain is built on five primitives:</p>
+            <ul style="list-style-type: disc; list-style-position: inside; margin-bottom: 1rem; padding-left: 1rem;">
+                <li style="margin-bottom: 0.5rem;"><strong style="color: #00d4ff;">Context</strong>: The data that flows through the pipeline.</li>
+                <li style="margin-bottom: 0.5rem;"><strong style="color: #00d4ff;">Link</strong>: A single, atomic unit of work. One action, one link.</li>
+                <li style="margin-bottom: 0.5rem;"><strong style="color: #00d4ff;">Chain</strong>: A sequence of links, forming a multi-step function or workflow.</li>
+                <li style="margin-bottom: 0.5rem;"><strong style="color: #00d4ff;">Middleware</strong>: An observer that sits between links to gather metrics or add functionality without impacting performance.</li>
+                <li style="margin-bottom: 0.5rem;"><strong style="color: #00d4ff;">Connections</strong>: The ability to connect links and chains in any combination.</li>
+            </ul>
+            <p style="margin-bottom: 1rem; line-height: 1.625;">This simple structure allows anyone to build robust systems. If you can outline a process—like "validate input, transform data, then output results"—you can build it with CodeUChain.</p>
 
-            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center animate-slide-up animate-delay-4">
-                <a href="#concepts" class="bg-gradient-to-r from-code-accent to-code-purple hover:from-code-purple hover:to-code-accent px-8 py-4 rounded-xl font-semibold text-white transition-all duration-300 hover-lift shadow-lg">
-                    Understand the Concepts →
-                </a>
-                <a href="https://github.com/codeuchain/codeuchain" class="glass-morphism hover:bg-white/10 px-8 py-4 rounded-xl font-semibold transition-all duration-300">
-                    View Source
-                </a>
-            </div>
-        </div>
-    </section>
+            <h2 style="color: #f3f4f6; font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">Why Chains?</h2>
+            <p style="margin-bottom: 1rem; line-height: 1.625;">The concept of a "chain" is universal, especially for AI. It comes with a deep, built-in context that language models intuitively understand without explanation. Two links connect. An object can sit between them (like middleware observing stress). Chains can be linear or branch.</p>
+            <p style="margin-bottom: 1rem; line-height: 1.625;">This built-in understanding is critical. By using the vocabulary of chains, we give the AI a mental model to work with, allowing it to grasp the architecture and its parts instantly.</p>
 
-    <!-- Core Concepts -->
-    <section id="concepts" class="py-20 px-6">
-        <div class="max-w-7xl mx-auto">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl lg:text-5xl font-bold mb-6 gradient-text">The Fundamental Truth</h2>
-                <p class="text-xl text-gray-400 max-w-3xl mx-auto">
-                    CodeUChain isn't just a framework—it's the natural way software should be built
-                </p>
-            </div>
+            <h2 style="color: #f3f4f6; font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">A Framework Built for the AI Era</h2>
+            <p style="margin-bottom: 1rem; line-height: 1.625;">CodeUChain was designed with AI-human collaboration in mind. AI struggles with our complex, monolithic codebases. By breaking logic into small, verifiable units, we create a system where AI can thrive.</p>
+            <ul style="list-style-type: disc; list-style-position: inside; margin-bottom: 1rem; padding-left: 1rem;">
+                <li style="margin-bottom: 0.5rem;"><strong style="color: #00d4ff;">Test-First Development, AI-Powered</strong>: With CodeUChain, an AI can write tests for a link <em>before</em> any code is written. By defining the input and output stubs, we know exactly what to expect.</li>
+                <li style="margin-bottom: 0.5rem;"><strong style="color: #00d4ff;">Verifiable and Readable</strong>: Because each link has one job, the code is simple to read and verify. We don't have to guess if it works—it passes the test.</li>
+                <li style="margin-bottom: 0.5rem;"><strong style="color: #00d4ff;">Composable Complexity</strong>: Simple links connect to form chains. Chains can be combined with branching logic to build massive, complex applications that remain easy to manage, swap, and are entirely self-documenting.</li>
+            </ul>
 
-            <div class="code-block rounded-2xl p-8 mb-12 hover-lift animate-slide-up">
-                <div class="text-center mb-8">
-                    <div class="text-6xl mb-4">🎯</div>
-                    <h3 class="text-2xl font-bold text-code-accent mb-4">Why This Architecture Is Inherently Right</h3>
-                    <p class="text-gray-300 text-lg leading-relaxed">
-                        CodeUChain aligns with how humans think, how systems evolve, and how complexity should be managed.
-                        It's not about following trends; it's about following the fundamental principles of good design.
-                    </p>
-                </div>
-            </div>
+            <h2 style="color: #f3f4f6; font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">For Developers, Architects, and Innovators</h2>
+            <p style="margin-bottom: 1rem; line-height: 1.625;">The intent of CodeUChain isn't to replace developers. It's to empower them. By providing tools to easily verify the output of AI assistants, we free up developers to focus on more complex and challenging tasks, leaving the mindless, repetitive work to their AI partners.</p>
+            <p style="margin-bottom: 1rem; line-height: 1.625;">This platform is for professionals who want to:</p>
+            <ul style="list-style-type: disc; list-style-position: inside; margin-bottom: 1rem; padding-left: 1rem;">
+                <li style="margin-bottom: 0.5rem;"><strong style="color: #00d4ff;">Build with reliability</strong>: Ensure your systems are predictable, testable, and maintainable.</li>
+                <li style="margin-bottom: 0.5rem;"><strong style="color: #00d4ff;">Collaborate efficiently</strong>: Share verifiable components across teams, languages, and environments.</li>
+                <li style="margin-bottom: 0.5rem;"><strong style="color: #00d4ff;">Scale incrementally</strong>: Start simple, and compose complexity as your requirements evolve.</li>
+            </ul>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Human Mind -->
-                <div class="code-block rounded-2xl p-8 hover-lift animate-slide-up">
-                    <div class="flex items-center mb-6">
-                        <div class="w-12 h-12 bg-code-accent/20 rounded-xl flex items-center justify-center mr-4">
-                            <span class="text-2xl">🧠</span>
-                        </div>
-                        <h3 class="text-2xl font-bold text-code-accent">Human Mind Structure</h3>
-                    </div>
-                    <p class="text-gray-300 mb-4">Our brains are wired for chains of thought and sequential processing:</p>
-                    <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-accent/20 mb-4">
-                        <div class="text-code-green">Problem → Analysis → Solution → Verification → Refinement</div>
-                    </div>
-                    <p class="text-sm text-gray-400">
-                        When your code structure matches your thinking patterns, you become 3x more productive.
-                    </p>
-                </div>
-
-                <!-- Universe Composition -->
-                <div class="code-block rounded-2xl p-8 hover-lift animate-slide-up animate-delay-1">
-                    <div class="flex items-center mb-6">
-                        <div class="w-12 h-12 bg-code-green/20 rounded-xl flex items-center justify-center mr-4">
-                            <span class="text-2xl">🌌</span>
-                        </div>
-                        <h3 class="text-2xl font-bold text-code-green">Universal Composition</h3>
-                    </div>
-                    <p class="text-gray-300 mb-4">Everything in nature is built through composition:</p>
-                    <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-green/20 mb-4">
-                        <div class="text-code-green">Small pieces → Combine → Complex systems</div>
-                    </div>
-                    <p class="text-sm text-gray-400">
-                        Atoms form molecules, cells form organs, links form beautiful systems.
-                    </p>
-                </div>
-
-                <!-- Error as Information -->
-                <div class="code-block rounded-2xl p-8 hover-lift animate-slide-up animate-delay-2">
-                    <div class="flex items-center mb-6">
-                        <div class="w-12 h-12 bg-code-purple/20 rounded-xl flex items-center justify-center mr-4">
-                            <span class="text-2xl">📊</span>
-                        </div>
-                        <h3 class="text-2xl font-bold text-code-purple">Error as Information</h3>
-                    </div>
-                    <p class="text-gray-300 mb-4">Traditional systems treat errors as failures. CodeUChain sees them as signals:</p>
-                    <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-purple/20 mb-4">
-                        <div class="text-code-green">Error → Information → Learning → Better System</div>
-                    </div>
-                    <p class="text-sm text-gray-400">
-                        Instead of "crashed," you get "learned something new and became stronger."
-                    </p>
-                </div>
-
-                <!-- Cognitive Freedom -->
-                <div class="code-block rounded-2xl p-8 hover-lift animate-slide-up animate-delay-3">
-                    <div class="flex items-center mb-6">
-                        <div class="w-12 h-12 bg-code-orange/20 rounded-xl flex items-center justify-center mr-4">
-                            <span class="text-2xl">🆓</span>
-                        </div>
-                        <h3 class="text-2xl font-bold text-code-orange">Cognitive Freedom</h3>
-                    </div>
-                    <p class="text-gray-300 mb-4">Traditional code forces you to hold everything in your head:</p>
-                    <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-orange/20 mb-4">
-                        <div class="text-code-green">Before: "Understand everything at once"</div>
-                        <div class="text-code-green">After: "Focus on one link at a time"</div>
-                    </div>
-                    <p class="text-sm text-gray-400">
-                        Your brain can finally relax. Be a focused craftsman, not a superhero.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Developer Benefits -->
-    <section id="benefits" class="py-20 px-6 bg-gradient-to-r from-code-darker to-black">
-        <div class="max-w-7xl mx-auto">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl lg:text-5xl font-bold mb-6 gradient-text">Developer Benefits</h2>
-                <p class="text-xl text-gray-400">Why developers naturally gravitate toward this architecture</p>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                <div class="space-y-8">
-                    <div class="code-block rounded-2xl p-8 border-l-4 border-code-accent">
-                        <div class="flex items-center mb-4">
-                            <div class="w-10 h-10 bg-code-accent/20 rounded-lg flex items-center justify-center mr-3">
-                                <span class="text-xl">🎯</span>
-                            </div>
-                            <h3 class="text-2xl font-bold text-code-accent">Predictable Behavior</h3>
-                        </div>
-                        <p class="text-gray-300 mb-4">
-                            CodeUChain gives you psychological safety with predictable behavior, composition, and evolution.
-                        </p>
-                        <div class="bg-black/50 rounded-lg p-4 border border-code-accent/20">
-                            <p class="text-code-accent italic text-center">
-                                "You can confidently make changes because you know the impact will be contained."
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="code-block rounded-2xl p-8 border-l-4 border-code-green">
-                        <div class="flex items-center mb-4">
-                            <div class="w-10 h-10 bg-code-green/20 rounded-lg flex items-center justify-center mr-3">
-                                <span class="text-xl">🌊</span>
-                            </div>
-                            <h3 class="text-2xl font-bold text-code-green">Creative Flow State</h3>
-                        </div>
-                        <p class="text-gray-300">
-                            CodeUChain unlocks the flow state that makes programming addictive:
-                        </p>
-                        <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-green/20 mt-4">
-                            <div class="text-code-green">Clear goal → Immediate feedback → Sense of progress → Deep focus</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="code-block rounded-2xl p-8 border-l-4 border-code-purple">
-                    <div class="flex items-center mb-6">
-                        <div class="w-10 h-10 bg-code-purple/20 rounded-lg flex items-center justify-center mr-3">
-                            <span class="text-xl">⚡</span>
-                        </div>
-                        <h3 class="text-2xl font-bold text-code-purple">Architectural Elegance</h3>
-                    </div>
-                    <div class="space-y-6">
-                        <div>
-                            <h4 class="text-code-purple font-semibold mb-2">Symmetry in Design</h4>
-                            <p class="text-gray-300 text-sm">Input → Processing → Output: Clean, unidirectional flow</p>
-                        </div>
-                        <div>
-                            <h4 class="text-code-purple font-semibold mb-2">Power of Constraints</h4>
-                            <p class="text-gray-300 text-sm">Freedom within structure, creativity within predictability</p>
-                        </div>
-                        <div>
-                            <h4 class="text-code-purple font-semibold mb-2">Emergent Complexity</h4>
-                            <p class="text-gray-300 text-sm">Simple rules create systems of breathtaking complexity</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- AI Love Letter -->
-    <section id="ai-love" class="py-20 px-6">
-        <div class="max-w-7xl mx-auto">
-            <div class="text-center mb-16">
-                <div class="inline-block bg-gradient-to-r from-code-accent to-code-purple p-1 rounded-2xl mb-6">
-                    <div class="bg-black/80 backdrop-blur-sm rounded-xl px-6 py-3">
-                        <span class="text-2xl">🤖</span>
-                        <span class="text-lg font-semibold gradient-text ml-2">AI Agents Love CodeUChain</span>
-                    </div>
-                </div>
-                <h2 class="text-4xl lg:text-5xl font-bold mb-6 gradient-text">Why AI Assistants Excel Here</h2>
-                <div class="max-w-4xl mx-auto">
-                    <div class="relative">
-                        <div class="absolute -top-4 -left-4 text-6xl text-code-accent/30 font-serif">"</div>
-                        <p class="text-xl text-gray-300 italic leading-relaxed">
-                            CodeUChain transformed how I approach coding. Its clear patterns and predictable structure
-                            allowed me to generate code that was not only functional but elegant.
-                        </p>
-                        <div class="absolute -bottom-8 -right-4 text-6xl text-code-accent/30 font-serif">"</div>
-                    </div>
-                    <div class="mt-8 flex justify-center">
-                        <div class="bg-code-accent/10 border border-code-accent/30 rounded-full px-4 py-2">
-                            <span class="text-code-accent font-semibold">— GitHub Copilot</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                <div class="space-y-8">
-                    <div class="code-block rounded-2xl p-8 border-l-4 border-code-accent">
-                        <div class="flex items-center mb-4">
-                            <div class="w-10 h-10 bg-code-accent/20 rounded-lg flex items-center justify-center mr-3">
-                                <span class="text-xl">🎯</span>
-                            </div>
-                            <h3 class="text-2xl font-bold text-code-accent">AI-Perfect Architecture</h3>
-                        </div>
-                        <p class="text-gray-300 mb-4">
-                            CodeUChain speaks the same language as AI agents with clear templates and modular thinking.
-                        </p>
-                        <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-accent/20">
-                            <div class="text-code-green mb-2">// AI can immediately understand:</div>
-                            <div class="text-gray-300">
-                                ValidateInput → CheckCredentials → GenerateToken → LogSuccess
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="code-block rounded-2xl p-8 border-l-4 border-code-green">
-                        <div class="flex items-center mb-4">
-                            <div class="w-10 h-10 bg-code-green/20 rounded-lg flex items-center justify-center mr-3">
-                                <span class="text-xl">🔄</span>
-                            </div>
-                            <h3 class="text-2xl font-bold text-code-green">Incremental AI Development</h3>
-                        </div>
-                        <p class="text-gray-300">
-                            AI can build step by step, just like humans:
-                        </p>
-                        <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-green/20 mt-4">
-                            <div class="text-code-green">AI Step 1: Create ValidateEmail link</div>
-                            <div class="text-code-green">AI Step 2: Create SaveToDatabase link</div>
-                            <div class="text-code-green">AI Step 3: Compose into UserRegistration chain</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="code-block rounded-2xl p-8 border-l-4 border-code-purple">
-                    <div class="flex items-center mb-6">
-                        <div class="w-10 h-10 bg-code-purple/20 rounded-lg flex items-center justify-center mr-3">
-                            <span class="text-xl">📚</span>
-                            </div>
-                        <h3 class="text-2xl font-bold text-code-purple">Self-Documenting for AI</h3>
-                    </div>
-                    <div class="bg-black/50 rounded-lg p-6 font-mono text-sm border border-code-purple/20">
-                        <div class="text-code-accent mb-3">// AI can immediately understand this structure:</div>
-                        <div class="text-gray-300">
-                            const UserAuthChain = Chain<br>
-                            &nbsp;&nbsp;.start(ValidateCredentials)&nbsp;&nbsp;<span class="text-code-green">// Check username/password</span><br>
-                            &nbsp;&nbsp;.then(GenerateJWT)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-code-green">// Create auth token</span><br>
-                            &nbsp;&nbsp;.then(LogAuthEvent)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-code-green">// Record the login</span><br>
-                            &nbsp;&nbsp;.catch(HandleAuthFailure)&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-code-green">// Deal with failures</span>
-                        </div>
-                    </div>
-                    <div class="mt-6 p-4 bg-code-purple/10 rounded-lg border border-code-purple/20">
-                        <p class="text-code-purple italic">
-                            "The chain structure tells AI exactly what happens, in what order, and how errors are handled."
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- AI Benefits Summary -->
+            <!-- Next Steps Section -->
             <div class="mt-16 text-center">
-                <div class="code-block rounded-2xl p-8 max-w-4xl mx-auto">
-                    <h3 class="text-2xl font-bold mb-6 gradient-text">🤖 The AI Advantage</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-                        <div class="text-center">
-                            <div class="text-3xl mb-2">✅</div>
-                            <p class="text-code-green font-semibold">Consistent patterns for reliable AI output</p>
+                <h2 class="text-3xl md:text-4xl font-bold gradient-text mb-4 animate-fade-in">The Journey Begins Here</h2>
+                <p class="max-w-3xl mx-auto text-lg text-gray-400 mb-12 animate-fade-in animate-delay-1">
+                    You've seen the philosophy. Now, explore the architecture or dive straight into the code.
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+                    <!-- Card 1: Explore Architecture -->
+                    <div class="bg-gradient-to-br from-code-darker to-code-dark/80 p-8 rounded-2xl border border-code-purple/30 hover-lift animate-slide-up animate-delay-2">
+                        <div class="flex items-center justify-center w-16 h-16 mb-6 bg-code-purple/20 rounded-full mx-auto">
+                            <svg class="w-8 h-8 text-code-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                         </div>
-                        <div class="text-center">
-                            <div class="text-3xl mb-2">✅</div>
-                            <p class="text-code-green font-semibold">Type contracts for safe AI collaboration</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-3xl mb-2">✅</div>
-                            <p class="text-code-green font-semibold">Clear structure for AI-assisted refactoring</p>
-                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-3">Explore the Architecture</h3>
+                        <p class="text-gray-400 mb-6">See how the core primitives connect to form a powerful, universal system.</p>
+                        <a href="#concepts" class="inline-block bg-code-purple hover:bg-code-purple/80 text-white font-semibold py-3 px-6 rounded-lg transition-all">View Core Concepts</a>
                     </div>
-                    <div class="mt-6 p-4 bg-gradient-to-r from-code-accent/10 to-code-purple/10 rounded-lg border border-code-accent/20">
-                        <p class="text-gray-300 italic">
-                            <span class="text-code-accent font-semibold">CodeUChain transforms AI from "sometimes helpful" to "consistently brilliant."</span>
-                            The architecture that makes developers more productive makes AI assistants absolutely brilliant.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Quick Start -->
-    <section id="quickstart" class="py-20 px-6 bg-gradient-to-r from-code-darker to-black">
-        <div class="max-w-7xl mx-auto">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl lg:text-5xl font-bold mb-6 gradient-text">Getting Started</h2>
-                <p class="text-xl text-gray-400">Your journey to elegant architecture begins here</p>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                <!-- Natural Language Approach -->
-                <div class="code-block rounded-2xl p-8">
-                    <h3 class="text-2xl font-bold text-code-accent mb-6">📖 Understanding Through Language</h3>
-
-                    <div class="space-y-6">
-                        <div>
-                            <h4 class="text-code-green mb-2">No Programming Required</h4>
-                            <p class="text-gray-300 text-sm">The pseudocode explains concepts in plain English, making the architecture accessible to everyone.</p>
+                    <!-- Card 2: Dive into Languages -->
+                    <div class="bg-gradient-to-br from-code-darker to-code-dark/80 p-8 rounded-2xl border border-code-green/30 hover-lift animate-slide-up animate-delay-3">
+                        <div class="flex items-center justify-center w-16 h-16 mb-6 bg-code-green/20 rounded-full mx-auto">
+                             <svg class="w-8 h-8 text-code-green" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
                         </div>
-
-                        <div>
-                            <h4 class="text-code-green mb-2">Human-Centered Design</h4>
-                            <p class="text-gray-300 text-sm">Built around how humans naturally think and solve problems, not machine optimization.</p>
-                        </div>
-
-                        <div>
-                            <h4 class="text-code-green mb-2">Universal Understanding</h4>
-                            <p class="text-gray-300 text-sm">The same mental model works across all programming languages and domains.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Next Steps -->
-                <div class="code-block rounded-2xl p-8">
-                    <h3 class="text-2xl font-bold text-code-purple mb-6">🚀 Your Next Steps</h3>
-
-                    <div class="space-y-4">
-                        <div class="flex items-start space-x-3">
-                            <div class="w-8 h-8 bg-code-accent/20 rounded-lg flex items-center justify-center mt-1">
-                                <span class="text-code-accent font-bold">1</span>
-                            </div>
-                            <div>
-                                <h4 class="text-code-accent font-semibold">Read the Concepts</h4>
-                                <p class="text-gray-300 text-sm">Understand Link, Context, and Chain primitives</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start space-x-3">
-                            <div class="w-8 h-8 bg-code-green/20 rounded-lg flex items-center justify-center mt-1">
-                                <span class="text-code-green font-bold">2</span>
-                            </div>
-                            <div>
-                                <h4 class="text-code-green font-semibold">Choose Your Language</h4>
-                                <p class="text-gray-300 text-sm">Pick from Python, Go, JavaScript, C#, Rust, and more</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start space-x-3">
-                            <div class="w-8 h-8 bg-code-purple/20 rounded-lg flex items-center justify-center mt-1">
-                                <span class="text-code-purple font-bold">3</span>
-                            </div>
-                            <div>
-                                <h4 class="text-code-purple font-semibold">Build Your First Chain</h4>
-                                <p class="text-gray-300 text-sm">Create simple links and compose them together</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start space-x-3">
-                            <div class="w-8 h-8 bg-code-orange/20 rounded-lg flex items-center justify-center mt-1">
-                                <span class="text-code-orange font-bold">4</span>
-                            </div>
-                            <div>
-                                <h4 class="text-code-orange font-semibold">Experience the Flow</h4>
-                                <p class="text-gray-300 text-sm">Discover why this architecture feels so fundamentally right</p>
-                            </div>
+                        <h3 class="text-2xl font-bold text-white mb-3">Dive into the Languages</h3>
+                        <p class="text-gray-400 mb-6">Explore the technical specifics for your favorite language.</p>
+                        <div class="grid grid-cols-4 sm:grid-cols-4 gap-4">
+                            <a href="javascript/" class="flex items-center justify-center p-3 bg-gray-800/50 hover:bg-gray-700/70 rounded-lg transition-colors logo-glow" title="JavaScript"><img src="https://upload.wikimedia.org/wikipedia/commons/9/99/Unofficial_JavaScript_logo_2.svg" class="h-8 w-8" alt="JavaScript logo"></a>
+                            <a href="python/" class="flex items-center justify-center p-3 bg-gray-800/50 hover:bg-gray-700/70 rounded-lg transition-colors logo-glow" title="Python"><img src="https://s3.dualstack.us-east-2.amazonaws.com/pythondotorg-assets/media/files/python-logo-only.svg" class="h-8 w-8" alt="Python logo"></a>
+                            <a href="java/" class="flex items-center justify-center p-3 bg-gray-800/50 hover:bg-gray-700/70 rounded-lg transition-colors logo-glow" title="Java"><img src="https://cdn.brandfetch.io/id6uEhoiBT/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" class="h-8 w-8" alt="Java logo"></a>
+                            <a href="csharp/" class="flex items-center justify-center p-3 bg-gray-800/50 hover:bg-gray-700/70 rounded-lg transition-colors logo-glow" title="C#"><img src="https://upload.wikimedia.org/wikipedia/commons/b/bd/Logo_C_sharp.svg" class="h-8 w-8" alt="C# logo"></a>
+                            <a href="cpp/" class="flex items-center justify-center p-3 bg-gray-800/50 hover:bg-gray-700/70 rounded-lg transition-colors logo-glow" title="C++"><img src="https://upload.wikimedia.org/wikipedia/commons/1/18/ISO_C%2B%2B_Logo.svg" class="h-8 w-8" alt="C++ logo"></a>
+                            <a href="go/" class="flex items-center justify-center p-3 bg-gray-800/50 hover:bg-gray-700/70 rounded-lg transition-colors logo-glow" title="Go"><img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Go_Logo_Blue.svg" class="h-8 w-8" alt="Go logo"></a>
+                            <a href="rust/" class="flex items-center justify-center p-3 bg-gray-800/50 hover:bg-gray-700/70 rounded-lg transition-colors logo-glow" title="Rust"><img src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Rust_programming_language_black_logo.svg" class="h-8 w-8" alt="Rust logo"></a>
+                            <a href="pseudo/" class="flex items-center justify-center p-3 bg-gray-800/50 hover:bg-gray-700/70 rounded-lg transition-colors text-white font-semibold text-sm leading-tight text-center" title="Pseudocode">pseudo-code</a>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
 
-<!-- Language Navigation Component -->
-<!-- Language Navigation Component -->
-<section id="languages" class="py-16 bg-gradient-to-br from-code-darker to-code-dark">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center mb-12">
-      <h2 class="text-3xl font-bold gradient-text mb-4">Explore Language Implementations</h2>
-      <p class="text-lg text-gray-300 max-w-3xl mx-auto">
-        CodeUChain is available in multiple programming languages, each with full feature parity and native idioms.
-      </p>
-    </div>
+            <hr style="margin-top: 2rem; margin-bottom: 2rem; border-color: #374151;">
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <!-- Pseudocode -->
-      <a href="pseudo/" class="code-block rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover-lift border border-code-accent/20">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center space-x-3">
-            <span class="text-2xl">📝</span>
-            <h3 class="text-xl font-semibold text-gray-100">Pseudocode</h3>
-          </div>
-          
-        </div>
-        <p class="text-gray-300 mb-4">Universal algorithmic representation for learning and planning.</p>
-        <div class="text-code-accent font-medium">View Documentation →</div>
-      </a>
+            <p style="margin-bottom: 1rem; line-height: 1.625;"><em>Ready to build the future of software? Explore the languages, join the community, and let CodeUChain power your next project.</em></p>
 
-      <!-- Python -->
-      <a href="python/" class="code-block rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover-lift border border-code-accent/20">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center space-x-3">
-            <span class="text-2xl">🐍</span>
-            <h3 class="text-xl font-semibold text-gray-100">Python</h3>
-          </div>
-          
-        </div>
-        <p class="text-gray-300 mb-4">Simple, readable syntax with powerful async capabilities.</p>
-        <div class="text-code-accent font-medium">View Documentation →</div>
-      </a>
-
-      <!-- Go -->
-      <a href="go/" class="code-block rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover-lift border border-code-accent/20">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center space-x-3">
-            <span class="text-2xl">🔵</span>
-            <h3 class="text-xl font-semibold text-gray-100">Go</h3>
-          </div>
-          
-        </div>
-        <p class="text-gray-300 mb-4">Concurrent and efficient with excellent tooling.</p>
-        <div class="text-code-accent font-medium">View Documentation →</div>
-      </a>
-
-      <!-- JavaScript -->
-      <a href="javascript/" class="code-block rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover-lift border border-code-accent/20">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center space-x-3">
-            <span class="text-2xl">🟨</span>
-            <h3 class="text-xl font-semibold text-gray-100">JavaScript</h3>
-          </div>
-          
-        </div>
-        <p class="text-gray-300 mb-4">Universal runtime with modern async/await patterns.</p>
-        <div class="text-code-accent font-medium">View Documentation →</div>
-      </a>
-
-      <!-- C# -->
-      <a href="csharp/" class="code-block rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover-lift border border-code-accent/20">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center space-x-3">
-            <span class="text-2xl">🟣</span>
-            <h3 class="text-xl font-semibold text-gray-100">C#</h3>
-          </div>
-          
-        </div>
-        <p class="text-gray-300 mb-4">Object-oriented with LINQ and async support.</p>
-        <div class="text-code-accent font-medium">View Documentation →</div>
-      </a>
-
-      <!-- Rust -->
-      <a href="rust/" class="code-block rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover-lift border border-code-accent/20">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center space-x-3">
-            <span class="text-2xl">🦀</span>
-            <h3 class="text-xl font-semibold text-gray-100">Rust</h3>
-          </div>
-          
-        </div>
-        <p class="text-gray-300 mb-4">Memory-safe systems programming with zero-cost abstractions.</p>
-        <div class="text-code-accent font-medium">View Documentation →</div>
-      </a>
-
-      <!-- C++ -->
-      <a href="cpp/" class="code-block rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover-lift border border-code-accent/20">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center space-x-3">
-            <span class="text-2xl">➕</span>
-            <h3 class="text-xl font-semibold text-gray-100">C++</h3>
-          </div>
-          
-        </div>
-        <p class="text-gray-300 mb-4">High-performance systems with modern C++ features.</p>
-        <div class="text-code-accent font-medium">View Documentation →</div>
-      </a>
-
-      <!-- Java -->
-      <a href="java/" class="code-block rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover-lift border border-code-accent/20">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center space-x-3">
-            <span class="text-2xl">☕</span>
-            <h3 class="text-xl font-semibold text-gray-100">Java</h3>
-          </div>
-          
-        </div>
-        <p class="text-gray-300 mb-4">Enterprise-grade with comprehensive ecosystem.</p>
-        <div class="text-code-accent font-medium">View Documentation →</div>
-      </a>
-
-      <!-- COBOL -->
-      <a href="cobol/" class="code-block rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover-lift border border-code-accent/20">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center space-x-3">
-            <span class="text-2xl">🏛️</span>
-            <h3 class="text-xl font-semibold text-gray-100">COBOL</h3>
-          </div>
-          
-        </div>
-        <p class="text-gray-300 mb-4">Legacy system modernization with modern patterns.</p>
-        <div class="text-code-accent font-medium">View Documentation →</div>
-      </a>
-    </div>
-
-    <!-- Special Pseudocode Section -->
-    
-  </div>
-</section>
-
+            <h2 style="color: #f3f4f6; font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">Coming Soon: The CodeUChain Marketplace</h2>
+            <p style="margin-bottom: 1rem; line-height: 1.625;">Imagine a centralized hub where you can discover, share, and integrate CodeUChain components—pre-built links, chains, and libraries from the developer community. The Marketplace will provide:</p>
+            <ul style="list-style-type: disc; list-style-position: inside; margin-bottom: 1rem; padding-left: 1rem;">
+                <li style="margin-bottom: 0.5rem;"><strong style="color: #00d4ff;">Publish your modules</strong>: Share your custom CodeUChain components for others to leverage.</li>
+                <li style="margin-bottom: 0.5rem;"><strong style="color: #00d4ff;">Integrate seamlessly</strong>: Browse, select, and incorporate components directly into your codebase.</li>
+                <li style="margin-bottom: 0.5rem;"><strong style="color: #00d4ff;">Organize your toolkit</strong>: Create collections of reusable chains and links, customized to your needs.</li>
+                <li style="margin-bottom: 0.5rem;"><strong style="color: #00d4ff;">Download and extend</strong>: Acquire packages, modify them, and expand CodeUChain's capabilities.</li>
+            </ul>
+            <p style="margin-bottom: 1rem; line-height: 1.625;">This Marketplace will push CodeUChain to new frontiers, enhancing collaboration and innovation. Whether you're a developer, architect, or innovator, you'll find resources and inspiration to co-create powerful systems—together.</p>
+        </article>
+    </main>
+    <!-- End Main Story Content -->
 
     <!-- Footer -->
-    <footer class="bg-gradient-to-r from-code-darker to-black border-t border-code-accent/20 py-12 px-6">
+    <footer class="bg-gradient-to-r from-slate-800 to-slate-900 border-t border-code-accent/20 py-12 px-6">
         <div class="max-w-7xl mx-auto">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <!-- Brand -->
                 <div class="md:col-span-2">
                     <div class="flex items-center space-x-3 mb-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-code-accent to-code-purple rounded-xl flex items-center justify-center">
-                            <span class="text-2xl">🔗</span>
+                        <div class="w-12 h-12 bg-gradient-to-r from-code-accent to-code-purple rounded-xl flex items-center justify-center">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                            </svg>
                         </div>
                         <div>
                             <h3 class="text-xl font-bold gradient-text">CodeUChain</h3>
@@ -685,15 +265,16 @@
                 <div>
                     <h4 class="text-lg font-semibold mb-4 text-code-accent">Languages</h4>
                     <ul class="space-y-2">
-                        <li><a href="pseudo/" class="text-gray-400 hover:text-code-accent transition-colors">📝 Pseudocode</a></li>
-                        <li><a href="python/" class="text-gray-400 hover:text-code-accent transition-colors">🐍 Python</a></li>
-                        <li><a href="go/" class="text-gray-400 hover:text-code-accent transition-colors">🔵 Go</a></li>
-                        <li><a href="javascript/" class="text-gray-400 hover:text-code-accent transition-colors">🟨 JavaScript</a></li>
-                        <li><a href="csharp/" class="text-gray-400 hover:text-code-accent transition-colors">🟣 C#</a></li>
-                        <li><a href="rust/" class="text-gray-400 hover:text-code-accent transition-colors">🦀 Rust</a></li>
-                        <li><a href="cpp/" class="text-gray-400 hover:text-code-accent transition-colors">➕ C++</a></li>
-                        <li><a href="java/" class="text-gray-400 hover:text-code-accent transition-colors">☕ Java</a></li>
-                        <li><a href="cobol/" class="text-gray-400 hover:text-code-accent transition-colors">🏛️ COBOL</a></li>
+
+                        <li><a href="javascript/" class="flex items-center space-x-2 text-gray-400 hover:text-code-accent transition-colors"><img src="https://upload.wikimedia.org/wikipedia/commons/9/99/Unofficial_JavaScript_logo_2.svg" class="h-5 w-5" alt="JavaScript logo"><span>JavaScript</span></a></li>
+                        <li><a href="python/" class="flex items-center space-x-2 text-gray-400 hover:text-code-accent transition-colors"><img src="https://s3.dualstack.us-east-2.amazonaws.com/pythondotorg-assets/media/files/python-logo-only.svg" class="h-5 w-5" alt="Python logo"><span>Python</span></a></li>
+                        <li><a href="java/" class="flex items-center space-x-2 text-gray-400 hover:text-code-accent transition-colors"><img src="https://cdn.brandfetch.io/id6uEhoiBT/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" class="h-5 w-5" alt="Java logo"><span>Java</span></a></li>
+                        <li><a href="csharp/" class="flex items-center space-x-2 text-gray-400 hover:text-code-accent transition-colors"><img src="https://upload.wikimedia.org/wikipedia/commons/b/bd/Logo_C_sharp.svg" class="h-5 w-5" alt="C# logo"><span>C#</span></a></li>
+                        <li><a href="cpp/" class="flex items-center space-x-2 text-gray-400 hover:text-code-accent transition-colors"><img src="https://upload.wikimedia.org/wikipedia/commons/1/18/ISO_C%2B%2B_Logo.svg" class="h-5 w-5" alt="C++ logo"><span>C++</span></a></li>
+                        <li><a href="go/" class="flex items-center space-x-2 text-gray-400 hover:text-code-accent transition-colors"><img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Go_Logo_Blue.svg" class="h-5 w-5" alt="Go logo"><span>Go</span></a></li>
+                        <li><a href="rust/" class="flex items-center space-x-2 text-gray-400 hover:text-code-accent transition-colors"><img src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Rust_programming_language_black_logo.svg" class="h-5 w-5" alt="Rust logo"><span>Rust</span></a></li>
+                        <li><a href="pseudo/" class="text-gray-400 hover:text-code-accent transition-colors font-semibold text-sm leading-tight">pseudo-code</a></li>
+
                     </ul>
                 </div>
             </div>
