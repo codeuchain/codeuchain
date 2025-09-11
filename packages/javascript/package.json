@@ -41,13 +41,13 @@
     "README.md"
   ],
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "eslint": "^8.0.0",
     "jest": "^29.0.0",
     "prettier": "^2.0.0",
+    "ts-jest": "^29.4.1",
     "typescript": "^5.0.0"
   },
-  "peerDependencies": {},
-  "optionalDependencies": {},
   "funding": {
     "type": "github",
     "url": "https://github.com/sponsors/orchestrate-solutions"

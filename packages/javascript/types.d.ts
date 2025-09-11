@@ -42,42 +42,7 @@ export type TInput = any;
 export type TOutput = any;
 
 /**
- * Context: The Loving Vessel
- * 
- * Immutable context container that holds data with agape compassion.
- * Enhanced with opt-in generic typing for type-safe workflows while maintaining
- * runtime flexibility. Provides clean type evolution without explicit casting.
- * 
- * **Performance Characteristics:**
- * - Immutable by default (uses Object.freeze() and deep copying)
- * - Zero runtime overhead for typing (same storage as Record<string, any>)
- * - Memory-efficient through structural sharing when possible
- * 
- * **Type Evolution:**
- * Use `insertAs<TNew>()` to transform between related types cleanly.
- * The context maintains the same runtime behavior regardless of TypeScript annotations.
- * 
- * @template T The type of data structure this context represents
- * @since 1.0.0
- * 
- * @example
- * ```typescript
- * // Basic usage
- * const ctx = new Context({ name: 'Alice', age: 30 });
- * console.log(ctx.get('name')); // 'Alice'
- * 
- * // Type-safe usage with interfaces
- * interface User { name: string; age: number; }
- * const userCtx = new Context<User>({ name: 'Alice', age: 30 });
- * 
- * // Type evolution
- * interface UserWithEmail extends User { email: string; }
- * const enhancedCtx = userCtx.insertAs<UserWithEmail>('email', 'alice@example.com');
- * 
- * // Mixed typed/untyped usage (fully compatible)
- * const untypedCtx = new Context({ dynamic: 'value' });
- * const mixedChain = untypedCtx.insert('typed', userCtx.get('name'));
- * ```
+ * @deprecated Use IContext instead for type annotations. The runtime class remains available.
  */
 export declare class Context<T = Record<string, any>> {
   /**
@@ -384,52 +349,7 @@ export declare class Context<T = Record<string, any>> {
 }
 
 /**
- * MutableContext: The Performance-Focused Vessel
- * 
- * Mutable version of Context for performance-critical sections where many sequential
- * modifications are needed. Should be used sparingly and converted back to immutable
- * Context when modifications are complete.
- * 
- * **Performance Characteristics:**
- * - Mutations are O(1) operations (no object copying)
- * - Significantly faster for bulk operations (10-100x for large datasets)
- * - Higher memory efficiency during bulk updates
- * - Less garbage collection pressure
- * 
- * **Safety Considerations:**
- * - Use with limited scope - convert back to immutable quickly
- * - Not thread-safe (but JavaScript is single-threaded)
- * - Avoid sharing mutable contexts between functions
- * - Always convert to immutable before returning from functions
- * 
- * @template T The type of data structure this mutable context represents
- * @since 1.0.0
- * 
- * @example
- * ```typescript
- * // Performance-critical bulk updates
- * const immutableCtx = new Context<UserData>({ users: [] });
- * const mutableCtx = immutableCtx.withMutation();
- * 
- * // Fast bulk operations
- * for (let i = 0; i < 10000; i++) {
- *   mutableCtx.set(`user_${i}`, { id: i, name: `User ${i}` });
- * }
- * 
- * // Back to safe immutable
- * const result = mutableCtx.toImmutable();
- * 
- * // Pattern: Limited scope usage
- * function bulkProcess(data: any[]): Context<ProcessedData> {
- *   const mutable = Context.empty<ProcessedData>().withMutation();
- *   
- *   data.forEach((item, index) => {
- *     mutable.set(`item_${index}`, processItem(item));
- *   });
- *   
- *   return mutable.toImmutable(); // Always return immutable
- * }
- * ```
+ * @deprecated Use IMutableContext instead for type annotations. The runtime class remains available.
  */
 export declare class MutableContext<T = Record<string, any>> {
   /**
@@ -577,6 +497,8 @@ export declare class MutableContext<T = Record<string, any>> {
 }
 
 /**
+ * @deprecated Use ILink instead for type annotations. The runtime class remains available.
+ * 
  * Link: The Selfless Processor
  * 
  * Base class for all context processors in CodeUChain. Implements the core pattern
@@ -807,6 +729,8 @@ export declare class Link<TInput = any, TOutput = any> {
 }
 
 /**
+ * @deprecated Use IChain instead for type annotations. The runtime class remains available.
+ * 
  * Chain: The Orchestrating Conductor
  * 
  * Manages the execution flow of multiple Links in sequence or conditionally.
@@ -1228,6 +1152,8 @@ export declare class Chain<TInput = any, TOutput = any> {
 }
 
 /**
+ * @deprecated Use IMiddleware instead for type annotations. The runtime class remains available.
+ * 
  * Middleware: The Compassionate Interceptor
  * 
  * Base class for implementing middleware that can intercept and enhance
@@ -1469,108 +1395,18 @@ export declare class Middleware {
 }
 
 /**
- * LoggingMiddleware: The Compassionate Observer
- * 
- * Built-in middleware that provides comprehensive logging for Chain execution.
- * Logs Link start/completion, execution times, context changes, and errors
- * with configurable detail levels.
- * 
- * **Logging Features:**
- * - Link execution start/completion
- * - Execution timing information
- * - Context key changes between Links
- * - Error details and stack traces
- * - Configurable log levels
- * 
- * **Performance Impact:**
- * - Minimal overhead for basic logging
- * - Context diffing adds small overhead
- * - Can be configured for production use
- * - JSON serialization only when needed
- * 
- * @since 1.0.0
- * 
- * @example
- * ```typescript
- * // Basic usage
- * const chain = new Chain<UserInput, UserOutput>()
- *   .useMiddleware(new LoggingMiddleware())
- *   .addLink(new ValidateUserLink())
- *   .addLink(new ProcessUserLink());
- * 
- * // Will output:
- * // [INFO] Starting ValidateUserLink with 2 context keys
- * // [INFO] Completed ValidateUserLink in 15ms (3 context keys)
- * // [INFO] Starting ProcessUserLink with 3 context keys  
- * // [INFO] Completed ProcessUserLink in 42ms (5 context keys)
- * 
- * // Error logging
- * try {
- *   await chain.run(inputContext);
- * } catch (error) {
- *   // [ERROR] Error in ProcessUserLink: Validation failed
- *   // [ERROR] Context at error: {...}
- * }
- * ```
+ * @deprecated Use ILoggingMiddleware instead for type annotations. The runtime export remains available.
  */
-export declare class LoggingMiddleware extends Middleware {}
+export declare const LoggingMiddleware: typeof Middleware;
 
 /**
- * TimingMiddleware: The Performance Guardian
- * 
- * Built-in middleware that measures and logs execution times for each Link.
- * Provides detailed performance metrics and can identify bottlenecks in chains.
- * 
- * **Timing Features:**
- * - Individual Link execution times
- * - Total chain execution time
- * - Performance warnings for slow Links
- * - Configurable timing thresholds
- * - Memory usage tracking (if available)
- * 
- * **Metrics Collected:**
- * - Start/end timestamps
- * - Execution duration in milliseconds
- * - Context size changes
- * - Performance warnings
- * 
- * **Performance Impact:**
- * - Negligible overhead (< 1ms per Link)
- * - Uses high-resolution timing when available
- * - Safe for production use
- * 
- * @since 1.0.0
- * 
- * @example
- * ```typescript
- * // Basic performance monitoring
- * const chain = new Chain<DataInput, ProcessedData>()
- *   .useMiddleware(new TimingMiddleware())
- *   .addLink(new LoadDataLink())      // 125ms
- *   .addLink(new ProcessDataLink())   // 2.3s ⚠️ slow
- *   .addLink(new SaveDataLink());     // 89ms
- * 
- * // Will output:
- * // [TIMING] LoadDataLink: 125ms
- * // [TIMING] ProcessDataLink: 2345ms ⚠️ 
- * // [TIMING] SaveDataLink: 89ms
- * // [TIMING] Total chain execution: 2559ms
- * 
- * // Combined with other middleware
- * const monitoredChain = new Chain<UserInput, UserOutput>()
- *   .useMiddleware(new LoggingMiddleware())
- *   .useMiddleware(new TimingMiddleware())
- *   .addLink(new ExpensiveProcessingLink());
- * 
- * // Performance analysis
- * const start = performance.now();
- * await monitoredChain.run(inputContext);
- * const total = performance.now() - start;
- * ```
+ * @deprecated Use ITimingMiddleware instead for type annotations. The runtime export remains available.
  */
-export declare class TimingMiddleware extends Middleware {}
+export declare const TimingMiddleware: typeof Middleware;
 
 /**
+ * @deprecated Use IValidationMiddleware instead for type annotations. The runtime export remains available.
+ * 
  * ValidationMiddleware: The Protective Guardian
  * 
  * Built-in middleware that validates contexts before and after Link execution.
@@ -1624,7 +1460,7 @@ export declare class TimingMiddleware extends Middleware {}
  * // ValidationError: Link must return a Context instance
  * ```
  */
-export declare class ValidationMiddleware extends Middleware {}
+export declare const ValidationMiddleware: typeof Middleware;
 
 /**
  * Package version string.
@@ -1676,9 +1512,6 @@ export type DefaultExport = {
   Link: typeof Link;
   Chain: typeof Chain;
   Middleware: typeof Middleware;
-  LoggingMiddleware: typeof LoggingMiddleware;
-  TimingMiddleware: typeof TimingMiddleware;
-  ValidationMiddleware: typeof ValidationMiddleware;
   version: string;
 };
 
@@ -1699,3 +1532,27 @@ export type DefaultExport = {
  */
 declare const _default: DefaultExport;
 export default _default;
+
+// ---------------------------------------------------------------------------
+// Convenience I-prefixed type aliases
+// Many teams prefer interface-style names like `IContext`/`ILink` for type-only
+// imports — expose simple aliases so consumers can adopt that convention
+// without changing runtime exports.
+// ---------------------------------------------------------------------------
+
+export type IContext<T = Record<string, any>> = Context<T>;
+export type IMutableContext<T = Record<string, any>> = MutableContext<T>;
+export type ILink<TInput = any, TOutput = any> = Link<TInput, TOutput>;
+export type IChain<TInput = any, TOutput = any> = Chain<TInput, TOutput>;
+export type IMiddleware = Middleware;
+export type ILoggingMiddleware = typeof Middleware;
+export type ITimingMiddleware = typeof Middleware;
+export type IValidationMiddleware = typeof Middleware;
+
+// Utilities layer export: built-in middleware and utility classes
+export declare const utilities: {
+  LoggingMiddleware: ILoggingMiddleware;
+  TimingMiddleware: ITimingMiddleware;
+  ValidationMiddleware: IValidationMiddleware;
+};
+
