@@ -11,9 +11,9 @@
 #include <future>
 
 /*!
-Chain: The Loving Connector
+Chain: The Orchestrator
 
-With agape harmony, the Chain orchestrates link execution with conditional flows and middleware.
+The Chain orchestrates link execution with conditional flows and middleware.
 Core implementation that all chain implementations can build upon.
 */
 

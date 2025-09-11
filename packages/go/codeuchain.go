@@ -1,13 +1,13 @@
 // Package codeuchain provides a modular framework for chaining processing links
-// with middleware support, embracing the agape philosophy of selfless design.
+// with middleware support, designed for robust Go applications.
 package codeuchain
 
 import (
 	"context"
 )
 
-// Context holds data tenderly, immutable by default for safety, mutable for flexibility.
-// With agape compassion, it embraces Go's map-based approach with JSON marshaling.
+// Context holds data carefully, immutable by default for safety, mutable for flexibility.
+// It embraces Go's map-based approach with JSON marshaling.
 // Enhanced with generic typing for type-safe workflows.
 type Context[T any] struct {
 	data map[string]interface{}
@@ -129,9 +129,9 @@ func (n *nopMiddleware) OnError(ctx context.Context, link Link[any, any], err er
 
 // Connection represents a conditional flow between links
 type Connection[T any] struct {
-	Source      string
-	Target      string
-	Condition   func(*Context[T]) bool
+	Source    string
+	Target    string
+	Condition func(*Context[T]) bool
 }
 
 // Chain orchestrates link execution with middleware
@@ -271,7 +271,7 @@ func (ehm *ErrorHandlingMixin) HandleError(linkName string, err error, ctx *Cont
 
 // RetryLink provides forgiveness through retries
 type RetryLink struct {
-	Inner     Link[any, any]
+	Inner      Link[any, any]
 	MaxRetries int
 }
 

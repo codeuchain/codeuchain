@@ -502,7 +502,7 @@ export declare class MutableContext<T = Record<string, any>> {
  * Link: The Selfless Processor
  * 
  * Base class for all context processors in CodeUChain. Implements the core pattern
- * of transforming input contexts to output contexts with agape selflessness.
+ * of transforming input contexts to output contexts with focused processing.
  * Enhanced with opt-in generic typing for type-safe workflows.
  * 
  * **Design Philosophy:**
@@ -1158,7 +1158,7 @@ export declare class Chain<TInput = any, TOutput = any> {
  * 
  * Base class for implementing middleware that can intercept and enhance
  * Link execution within Chains. Provides hooks for before/after processing
- * and error handling with agape compassion.
+ * and error handling with comprehensive care.
  * 
  * **Middleware Lifecycle:**
  * 1. before() - Called before each Link execution

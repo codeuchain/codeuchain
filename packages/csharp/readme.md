@@ -1,6 +1,6 @@
 # CodeUChain C#
 
-A modular framework for chaining processing links with middleware support, following agape philosophy.
+A modular framework for chaining processing links with middleware support, designed for robust .NET applications.
 
 ## 🤖 LLM Support
 
@@ -147,7 +147,7 @@ var result = await chain.RunAsync(inputContext);
 
 ## Architecture Principles
 
-Following agape philosophy, CodeUChain C# emphasizes:
+CodeUChain C# emphasizes:
 
 - **Harmony**: Clean interfaces and predictable behavior
 - **Immutability**: Thread-safe data flow

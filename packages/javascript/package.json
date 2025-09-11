@@ -22,8 +22,7 @@
     "async",
     "javascript",
     "typescript",
-    "types",
-    "agape"
+    "types"
   ],
   "author": "Joshua Wink",
   "license": "Apache-2.0",

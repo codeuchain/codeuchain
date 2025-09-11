@@ -1,7 +1,7 @@
 /**
- * Link: The Selfless Processor
+ * Link: The Processing Unit
  *
- * With agape selflessness, the Link defines the interface for context processors.
+ * The Link defines the interface for context processors.
  * Base class that implementations can extend.
  * Enhanced with generic typing for type-safe workflows.
  *
@@ -16,7 +16,7 @@ const { Context } = require('./context');
  */
 class Link {
   /**
-   * Selfless processor—input context, output context, no judgment.
+   * Processing unit—input context, output context, focused transformation.
    * Base class that all link implementations should extend.
    * Enhanced with generic typing for type-safe workflows.
    *

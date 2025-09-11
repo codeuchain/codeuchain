@@ -1,7 +1,7 @@
 """
 Tests for Context Classes
 
-Testing immutable Context and mutable MutableContext with agape care.
+Testing immutable Context and mutable MutableContext functionality.
 """
 
 import pytest

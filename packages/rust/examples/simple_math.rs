@@ -1,8 +1,8 @@
 /*!
-Simple Example: Math Chain with Agape
+Simple Example: Math Chain Processing
 
-With loving simplicity, chain math links and observe with middleware.
-Demonstrates the new modular structure: core protocols, component implementations.
+Demonstrates modular chain processing with math links and middleware.
+Shows the new modular structure: core protocols, component implementations.
 */
 
 use std::collections::HashMap;
@@ -14,7 +14,7 @@ use components::{BasicChain, MathLink, LoggingMiddleware};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Lovingly set up the chain using component implementations
+    // Set up the chain using component implementations
     let mut chain = BasicChain::new();
     chain.add_link("sum".to_string(), Box::new(MathLink::new("sum".to_string())));
     chain.add_link("mean".to_string(), Box::new(MathLink::new("mean".to_string())));

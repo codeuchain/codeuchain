@@ -1,7 +1,7 @@
 /*!
-Link Protocol: The Selfless Processor Core
+Link Protocol: The Processing Unit Core
 
-With agape selflessness, the Link trait defines the interface for context processors.
+The Link trait defines the interface for context processors.
 Pure trait—implementations belong in components.
 */
 
