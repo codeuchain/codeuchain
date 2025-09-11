@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <LangVersion>12.0</LangVersion>
     <PackageId>CodeUChain</PackageId>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <Authors>CodeUChain Team</Authors>
     <Description>A modular framework for chaining processing links with middleware support, designed for robust .NET applications.</Description>
     <RepositoryUrl>https://github.com/codeuchain/codeuchain</RepositoryUrl>
