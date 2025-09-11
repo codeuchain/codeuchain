@@ -5,8 +5,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/releases"
 mkdir -p "$OUT"
 
-langs=(rust)
-version="v1.0.0"
+langs=(javascript)
+version="v1.1.1"
 
 for lang in "${langs[@]}"; do
   src="$ROOT/packages/$lang"
