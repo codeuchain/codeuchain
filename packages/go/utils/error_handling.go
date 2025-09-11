@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/codeuchain/codeuchain/packages/go"
+	codeuchain "github.com/codeuchain/codeuchain/packages/go"
 )
 
 // ErrorHandlingMixin provides error routing capabilities
@@ -51,7 +51,7 @@ func (ehm *ErrorHandlingMixin) HandleError(linkName string, err error, ctx *code
 
 // RetryLink wraps a link with retry logic
 type RetryLink struct {
-	Inner     codeuchain.Link[any, any]
+	Inner      codeuchain.Link[any, any]
 	MaxRetries int
 }
 

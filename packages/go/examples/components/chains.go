@@ -3,7 +3,7 @@ package components
 import (
 	"context"
 
-	"github.com/codeuchain/codeuchain/packages/go"
+	codeuchain "github.com/codeuchain/codeuchain/packages/go"
 )
 
 // BasicChain provides a concrete implementation of chain orchestration
