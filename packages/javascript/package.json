@@ -1,6 +1,6 @@
 {
   "name": "codeuchain",
-  "version": "1.0.1",
+  "version": "1.1.1",
   "description": "CodeUChain JavaScript implementation - Interactive playground with event-driven, ubiquitous patterns",
   "main": "core/index.js",
   "types": "index.d.ts",
@@ -8,6 +8,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "build": "tsc --noEmit",
     "example": "node examples/simple_chain.js",
     "lint": "eslint core/**/*.js examples/**/*.js",
     "format": "prettier --write core/**/*.js examples/**/*.js"
@@ -28,7 +29,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/codeuchain/codeuchain",
+    "url": "git+https://github.com/codeuchain/codeuchain.git",
     "directory": "packages/javascript"
   },
   "engines": {
@@ -38,6 +39,7 @@
     "core/",
     "index.d.ts",
     "types.d.ts",
+    "tsconfig.json",
     "README.md"
   ],
   "devDependencies": {
