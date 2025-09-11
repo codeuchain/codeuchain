@@ -1,0 +1,32 @@
+{
+  "testEnvironment": "node",
+  "testMatch": [
+    "**/__tests__/**/*.js",
+    "**/__tests__/**/*.ts",
+    "**/?(*.)+(spec|test).js",
+    "**/?(*.)+(spec|test).ts",
+    "**/tests/**/*.js",
+    "**/tests/**/*.ts"
+  ],
+  "testPathIgnorePatterns": [
+    "<rootDir>/tests/test-setup.js"
+  ],
+  "collectCoverageFrom": [
+    "core/**/*.js",
+    "core/**/*.ts",
+    "!core/index.js",
+    "!core/index.d.ts"
+  ],
+  "coverageDirectory": "coverage",
+  "coverageReporters": ["text", "lcov", "html"],
+  "setupFilesAfterEnv": ["<rootDir>/tests/test-setup.js"],
+  "transform": {
+    "^.+\\.ts$": "ts-jest"
+  },
+  "moduleFileExtensions": ["ts", "js"],
+  "globals": {
+    "ts-jest": {
+      "tsconfig": "tsconfig.json"
+    }
+  }
+}
