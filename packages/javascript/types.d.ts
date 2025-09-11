@@ -4,7 +4,7 @@
 export type TInput = any;
 export type TOutput = any;
 
-export declare class Context<T = any> {
+export declare class Context<T = Record<string, any>> {
   constructor(data?: Record<string, any>);
   static empty(): Context<T>;
   static from<TData = any>(data: TData): Context<TData>;
@@ -18,7 +18,7 @@ export declare class Context<T = any> {
   keys(): string[];
 }
 
-export declare class MutableContext<T = any> {
+export declare class MutableContext<T = Record<string, any>> {
   constructor(data?: Record<string, any>);
   get(key: string): any;
   set(key: string, value: any): void;
