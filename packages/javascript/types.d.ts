@@ -79,7 +79,7 @@ export type TOutput = any;
  * const mixedChain = untypedCtx.insert('typed', userCtx.get('name'));
  * ```
  */
-export declare class Context<T = any> {
+export declare class Context<T = Record<string, any>> {
   /**
    * Creates a new immutable Context with the provided data.
    * Data is deep frozen to ensure immutability at all levels.
@@ -431,7 +431,7 @@ export declare class Context<T = any> {
  * }
  * ```
  */
-export declare class MutableContext<T = any> {
+export declare class MutableContext<T = Record<string, any>> {
   /**
    * Creates a new mutable context with the provided data.
    * Unlike immutable Context, data is not frozen and can be modified directly.
