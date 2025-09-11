@@ -3,7 +3,7 @@
 /*!
 CodeUChain: AI-Native Universal Framework - C++ Implementation
 
-With agape harmony, CodeUChain brings universal patterns to C++ development.
+CodeUChain brings universal patterns to C++ development.
 Same concepts, C++ syntax - enabling seamless cross-language development.
 */
 

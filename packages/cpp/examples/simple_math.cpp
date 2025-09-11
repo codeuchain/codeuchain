@@ -5,7 +5,7 @@
 /*!
 Simple Math Example: Demonstrating Universal Patterns in C++
 
-With agape harmony, we show how the same concepts work across all languages.
+This example shows how the same concepts work across all languages.
 This example performs basic arithmetic operations using the universal CodeUChain pattern.
 */
 

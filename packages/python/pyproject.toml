@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "codeuchain"
 version = "1.0.1"
-description = "Agape-optimized Python implementation of CodeUChain"
+description = "Python implementation of CodeUChain with comprehensive async support"
 authors = [{name = "CodeUChain Team"}]
 dependencies = []  # Pure Python - zero external dependencies!
 

@@ -1,7 +1,7 @@
 /*!
-Error Handling: The Forgiving Guardian
+Error Handling: The Resilience Layer
 
-With agape forgiveness, handle errors compassionately, routing with love.
+Handle errors comprehensively, with retry logic and proper error propagation.
 Optimized for Rust—Result types, retries, ecosystem integrations.
 */
 
@@ -59,7 +59,7 @@ impl Default for ErrorHandlingMixin {
     }
 }
 
-/// Retry with patience—agape's forgiveness in action.
+/// Retry with resilience—comprehensive error recovery in action.
 pub struct RetryLink<L: Link> {
     inner: L,
     max_retries: usize,

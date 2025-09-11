@@ -6,9 +6,9 @@
 #include <coroutine>
 
 /*!
-Middleware: The Loving Cross-Cutting Concern
+Middleware: The Cross-Cutting Concern
 
-With agape harmony, the Middleware provides selfless cross-cutting functionality.
+The Middleware provides cross-cutting functionality.
 Core interface that all middleware implementations must follow.
 */
 

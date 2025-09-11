@@ -1,7 +1,7 @@
 /*!
-Context: The Loving Vessel
+Context: The Data Container
 
-With agape compassion, the Context holds data tenderly, immutable by default for safety, mutable for flexibility.
+The Context holds data carefully, immutable by default for safety, mutable for flexibility.
 Optimized for Rust's ownership model—embracing HashMap with serde integration.
 */
 

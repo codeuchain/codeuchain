@@ -1,8 +1,8 @@
 """
-CodeUChain: Agape-Optimized Python Implementation
+CodeUChain: Modular Python Implementation
 
-With selfless love, CodeUChain chains your code as links, observes with middleware, and flows through contexts.
-Optimized for Python's prototyping soul—embracing dynamism, ecosystem, and academic warmth.
+CodeUChain provides a modular framework for chaining processing links with middleware support.
+Optimized for Python's prototyping capabilities—embracing dynamism, ecosystem, and flexibility.
 
 Library Structure:
 - core/: Base protocols and classes (AI maintains)

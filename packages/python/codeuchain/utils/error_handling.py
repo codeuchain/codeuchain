@@ -1,7 +1,7 @@
 """
-Error Handling: The Forgiving Guardian
+Error Handling: The Resilience Layer
 
-With agape forgiveness, handle errors compassionately, routing with love.
+Handle errors comprehensively, with retry logic and proper error propagation.
 Optimized for Python—exceptions, retries, ecosystem integrations.
 """
 
@@ -35,7 +35,7 @@ class ErrorHandlingMixin:
 
 
 class RetryLink(Link):
-    """Retry with patience—agape's forgiveness in action."""
+    """Retry with resilience—comprehensive error recovery in action."""
 
     def __init__(self, inner_link: Link, max_retries: int = 3):
         self.inner = inner_link

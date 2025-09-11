@@ -1,7 +1,7 @@
 /**
- * Context: The Loving Vessel
+ * Context: The Data Container
  *
- * With agape compassion, the Context holds data tenderly, immutable by default for safety, mutable for flexibility.
+ * The Context holds data carefully, immutable by default for safety, mutable for flexibility.
  * Optimized for JavaScript's dynamism—embracing object-like interface with ecosystem integrations.
  * Enhanced with generic typing for type-safe workflows.
  *
@@ -14,7 +14,7 @@
  */
 class Context {
   /**
-   * Immutable context with selfless love—holds data without judgment, returns fresh copies for changes.
+   * Immutable context with careful handling—holds data without judgment, returns fresh copies for changes.
    * Enhanced with generic typing for type-safe workflows.
    *
    * @param {Object} data - Initial data object to store in the context

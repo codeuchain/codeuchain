@@ -1,7 +1,7 @@
 """
-Middleware ABC: The Gentle Enhancer Core
+Middleware ABC: The Enhancement Layer Core
 
-With agape gentleness, the Middleware ABC defines optional enhancement hooks.
+The Middleware ABC defines optional enhancement hooks.
 Abstract base class—implementations belong in components and can override any/all methods.
 Enhanced with generic typing for type-safe workflows.
 """

@@ -98,8 +98,8 @@ mvn test
 mvn package
 ```
 
-## Agape Philosophy
-Optimized for Java's enterprise soul—forgiving, object-oriented, ecosystem-integrated. Start fresh, chain with love.
+## Design Approach
+Optimized for Java's enterprise strengths—object-oriented, ecosystem-integrated, with comprehensive tooling. Start fresh, build robust processing pipelines.
 
 ## Comparison with Other Languages
 

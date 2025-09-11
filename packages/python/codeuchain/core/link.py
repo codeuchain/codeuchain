@@ -1,7 +1,7 @@
 """
-Link Protocol: The Selfless Processor Core
+Link Protocol: The Processing Unit Core
 
-With agape selflessness, the Link protocol defines the interface for context processors.
+The Link protocol defines the interface for context processors.
 Pure protocol—implementations belong in components.
 Enhanced with generic typing for type-safe workflows.
 """

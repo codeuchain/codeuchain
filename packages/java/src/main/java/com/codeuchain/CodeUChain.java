@@ -2,7 +2,7 @@ package com.codeuchain;
 
 /**
  * CodeUChain Java Implementation
- * Embracing the agape philosophy of selfless design
+ * Enterprise-grade framework for processing pipelines
  */
 
 // Core interfaces and classes would go here

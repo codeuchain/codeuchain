@@ -6,9 +6,9 @@
 #include <future>
 
 /*!
-Link: The Loving Processing Unit
+Link: The Processing Unit
 
-With agape harmony, the Link processes data through selfless transformation.
+The Link processes data through transformation.
 Core interface that all link implementations must follow.
 */
 

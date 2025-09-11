@@ -2,7 +2,7 @@
  * CodeUChain JavaScript Core
  *
  * The loving foundation of CodeUChain for JavaScript ecosystems.
- * With agape, we provide the core building blocks for context flow.
+ * The core building blocks for context flow.
  */
 
 const { Context, MutableContext } = require('./context');

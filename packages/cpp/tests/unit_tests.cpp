@@ -4,9 +4,9 @@
 #include <memory>
 
 /*!
-Unit Tests: Loving Validation
+Unit Tests: Comprehensive Validation
 
-With agape harmony, we validate our implementations through comprehensive testing.
+Validate our implementations through comprehensive testing.
 */
 
 // Test Link implementation

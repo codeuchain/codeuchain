@@ -11,7 +11,7 @@
     <packaging>jar</packaging>
 
     <name>CodeUChain Java</name>
-    <description>Agape-optimized implementation in Java</description>
+    <description>Enterprise-grade implementation in Java with comprehensive middleware support</description>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

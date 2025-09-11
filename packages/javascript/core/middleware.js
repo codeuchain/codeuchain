@@ -1,7 +1,7 @@
 /**
- * Middleware: The Gentle Enhancer
+ * Middleware: The Enhancement Layer
  *
- * With agape gentleness, the Middleware provides optional enhancement hooks.
+ * The Middleware provides optional enhancement hooks.
  * Base class that implementations can extend.
  * Enhanced with generic typing for type-safe workflows.
  *
