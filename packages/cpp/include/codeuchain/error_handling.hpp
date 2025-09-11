@@ -3,9 +3,9 @@
 #include <string>
 
 /*!
-Error Handling: Loving Error Management
+Error Handling: Comprehensive Error Management
 
-With agape harmony, we handle errors gracefully and provide meaningful feedback.
+Handle errors gracefully and provide meaningful feedback.
 */
 
 namespace codeuchain {

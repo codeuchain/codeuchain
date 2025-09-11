@@ -5,8 +5,8 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Context: The Loving Vessel
- * With agape compassion, holds data tenderly, immutable by default for safety.
+ * Context: The Data Container
+ * Holds data carefully, immutable by default for safety.
  */
 public class Context {
     private final Map<String, Object> data;

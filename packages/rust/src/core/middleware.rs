@@ -1,7 +1,7 @@
 /*!
-Middleware Trait: The Gentle Enhancer Core
+Middleware Trait: The Enhancement Layer Core
 
-With agape gentleness, the Middleware trait defines optional enhancement hooks.
+The Middleware trait defines optional enhancement hooks.
 Trait with default implementations—implementations can override any/all methods.
 */
 

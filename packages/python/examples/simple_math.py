@@ -1,8 +1,8 @@
 """
-Simple Example: Math Chain with Agape
+Simple Example: Math Chain Processing
 
-With loving simplicity, chain math links and observe with middleware.
-Demonstrates the new modular structure: core protocols, component implementations.
+Demonstrates modular chain processing with math links and middleware.
+Shows the new modular structure: core protocols, component implementations.
 """
 
 import sys
@@ -17,7 +17,7 @@ from components.middleware import LoggingMiddleware
 
 
 async def main():
-    # Lovingly set up the chain using component implementations
+    # Set up the chain using component implementations
     chain = BasicChain()
     chain.add_link("sum", MathLink("sum"))
     chain.add_link("mean", MathLink("mean"))

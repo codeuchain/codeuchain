@@ -29,9 +29,9 @@ chain = BasicChain()
 chain.add_link("api", SimpleHttpLink("https://api.example.com/data"))
 ```
 
-## Philosophy
+## Design Approach
 
-This approach follows the **agape principle** of minimal coupling:
+This approach follows the **principle of minimal coupling**:
 - Core library stays pure and portable
 - Users have full control over HTTP implementations
 - Easy to swap between different HTTP libraries
