@@ -24,7 +24,6 @@ available in the CodeUChain timing middleware, matching the C++ implementation.
 use codeuchain::core::{Context, Chain};
 use codeuchain::core::link::LegacyLink;
 use codeuchain::utils::TimingMiddleware;
-use codeuchain::utils::timing_middleware::{FormatConfig, TimeUnit, OutputFormat, create_csv_timing_middleware, create_minimal_timing_middleware, create_detailed_timing_middleware};
 use std::collections::HashMap;
 use serde_json::Value;
 
@@ -66,12 +65,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Test 2: Minimal format (only totals)
     println!("\n📊 Test 2: Minimal Format (Totals Only)");
     println!("---------------------------------------");
-    test_format(create_minimal_timing_middleware(), &link1, &link2, &link3).await?;
+    test_format(TimingMiddleware::with_config(true, true), &link1, &link2, &link3).await?;
 
     // Test 3: Detailed format with raw nanoseconds
     println!("\n📊 Test 3: Detailed Format (With Raw Nanoseconds)");
     println!("--------------------------------------------------");
-    test_format(create_detailed_timing_middleware(), &link1, &link2, &link3).await?;
+    test_format(TimingMiddleware::with_config(true, false), &link1, &link2, &link3).await?;
 
     // Test 4: CSV format (with auto_print enabled for demo)
     println!("\n📊 Test 4: CSV Format");
@@ -79,15 +78,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let csv_timing = TimingMiddleware::with_config(
         true, // per_invocation
         true, // auto_print - enabled for demo
-        FormatConfig {
-            time_unit: TimeUnit::Micro,
-            decimal_places: 2,
-            show_raw_ns: false,
-            output_format: OutputFormat::CSV,
-            show_total: true,
-            show_avg: true,
-            show_calls: true,
-        }
     );
     test_format(csv_timing, &link1, &link2, &link3).await?;
 
@@ -97,15 +87,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let custom_timing = TimingMiddleware::with_config(
         false, // per_invocation
         true,  // auto_print
-        FormatConfig {
-            time_unit: TimeUnit::Milli,
-            decimal_places: 1,
-            show_raw_ns: false,
-            output_format: OutputFormat::Tabular,
-            show_total: true,
-            show_avg: true,
-            show_calls: false,
-        }
     );
     test_format(custom_timing, &link1, &link2, &link3).await?;
 

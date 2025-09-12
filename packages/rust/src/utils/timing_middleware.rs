@@ -47,32 +47,19 @@ impl TimingMiddleware {
         }
     }
 
-    /// Generate timing report
-    pub fn report(&self) -> String {
+    /// Get timing statistics
+    pub fn get_stats(&self) -> HashMap<String, (f64, u64, f64)> {
         let stats = self.stats.lock().unwrap();
-        if stats.is_empty() {
-            return "No timing data collected".to_string();
-        }
+        let mut result = HashMap::new();
 
-        let mut result = String::new();
-        result.push_str("== TimingMiddleware Report ==\n");
-        result.push_str(&format!("{:<20} {:<8} {:<12} {:<12} {:<12}\n",
-            "Link", "Calls", "Total", "Avg", "Max"));
-        result.push_str(&"-".repeat(64));
-        result.push_str("\n");
-
-        for stat in stats.values() {
-            let avg_ns = if stat.calls > 0 { stat.total_ns / stat.calls as u128 } else { 0 };
+        for (name, stat) in stats.iter() {
             let total_ms = stat.total_ns as f64 / 1_000_000.0;
-            let avg_ms = avg_ns as f64 / 1_000_000.0;
-            let max_ms = stat.max_ns as f64 / 1_000_000.0;
-
-            result.push_str(&format!("{:<20} {:<8} {:<12.2} {:<12.2} {:<12.2}\n",
-                stat.name,
-                stat.calls,
-                total_ms,
-                avg_ms,
-                max_ms));
+            let avg_ms = if stat.calls > 0 {
+                stat.total_ns as f64 / (stat.calls as f64 * 1_000_000.0)
+            } else {
+                0.0
+            };
+            result.insert(name.clone(), (total_ms, stat.calls, avg_ms));
         }
 
         result
