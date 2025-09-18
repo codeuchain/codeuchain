@@ -1,310 +1,246 @@
-# CodeUChain (Python) – Full LLM Reference (Canonical Implementation)
+###################################################################################################
+# CodeUChain (Python) — Full Reference (Graph Model + Opt‑In Typed Evolution)
+###################################################################################################
 
-**Name:** CodeUChain (Python)  
-**Homepage:** https://github.com/codeuchain/codeuchain/tree/main/packages/python  
-**Docs:** https://codeuchain.github.io/codeuchain/python/  
-**Version:** 1.0.0  
-**License:** Apache 2.0  
-**Repository:** git+https://github.com/codeuchain/codeuchain.git  
-**Contact:** https://github.com/codeuchain/codeuchain/issues  
-**Authors:** CodeUChain contributors  
-**Language:** Python 3.8+ (async-first)  
-**Platform:** Cross-platform  
-**Paradigm Keywords:** Composable, Async, Generics, Immutable Context, Type Evolution, Selfless Links
+Version: 1.0.x | License: Apache-2.0 | Repo: https://github.com/codeuchain/codeuchain
+Compact Cheat Sheet: `docs/python/llm.txt` (start there) — This file is the expanded narrative.
 
----
-## 1. Purpose & Philosophy
-Python is the *reference* implementation: every concept is demonstrated here first. Emphasis: clarity over cleverness, explicit transformations, compassionate error handling, and strong optional typing.
+--------------------------------------------------------------------------------
+SECTION INDEX
+  1. Overview & Mental Model
+  2. Imports & Project Layout Patterns
+  3. Core Types (Conceptual Interfaces)
+  4. Minimal Graph Example (End‑to‑End)
+  5. Typed Shapes & Type Evolution
+  6. Middleware (Instrumentation Only)
+  7. Error Handling & Resilience Patterns
+  8. Recommended Patterns (Playbook)
+  9. Testing Strategy (Unit + Integration)
+ 10. Performance & Scaling Guidance
+ 11. Migration (Untyped → Typed)
+ 12. Anti‑Patterns & Remedies
+ 13. FAQ (High Signal)
+ 14. Glossary (Shared Vocabulary)
+ 15. TL;DR Summary
+ 16. References
+--------------------------------------------------------------------------------
 
-| Principle | Python Expression | Benefit |
-|-----------|-------------------|---------|
-| Selfless Links | `async def call(ctx)` | Pure async units |
-| Immutable Context | `ctx2 = ctx.insert(...)` | Predictable test state |
-| Type Evolution | `ctx3 = ctx.insert_as("key", value)` | Safe shape widening |
-| Mixed Typed/Untyped | `Context[Any]` default | Gradual adoption |
-| Async Everywhere | `await chain.call()` | Natural concurrency |
+## 1. Overview & Mental Model
+You build a directed async processing graph composed of pure(ish) Links. Each Link reads from an immutable Context (a snapshot), produces a new Context via `insert()` (same generic type) or `insert_as()` (type evolution), then downstream predicates decide which edges receive that new snapshot.
 
----
-## 2. Architectural Overview
+Why immutable Context?
+- Deterministic reasoning & snapshot debugging
+- Safe concurrent fan‑out (no shared mutation hazards)
+- Clear audit trail of enrichment stages
+
+Visual (simplified):
 ```
-Raw Input --> Context[T0]
-   │ then (validation_link)
+[Root Context]
+   │ add_link('sum')
    ▼
-Context[T1]
-   │ then (parse_link)
-   ▼
-Context[T2]
-   │ then (enrich_link) + middleware(before/after/error)
-   ▼
-Context[T3] (final)
+[Ctx + sum] -- predicate --> add_link('mean') --> [Ctx + sum + mean]
 ```
-Advanced flows: branching, conditional execution, retry wrapping, error redirection.
 
----
-## 3. Core Types (Conceptual Signatures)
+The SAME runtime object model powers both typed and untyped usage; typing is compile‑time / lint‑time help only.
+
+## 2. Imports & Project Layout Patterns
+Keep framework primitives explicit; custom logic lives in local modules for discoverability.
 ```python
-class Context(Generic[T]):
-    def get(self, key: str, default: Any = None) -> Any: ...
-    def insert(self, key: str, value: Any) -> "Context[T]": ...
-    def insert_as(self, key: str, value: Any) -> "Context[Any]": ...  # evolves type
-    def keys(self) -> list[str]: ...
+from codeuchain.core import Context, Link, Chain, Middleware  # framework primitives
+from components.middleware import LoggingMiddleware
+```
+Typed shapes (optional, introduced gradually):
+```python
+from typing import TypedDict
+
+class InputShape(TypedDict):
+    numbers: list[int]
+
+class StatsShape(TypedDict):
+    sum: int
+    mean: float
+```
+Layout suggestion (not enforced):
+```
+components/
+  links/        # domain links (parse, enrich, score, etc.)
+  chains/       # assembly helpers (BasicChain, composite graphs)
+  middleware/   # logging, metrics, timing
+  types/        # typed dicts / dataclasses / pydantic models
+```
+
+## 3. Core Types (Conceptual Interfaces)
+```python
+class Context[T]:
+    def get(self, key: str, default: Any | None = None) -> Any: ...
+    def insert(self, key: str, value: Any) -> Context[T]: ...            # preserve T
+    def insert_as[U](self, key: str, value: Any) -> Context[U]: ...      # evolve → U
     def to_dict(self) -> dict[str, Any]: ...
 
-class Link(Generic[TInput, TOutput]):
-    async def call(self, ctx: Context[TInput]) -> Context[TOutput]: ...
+class Link[TIn, TOut]:
+    async def call(self, ctx: Context[TIn]) -> Context[TOut]: ...
 
-class Middleware:  # All optional
+class ChainGraph:  # BasicChain wrapper in examples
+    def add_link(self, name: str, link: Link[Any, Any]) -> None: ...
+    def connect(self, from_name: str, to_name: str,
+                predicate: Callable[[Context[Any]], bool]) -> None: ...
+    def use_middleware(self, mw: Middleware) -> None: ...
+    async def run(self, ctx: Context[Any]) -> Context[Any]: ...
+
+class Middleware:
     async def before(self, name: str, ctx: Context[Any]) -> None: ...
     async def after(self, name: str, ctx: Context[Any]) -> None: ...
     async def on_error(self, name: str, ctx: Context[Any], err: Exception) -> None: ...
 ```
 
----
-## 4. Creating Links
+## 4. Minimal Graph Example (from `simple_math.py`)
 ```python
-from codeuchain import Link, Context
+chain = Chain()
+chain.add_link('sum', MathLink('sum'))
+chain.add_link('mean', MathLink('mean'))
+chain.connect('sum', 'mean', lambda c: c.get('result') is not None)
+chain.use_middleware(LoggingMiddleware())
 
-class ValidateEmail(Link[Any, Any]):
-    async def call(self, ctx: Context[Any]) -> Context[Any]:
-        email = ctx.get("email")
-        if not email or "@" not in email:
-            raise ValueError("invalid_email")
-        return ctx.insert("validated", True)
+ctx = Context({'numbers': [1,2,3,4,5]})
+final_ctx = await chain.run(ctx)
+print(final_ctx.get('result'))  # 3.0
 ```
+Key Points:
+- Downstream edge only fires if predicate true.
+- Context remains immutable: every `insert` returns a new instance preserving prior data.
 
-### Type Evolution
+## 5. Typed Shapes & Type Evolution
+`insert` keeps the same generic type parameter (T). `insert_as` returns a widened (or transformed) type U without unsafe casting.
 ```python
-from dataclasses import dataclass
-
-@dataclass
-class RawInput:
-    text: str
-
-@dataclass
-class Parsed:
-    text: str
-    tokens: list[str]
-
-class Parse(Link[RawInput, Parsed]):
-    async def call(self, ctx: Context[RawInput]) -> Context[Parsed]:
-        raw: RawInput = ctx.get("raw")
-        parsed = Parsed(text=raw.text, tokens=raw.text.split())
-        return ctx.insert_as("parsed", parsed)
+ctx2 = ctx.insert('sum', 15)                 # preserves shape T
+ctx3 = ctx2.insert_as('average', 3.0)        # evolves → new shape U
 ```
+Guidelines:
+- Use `TypedDict` / dataclasses for stable domain boundaries.
+- Evolve only when semantics change (not for every single new key).
+- Group related new fields before evolving to reduce churn.
 
----
-## 5. Chain Composition & Error Handling
+Evolution Demo Flow (see `insert_as_method_demo.py`):
+T0(Input) → insert(sum) → T0 → insert_as(average) → T1(Stats) → insert_as(classification) → T2(StatsWithClass)
+
+## 6. Middleware (Instrumentation Only)
+Middleware is for cross‑cutting concerns: logging, metrics, tracing, timing. It SHOULD NOT implement domain logic.
 ```python
-from codeuchain import Chain
-
-chain = (Chain()
-    .then(ValidateEmail())
-    .then(Parse())
-    .catch(lambda link, err, ctx: ctx.insert("error_tag", str(err))))
-
-result = await chain.call(Context[Any]({"email": "a@b.com", "raw": RawInput("hello world")}))
+class TimingMW:
+    async def before(self, name, ctx):
+        ctx.insert('_t0', time.perf_counter())  # safe because new Context returned
+    async def after(self, name, ctx):
+        ...  # measure delta & record
+    async def on_error(self, name, ctx, err):
+        print('ERROR', name, err)
 ```
-Branching strategies: implement conditional link wrappers or pre-insert flags used by downstream links.
+Order: registration order. Keep them minimal (<1ms overhead each). For heavy exports (e.g., metrics batch), buffer and flush out-of-band.
 
-Retry decorator pattern:
+## 7. Error Handling & Resilience Patterns
+| Pattern | Scenario | Mechanism |
+|---------|----------|----------|
+| Terminal catch & classify | Uniform error taxonomy | Final synthetic link or middleware `on_error` |
+| Retry wrapper | Transient I/O, flaky network | Higher‑order link decorator |
+| Conditional routing | Partial recoverable failure | Predicate edges branch on error tags |
+| Fallback computation | Primary fails fast | Two sibling links, first sets flag, predicate chooses fallback |
+
+Conceptual retry wrapper:
 ```python
-def with_retry(link: Link[TInput, TOutput], attempts: int) -> Link[TInput, TOutput]:
-    class Retry(Link[TInput, TOutput]):
-        async def call(self, ctx: Context[TInput]) -> Context[TOutput]:
+def with_retry(link: Link[Any, Any], attempts=3):
+    class Retry(Link[Any, Any]):
+        async def call(self, ctx):
             last = None
-            for i in range(attempts):
+            for _ in range(attempts):
                 try:
                     return await link.call(ctx)
-                except Exception as e:  # narrow if needed
+                except Exception as e:  # classify optionally
                     last = e
-                    await asyncio.sleep(0.01 * (i + 1))
-            raise last  # surfaced after exhaustion
+            raise last
     return Retry()
 ```
 
----
-## 6. Middleware Lifecycle
-```python
-class MetricsMiddleware:
-    async def before(self, name: str, ctx: Context[Any]) -> None:
-        ctx = ctx.insert("_t0", time.perf_counter())
-    async def after(self, name: str, ctx: Context[Any]) -> None:
-        t0 = ctx.get("_t0")
-        if t0:
-            dt = time.perf_counter() - t0
-            print(f"{name} took {dt*1000:.2f}ms")
-    async def on_error(self, name: str, ctx: Context[Any], err: Exception) -> None:
-        print(f"ERROR in {name}: {err}")
-```
-Guidelines:
-- Side-effect work should be fast; offload heavy operations.
-- Middleware ordering = registration order.
+## 8. Recommended Patterns (Playbook)
+| Pattern | Description | Example File |
+|---------|-------------|--------------|
+| Graph assembly | Named nodes + predicate edges | `simple_math.py` |
+| Staged enrichment | Stepwise type widening | `insert_as_method_demo.py` |
+| Typed processing | Generic evolution with shapes | `typed_example.py` |
+| Mixed migration | Combine untyped & typed | `typed_vs_untyped_comparison.py` |
+| Advanced branching | Routing & retries | `typed_workflow_patterns.py` |
 
----
-## 7. Error Handling Patterns
-| Pattern | Usage | Example |
-|---------|-------|---------|
-| Central catch | Uniform tagging | `.catch(handler)` |
-| Retry wrapper | Transient failures | `with_retry(link, 3)` |
-| Classification | Route by error type | branching inside catch |
-| Enrichment | Attach context diagnostics | insert stack or counters |
+Design Heuristics:
+- Favor fewer, sharper context keys.
+- Predicates must be pure (depend only on provided Context snapshot).
+- Avoid evolution churn: evolve on semantic boundary crossings.
+- Keep middleware side‑effect free (besides logging/metrics signals).
 
-Graceful classification snippet:
-```python
-def classify_catch(link_name: str, err: Exception, ctx: Context[Any]) -> Context[Any]:
-    tag = "transient" if isinstance(err, TimeoutError) else "fatal"
-    return ctx.insert("error_kind", tag).insert("error_msg", str(err))
-
-chain = Chain().then(work_link).catch(classify_catch)
-```
-
----
-## 8. Testing & TDD
-Why ideal:
-- Pure async functions
-- Context = explicit contract
-- Type evolution clarifies transitions
-Recommended test style:
+## 9. Testing Strategy
+Unit test links in isolation; integration test assembled graphs with table‑driven patterns.
 ```python
 import pytest
 
 @pytest.mark.asyncio
-async def test_validate_email_ok():
-    ctx = Context[Any]({"email": "a@b.com"})
-    out = await ValidateEmail().call(ctx)
-    assert out.get("validated") is True
-
-@pytest.mark.asyncio
-async def test_validate_email_fail():
-    ctx = Context[Any]({"email": "broken"})
-    with pytest.raises(ValueError):
-        await ValidateEmail().call(ctx)
+async def test_sum_link():
+    ctx = Context({'numbers': [1,2,3]})
+    out = await SumLink().call(ctx)
+    assert out.get('result') == 6
 ```
-
-Chain table-driven style:
+Integration pattern:
 ```python
-cases = [
-    ("a@b.com", True),
-    ("invalid", False),
-]
-for email, ok in cases:
-    ctx = Context[Any]({"email": email, "raw": RawInput("hi all")})
-    try:
-        await chain.call(ctx)
-        assert ok
-    except Exception:
-        assert not ok
+cases = [([1,2,3], 2.0), ([1], 1.0)]
+for nums, expect in cases:
+    ctx = Context({'numbers': nums})
+    res = await chain.run(ctx)
+    assert res.get('result') == expect
 ```
+Typing checks: run `mypy` (optional). Coverage: `pytest --cov`.
 
-Coverage & typing:
-```bash
-pytest --cov=codeuchain --cov-report=term-missing
-mypy codeuchain/
-```
+## 10. Performance & Scaling Guidance
+- Avoid deep copying huge nested payloads (store IDs / references).
+- Coalesce external calls (e.g., `asyncio.gather`) inside a single link when safe.
+- Profile hot links via timing middleware → eliminate slow serialization.
+- Reuse expensive model/serializer instances (inject them; avoid recreation per call).
+- Keep per‑link execution ideally < 5ms (domain dependent).
 
----
-## 9. Observation & Debugging
-Tools:
-- Middleware logging
-- Context key introspection
-- Timing via perf_counter
-- Assertion helpers in tests
+## 11. Migration (Untyped → Typed)
+1. Start fully untyped (`Context()` + simple `Link[Any, Any]`).
+2. Add `TypedDict` / dataclass definitions around stable boundaries.
+3. Replace `insert` with `insert_as` at the point NEW semantic fields appear.
+4. Enforce shapes gradually with tooling (mypy/pyright) — no runtime changes needed.
+5. Introduce middleware once core logic is stable to observe behavior.
 
-Debug middleware example:
-```python
-class Debug:
-    async def after(self, name: str, ctx: Context[Any]) -> None:
-        print("DBG", name, "keys=", ctx.keys())
-```
+Coexistence Guarantee: untyped and typed graphs interoperate seamlessly.
 
----
-## 10. Performance Notes
-| Concern | Strategy |
-|---------|----------|
-| Excess object churn | Reuse builders; limit deep copies |
-| Serialization overhead | Defer (store raw payload) |
-| Async fan-out | `asyncio.gather` with sub-chains |
-| Logging cost | Structured logger + sampling |
-| Type conversions | Narrow casts once; reuse typed vars |
+## 12. Anti‑Patterns & Remedies
+| Anti‑Pattern | Risk | Remedy |
+|--------------|------|--------|
+| Business logic in middleware | Hidden coupling & surprise | Move into dedicated Link |
+| Evolution for every key | Noise & version churn | Batch related additions; evolve once |
+| Catch‑all swallow | Debugging black hole | Re‑raise or tag & branch explicitly |
+| Monolithic context blob | Memory + cognitive overload | Stage enrichment; segment responsibilities |
+| Predicate with side effects | Non‑deterministic routing | Pure function over Context only |
 
-Micro-bench idea:
-```bash
-pytest tests/perf/test_chain_perf.py -k bench --maxfail=1
-```
+## 13. FAQ (High Signal)
+Q: Synchronous library usage?  A: Wrap calls inside link `async def call` (run in thread executor if blocking).
+Q: Thread safety?             A: Context is immutable; each insert returns a new snapshot.
+Q: Partial failures?          A: Tag error / status and branch via predicates.
+Q: When to evolve?            A: Only at semantic boundaries introducing cohesive new fields.
+Q: Chain reuse?               A: Yes—chains are templates; each run starts with a fresh root Context.
 
----
-## 11. Advanced Patterns
-- Dynamic branching: insert a `route` key; have a dispatcher link
-- Partial failure aggregation: collect errors and continue (`best-effort` mode)
-- Saga compensation: pair forward links with compensators
-- Streaming adaptation: wrap async generators as link outputs
+## 14. Glossary
+Link: Async transformation unit from Context[TIn] → Context[TOut].
+Context: Immutable key/value snapshot (logical data state at a graph point).
+Type Evolution: Transition of generic parameter (T → U) via `insert_as`.
+Predicate: Function deciding edge traversal based on emitted Context.
+Middleware: Instrumentation hooks (`before`, `after`, `on_error`).
+Shape: Structured type definition (TypedDict / dataclass) describing a context variant.
 
----
-## 12. Ecosystem Integrations
-Examples:
-- FastAPI endpoint: call chain inside request handler
-- Celery task: each link is pure → easy unit test / idempotency
-- Pydantic models: used as typed payload shapes evolving through `insert_as`
-- Observability: integrate with OpenTelemetry in middleware
+## 15. TL;DR Summary
+Explicit async link graph + immutable evolving contexts + opt‑in typed evolution + thin instrumentation middleware. Start untyped, evolve only when semantics expand, keep observability orthogonal.
 
----
-## 13. Migration & Mixed Typing
-Start with `Context[Any]`. Once stable, replace hotspots with domain dataclasses + generics. Intermix freely—no rewrite required.
+## 16. References
+Examples Directory: `packages/python/examples/`
+Key Example Files: `simple_math.py`, `insert_as_method_demo.py`, `typed_example.py`, `typed_vs_untyped_comparison.py`, `typed_workflow_patterns.py`
+Issues / Support: https://github.com/codeuchain/codeuchain/issues
 
----
-## 14. Anti-Patterns
-| Issue | Why | Fix |
-|-------|-----|-----|
-| Storing huge blobs | Memory strain | External store + reference id |
-| Overuse of `insert_as` without typing | Loses clarity | Introduce dataclasses |
-| Catch-all `except` hiding bugs | Silent failures | Classify & rethrow critical |
-| Middleware doing business logic | Breaks separation | Move into a link |
-
----
-## 15. FAQ
-**Q: Can I use sync links?**  
-A: Wrap them: `async def call(): return sync_link(ctx)` inside an async link.
-
-**Q: How to cancel?**  
-A: Pass an `asyncio.Task` cancellation upstream; chain surfaces errors naturally.
-
-**Q: Is context thread-safe?**  
-A: It is immutable; each `insert` returns a new instance.
-
-**Q: Where to validate types?**  
-A: Early links + optional Pydantic models.
-
-**Q: Retry location?**  
-A: A decorator/wrapper link for clarity.
-
----
-## 16. Glossary
-- **Link**: Async transformer from Context[TIn] → Context[TOut].
-- **Chain**: Ordered link composition.
-- **Context**: Immutable mapping with type evolution helpers.
-- **Middleware**: Observers for before/after/error phases.
-- **Type Evolution**: Safe widening via `insert_as` returning new generic context.
-
----
-## 17. TL;DR
-```text
-Install: pip install codeuchain
-Model: Links (pure async) + Chain (composition) + Context (immutable) + Middleware (observability) + Type Evolution
-Typing: Start Any → introduce dataclasses → use insert_as to evolve
-Testing: Per-link async tests + chain table cases
-Observability: Lightweight middleware; avoid business logic there
-Performance: Avoid deep copies; batch IO with asyncio.gather
-Error Handling: Central catch + targeted retry decorators
-Adoption: Gradual—mix typed/untyped seamlessly
-Avoid: giant blobs, silent excepts, coupling in middleware
-```
-
----
-### Support & Resources
-- Issues: https://github.com/codeuchain/codeuchain/issues
-- Discussions: https://github.com/codeuchain/codeuchain/discussions
-- Examples: `packages/python/examples/`
-- License: Apache 2.0
-
----
-© 2025 Orchestrate LLC (Joshua @orchestrate.solutions) – Apache 2.0
+© 2025 CodeUChain — Apache-2.0
