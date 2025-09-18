@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ES5",
+    "lib": ["ES5", "DOM"],
+    "outDir": "./dist/es5",
+    "module": "commonjs",
+    "downlevelIteration": true,
+    "strict": false,
+    "noEmitHelpers": false,
+    "importHelpers": true
+  },
+  "include": [
+    "core/**/*.js",
+    "index.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "tests"
+  ]
+}
