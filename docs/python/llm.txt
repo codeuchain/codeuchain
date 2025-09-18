@@ -1,57 +1,94 @@
-# CodeUChain (Python) – Cheat Sheet
+# CodeUChain (Python) — Compact Cheat Sheet (add_link / run graph)
 
 Full reference: `docs/python/llm-full.txt`
 
-## Quick Start
+## Install
 ```bash
 pip install codeuchain
 ```
+
+## Core Concepts
+- `Context`: immutable key/value map (new instance on `insert` / `insert_as`)
+- `Link`: async transformer implementing `call(ctx)` → returns new Context
+- `Chain` (graph):
+  - `add_link(name, link)` register processing node
+  - `connect(from_name, to_name, predicate)` conditional edge (predicate gets the emitted context of `from_name`)
+  - `run(ctx)` execute from root(s)
+- `Middleware`: `before(name, ctx)`, `after(name, ctx)`, `on_error(name, ctx, err)` for observability
+
+## Import Patterns
+Core primitives always come from `codeuchain.core`. Custom logic (graph helpers, domain links, middleware) lives in local modules under your project (mirroring `packages/python/examples/`).
+
 ```python
-from codeuchain import Context, Chain
-ctx = Context({"payload": "hi"})
-res = await chain.call(ctx)
+# Core primitives (always from the framework)
+from codeuchain.core import Context, Chain, Link  # or selective: from codeuchain.core import Context
+
+# Local / application components
+from components.chains import BasicChain           # project-defined graph wrapper
+from components.links import MathLink             # custom Link implementations
+from components.middleware import LoggingMiddleware
+
+# Optional: typed shapes / dataclasses
+from typing import TypedDict
+
+class InputShape(TypedDict):
+  numbers: list[int]
+
+class ResultShape(TypedDict):
+  sum: int
+  mean: float
 ```
 
-## Primitives
-- Link: async `call(ctx: Context[TIn]) -> Context[TOut]`
-- Context: immutable mapping; `insert`, `insert_as`
-- Chain: composition + `.catch()`
-- Middleware: `before/after/error` coroutines
+Why separate:
+- Keeps framework imports obvious
+- Encourages thin, testable custom components
+- Makes copy/paste between services predictable
 
-## Minimal Link
+## Minimal Graph (mirrors `simple_math.py`)
 ```python
-class Parse(Link[Any, Any]):
-        async def call(self, ctx: Context[Any]) -> Context[Any]:
-                return ctx.insert("parsed", True)
-```
+from codeuchain.core import Context
+from components.chains import BasicChain
+from components.links import MathLink
+from components.middleware import LoggingMiddleware
 
-## Chain Example
-```python
-chain = Chain() \
-    .then(Validate()) \
-    .then(Parse()) \
-    .catch(lambda name, err, ctx: ctx.insert("error", str(err)))
+chain = BasicChain()
+chain.add_link('sum', MathLink('sum'))
+chain.add_link('mean', MathLink('mean'))
+chain.connect('sum', 'mean', lambda c: c.get('result') is not None)
+chain.use_middleware(LoggingMiddleware())
+
+ctx = Context({'numbers': [1,2,3,4,5]})
+result = await chain.run(ctx)
+print(result.get('result'))  # 3.0
 ```
 
 ## Type Evolution
 ```python
-c2: Context[Parsed] = c1.insert_as("parsed", Parsed(tokens=toks))
+ctx2 = ctx.insert('sum', 15)            # same shape
+ctx3 = ctx2.insert_as('average', 3.0)   # widened typed context when generics are used
 ```
 
-## Error Classification
-Retry transient (I/O, timeout). Surface validation/security.
+## Patterns
+- Conditional edges for branching logic (use predicates over flags)
+- Retry: wrap a `Link` class (decorator style) rather than modifying the chain
+- Error tagging: implement a terminal link or use middleware `on_error`
+- Observability only in middleware
 
-## Performance Tips
-- Reuse event loop tasks
-- Avoid deep copy of large dict entries
-- Log structured keys only
+## Design Rules
+1. Keep links pure & atomic
+2. Contexts are immutable snapshots
+3. Use `insert_as` only when the logical type evolves
+4. Small, composable links over monoliths; each link = 1 action, each chain = 1 functional feature
+5. Prefer explicit graph (add_link/connect) to linear implicit chaining
 
-## ASCII Pipeline
-```
-[In] -> (Validate) -> (Parse) -> (Enrich) -> [Out]
-```
+## Examples Directory Map (packages/python/examples/)
+- `simple_math.py` — foundational graph pattern
+- `insert_as_method_demo.py` — staged evolution (`insert_as` focus)
+- `typed_example.py` — generics & typed shapes
+- `typed_vs_untyped_comparison.py` — migration strategy
+- `typed_workflow_patterns.py` — advanced branching & workflows
 
 ## TL;DR
-Async links + immutable/evolving contexts + graceful middleware.
+Explicit link graph + immutable evolving contexts + async purity + thin middleware.
 
-© 2025 Orchestrate LLC – Apache 2.0
+© 2025 CodeUChain — Apache 2.0
