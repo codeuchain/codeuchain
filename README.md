@@ -12,6 +12,7 @@
 [![C++](https://img.shields.io/badge/C%2B%2B-20-blue)](https://en.cppreference.com/)
 [![Go](https://img.shields.io/badge/Go-1.19+-blue)](https://golang.org/)
 [![Rust](https://img.shields.io/badge/Rust-1.70+-orange)](https://www.rust-lang.org/)
+[![Dart](https://img.shields.io/badge/Dart-3.9+-blue)](https://dart.dev/)
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
@@ -160,6 +161,7 @@ CodeUChain is implemented in multiple languages, each optimized for its ecosyste
 | **C++** | ✅ **Complete** |
 | **C#** | ✅ **Complete** |
 | **JavaScript/TS** | ✅ **Complete** |
+| **Dart** | 🧪 **Beta** |
 | **Java** | 🚧 In Development |
 | **Python** | ✅ **Complete** |
 | **Rust** | ✅ **Complete** |
@@ -181,6 +183,13 @@ pip install codeuchain
 ### Go
 ```bash
 go get github.com/codeuchain/codeuchain/packages/go@latest
+```
+
+### Dart
+```yaml
+# In your pubspec.yaml
+dependencies:
+  codeuchain: ^1.0.0-beta.1
 ```
 
 ### Rust
@@ -417,6 +426,7 @@ Instead of generating complex, hard-to-understand code that might work, I genera
 - **[Python](./packages/python/README.md)** - Coroutine chains
 - **[Java](./packages/java/README.md)** - Reactive streams
 - **[Go](./packages/go/README.md)** - Goroutine concurrency
+- **[Dart](./packages/dart/README.md)** - Null-safe async patterns
 - **[Rust](./packages/rust/README.md)** - Zero-cost abstractions
 
 ---
