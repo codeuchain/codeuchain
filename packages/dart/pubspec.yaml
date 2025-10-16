@@ -1,0 +1,17 @@
+name: codeuchain
+description: CodeUChain Dart - A universal framework for composable software with typed features support
+version: 1.0.0-beta.1
+repository: https://github.com/codeuchain/codeuchain
+homepage: https://codeuchain.com
+documentation: https://github.com/codeuchain/codeuchain/tree/main/packages/dart
+
+environment:
+  sdk: ^3.9.4
+
+# Add regular dependencies here.
+dependencies:
+  # No external dependencies - following CodeUChain's zero-dependency philosophy
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6
