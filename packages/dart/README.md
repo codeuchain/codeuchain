@@ -5,7 +5,9 @@ CodeUChain provides a robust framework for chaining processing links with middle
 [![Dart](https://img.shields.io/badge/Dart-3.9+-blue)](https://dart.dev/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Status**: ✅ **Complete** - Production ready with comprehensive test coverage and typed features implementation.
+**Status**: 🧪 **Beta** - Feature complete with comprehensive test coverage. May shift slightly pending usage and optimization.
+
+> **Beta Notice**: This implementation is feature-complete and thoroughly tested, but is marked as beta to allow for potential API refinements based on real-world usage and performance optimization feedback. The core concepts and patterns are stable and follow CodeUChain's universal design principles.
 
 ## 🌐 Part of CodeUChain Universal Framework
 
@@ -28,7 +30,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  codeuchain: ^1.0.0
+  codeuchain: ^1.0.0-beta.1
 ```
 
 Then run:

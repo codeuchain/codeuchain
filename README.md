@@ -161,7 +161,7 @@ CodeUChain is implemented in multiple languages, each optimized for its ecosyste
 | **C++** | ✅ **Complete** |
 | **C#** | ✅ **Complete** |
 | **JavaScript/TS** | ✅ **Complete** |
-| **Dart** | ✅ **Complete** |
+| **Dart** | 🧪 **Beta** |
 | **Java** | 🚧 In Development |
 | **Python** | ✅ **Complete** |
 | **Rust** | ✅ **Complete** |
@@ -189,7 +189,7 @@ go get github.com/codeuchain/codeuchain/packages/go@latest
 ```yaml
 # In your pubspec.yaml
 dependencies:
-  codeuchain: ^1.0.0
+  codeuchain: ^1.0.0-beta.1
 ```
 
 ### Rust
