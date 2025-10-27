@@ -1,14 +1,30 @@
 name: Publish to Conan Center
 
+# This workflow publishes CodeUChain C++ to Conan Center Index
+# 
+# Required GitHub Secrets:
+#   - CONAN_LOGIN_USERNAME: Your Conan Center username
+#   - CONAN_PASSWORD: Your Conan Center password or API token
+#
+# Note: Before running this workflow, ensure you have:
+#   1. Created a Conan Center account at https://conan.io/center/
+#   2. Added the secrets to your GitHub repository settings
+#   3. Updated the version in conanfile.py if needed
+
 on:
   release:
     types: [published]
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to publish'
+        description: 'Version to publish (e.g., 1.0.0)'
         required: true
         default: '1.0.0'
+      dry_run:
+        description: 'Dry run (test only, do not upload)'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   conan-center-publish:
@@ -31,22 +47,51 @@ jobs:
           conan profile detect --force
           conan remote add conancenter https://center.conan.io || true
 
-      - name: Export and test package
+      - name: Export and test package locally
         run: |
           cd packages/cpp
+          echo "Creating Conan package locally..."
           conan create . --build=missing
-          conan list "codeuchain/1.0.0:*"
+          
+          echo "Verifying package was created..."
+          conan list "codeuchain/${{ github.event.inputs.version || '1.0.0' }}:*"
+          
+          echo "✅ Package created and validated locally"
 
       - name: Upload to Conan Center
+        if: ${{ !inputs.dry_run }}
         run: |
-          conan upload "codeuchain/1.0.0" -c -r conancenter --confirm
+          echo "Uploading to Conan Center..."
+          
+          # Check if credentials are set
+          if [ -z "$CONAN_LOGIN_USERNAME" ] || [ -z "$CONAN_PASSWORD" ]; then
+            echo "❌ Error: CONAN_LOGIN_USERNAME and CONAN_PASSWORD secrets must be set"
+            echo "Please add these secrets in your GitHub repository settings:"
+            echo "  Settings -> Secrets and variables -> Actions -> New repository secret"
+            exit 1
+          fi
+          
+          # Login to Conan Center
+          conan remote login conancenter "$CONAN_LOGIN_USERNAME" -p "$CONAN_PASSWORD"
+          
+          # Upload the package
+          conan upload "codeuchain/${{ github.event.inputs.version || '1.0.0' }}" -c -r conancenter --confirm
+          
+          echo "✅ Package uploaded successfully"
         env:
           CONAN_LOGIN_USERNAME: ${{ secrets.CONAN_LOGIN_USERNAME }}
           CONAN_PASSWORD: ${{ secrets.CONAN_PASSWORD }}
+      
+      - name: Dry run notification
+        if: ${{ inputs.dry_run }}
+        run: |
+          echo "🔍 DRY RUN MODE - Package was created locally but NOT uploaded"
+          echo "To upload for real, run this workflow without the dry_run option"
 
   validate-published:
     needs: conan-center-publish
     runs-on: ubuntu-latest
+    if: ${{ !inputs.dry_run }}
     steps:
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -64,5 +109,10 @@ jobs:
 
       - name: Test published package
         run: |
-          conan install --requires=codeuchain/1.0.0 --build=missing
+          echo "Testing installation from Conan Center..."
+          conan install --requires=codeuchain/${{ github.event.inputs.version || '1.0.0' }} --build=missing
+          
           echo "✅ Package successfully published and installable from Conan Center"
+          echo ""
+          echo "Users can now install with:"
+          echo "  conan install --requires=codeuchain/${{ github.event.inputs.version || '1.0.0' }}"

@@ -205,18 +205,33 @@ cmake --build build/Release
 
 ## 📦 Direct Download (Alternative)
 
-If you prefer a minimal, release-only archive (no monorepo contents), we publish a clean package under `releases/codeuchain-cpp-v1.0.0` in this repository.
+If you prefer a minimal, release-only archive (no monorepo contents), we publish clean standalone packages as GitHub release assets.
 
-Quick download and extract:
+### Download Latest Release
 
 ```bash
-curl -L https://github.com/codeuchain/codeuchain/raw/main/releases/codeuchain-cpp-v1.0.0.tar.gz | tar xz
+# Download and extract from GitHub releases
+curl -L https://github.com/codeuchain/codeuchain/releases/download/v1.0.0/codeuchain-cpp-v1.0.0.tar.gz | tar xz
 cd codeuchain-cpp-v1.0.0
+
+# Build the library and examples
 ./build.sh
-./examples/simple_math
+
+# Run an example
+./build/examples/simple_math
 ```
 
-The release archive contains only the package sources, examples, `conanfile.py`, and build helpers (no other repo files).
+### What's Included in the Release Archive
+
+The standalone release package contains:
+- Library source code (`src/` and `include/`)
+- Example programs (`examples/`)
+- Unit tests (`tests/`)
+- Conan package recipe (`conanfile.py`)
+- Standalone CMake configuration (`CMakeLists.txt`)
+- Quick build script (`build.sh`)
+
+**No build artifacts, no monorepo files** - just a clean, standalone C++ package ready to use.
 ## �🚀 Quick Start
 
 ### Prerequisites

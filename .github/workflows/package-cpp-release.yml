@@ -26,47 +26,50 @@ jobs:
           version: 11
           platform: x64
 
-      - name: Prepare C++ release package
+      - name: Generate clean C++ release package
         run: |
-          # Use the existing releases directory structure
-          echo "Using existing releases/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }} structure"
+          # Use packaging script to create standalone release directory and archives
+          chmod +x scripts/package_cpp_release.sh
+          ./scripts/package_cpp_release.sh v${{ github.event.inputs.version || '1.0.0' }}
           
-          # Verify the release package structure exists
-          if [ ! -d "releases/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}" ]; then
-            echo "Error: Release package structure not found in releases/"
-            exit 1
-          fi
+          echo "✅ Clean release package created"
+          ls -lh releases/codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}*
 
-      - name: Build and test package
+      - name: Build and test standalone package
         run: |
-          cd releases/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}
+          # Extract archive to test location
+          cd /tmp
+          tar -xzf $GITHUB_WORKSPACE/releases/codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}.tar.gz
           
-          # Test the build script if it exists
-          if [ -f "build.sh" ]; then
-            chmod +x build.sh
-            ./build.sh
-          else
-            # Fallback to manual cmake build from repository root
-            cd ../../
-            mkdir -p build_release_test
-            cd build_release_test
-            cmake ../packages/cpp -DCMAKE_BUILD_TYPE=Release
-            make -j$(nproc)
-          fi
+          # Build using the standalone package
+          cd codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}
+          chmod +x build.sh
+          ./build.sh
+          
+          # Run a quick test
+          ./build/examples/simple_math
+          
+          # Run unit tests
+          cd build
+          ctest --output-on-failure
+          
+          echo "✅ Standalone package builds and tests successfully!"
 
-      - name: Create release archive
+      - name: Verify archives are clean (no build artifacts)
         run: |
-          cd releases
-          tar -czf codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.tar.gz codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}/
-          zip -r codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.zip codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}/
+          echo "Checking archive contents..."
+          tar -tzf releases/codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}.tar.gz | grep -E '\.(o|a|so|dll|exe)$' && echo "❌ Build artifacts found in archive!" && exit 1 || echo "✅ Archive is clean"
+          tar -tzf releases/codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}.tar.gz | grep 'build/' && echo "❌ Build directory found in archive!" && exit 1 || echo "✅ No build directory"
+          tar -tzf releases/codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}.tar.gz | grep '\._' && echo "⚠️ macOS metadata files found" || echo "✅ No macOS metadata files"
+          echo "Archive verification complete"
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v1
         if: github.event_name == 'release'
         with:
           files: |
-            releases/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.tar.gz
-            releases/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.zip
+            releases/codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}.tar.gz
+            releases/codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -74,34 +77,72 @@ jobs:
         uses: actions/upload-artifact@v4
         if: github.event_name == 'workflow_dispatch'
         with:
-          name: codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}
+          name: codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}
           path: |
-            releases/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.tar.gz
-            releases/codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.zip
+            releases/codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}.tar.gz
+            releases/codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}.zip
 
   validate-package:
     needs: package-cpp
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Setup C++ compiler
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: 11
+          platform: x64
+          
       - name: Download artifact
         uses: actions/download-artifact@v4
+        if: github.event_name == 'workflow_dispatch'
         with:
-          name: codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}
+          name: codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}
 
-      - name: Extract and validate
+      - name: Extract and validate structure
         run: |
           # Extract tar.gz
-          tar -xzf codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}.tar.gz
+          tar -xzf codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}.tar.gz
 
           # Check structure
-          ls -la codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}/
+          echo "Package contents:"
+          ls -lah codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}/
 
           # Verify essential files exist
-          test -f codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}/CMakeLists.txt
-          test -d codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}/include
-          test -d codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}/src
-          test -d codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}/examples
-          test -f codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}/build.sh
-          test -f codeuchain-cpp-${{ github.event.inputs.version || '1.0.0' }}/USAGE.md
+          test -f codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}/CMakeLists.txt
+          test -d codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}/include
+          test -d codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}/src
+          test -d codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}/examples
+          test -f codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}/build.sh
+          test -f codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}/USAGE.md
+          test -f codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}/README.md
+          test -f codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}/conanfile.py
 
           echo "✅ Package structure validated successfully!"
+          
+      - name: Build standalone package
+        run: |
+          cd codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}
+          chmod +x build.sh
+          ./build.sh
+          
+      - name: Test standalone package
+        run: |
+          cd codeuchain-cpp-v${{ github.event.inputs.version || '1.0.0' }}
+          
+          # Run examples
+          echo "Testing examples..."
+          ./build/examples/simple_math
+          ./build/examples/typed_context_example
+          
+          # Run unit tests
+          echo "Running unit tests..."
+          cd build
+          ctest --output-on-failure
+          
+          echo "✅ All validation tests passed!"
