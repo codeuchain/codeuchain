@@ -274,6 +274,45 @@ const result: Context<UserProcessed> = ctx.insertAs('isValid', true)
 // TypeScript provides full IntelliSense and type checking
 ```
 
+### ES5 TypeScript Compatibility
+
+CodeUChain fully supports TypeScript projects targeting ES5, making it compatible with legacy environments and older browsers.
+
+**TypeScript Configuration (tsconfig.json):**
+```json
+{
+  "compilerOptions": {
+    "target": "ES5",
+    "module": "commonjs",
+    "lib": ["ES2015"]
+  }
+}
+```
+
+**TypeScript Source Code:**
+```typescript
+import { Link, Chain, Context } from 'codeuchain';
+
+class ValidateLink extends Link {
+  async call(ctx: Context): Promise<Context> {
+    const value = ctx.get('value');
+    return ctx.insertAs('isValid', value > 0);
+  }
+}
+
+// TypeScript compiles this to ES5-compatible code that works seamlessly
+const link = new ValidateLink();
+```
+
+**Key ES5 Features:**
+- ✅ Full inheritance support (extends Link, Chain, Middleware)
+- ✅ ES5 constructor function output compatibility
+- ✅ Works with TypeScript targets: ES5, ES3, ES2015+
+- ✅ No runtime errors with ES5 compilation
+- ✅ Complete backward compatibility
+
+See `examples/es5_typescript_inheritance.js` for a complete working example.
+
 ### Key Benefits of Typed Features
 
 - **Enhanced IDE Support**: Full IntelliSense, autocomplete, and refactoring

@@ -317,6 +317,110 @@ describe('ES5 TypeScript Inheritance Compatibility', () => {
     });
   });
 
+  describe('Middleware ES5 Inheritance', () => {
+    test('should allow ES5-style inheritance from Middleware', () => {
+      var CustomMiddleware = /** @class */ (function (_super) {
+        __extends(CustomMiddleware, _super);
+        function CustomMiddleware() {
+          return _super !== null && _super.apply(this, arguments) || this;
+        }
+        return CustomMiddleware;
+      }(require('../core').Middleware));
+
+      // Should be able to instantiate without "cannot be invoked without 'new'" error
+      expect(() => {
+        const middleware = new CustomMiddleware();
+      }).not.toThrow();
+
+      const middleware = new CustomMiddleware();
+      expect(middleware).toBeInstanceOf(require('../core').Middleware);
+      expect(middleware).toBeInstanceOf(CustomMiddleware);
+    });
+
+    test('ES5-inherited Middleware should work correctly', async () => {
+      var CountingMiddleware = /** @class */ (function (_super) {
+        __extends(CountingMiddleware, _super);
+        function CountingMiddleware() {
+          var _this = _super !== null && _super.apply(this, arguments) || this;
+          _this.beforeCount = 0;
+          _this.afterCount = 0;
+          _this.errorCount = 0;
+          return _this;
+        }
+        CountingMiddleware.prototype.before = function (link, ctx, linkName) {
+          this.beforeCount++;
+          return Promise.resolve();
+        };
+        CountingMiddleware.prototype.after = function (link, ctx, linkName) {
+          this.afterCount++;
+          return Promise.resolve();
+        };
+        CountingMiddleware.prototype.onError = function (link, error, ctx, linkName) {
+          this.errorCount++;
+          return Promise.resolve();
+        };
+        return CountingMiddleware;
+      }(require('../core').Middleware));
+
+      const middleware = new CountingMiddleware();
+      const chain = new Chain();
+      
+      var SuccessLink = /** @class */ (function (_super) {
+        __extends(SuccessLink, _super);
+        function SuccessLink() {
+          return _super !== null && _super.apply(this, arguments) || this;
+        }
+        SuccessLink.prototype.call = function (ctx) {
+          return Promise.resolve(ctx.insert('success', true));
+        };
+        return SuccessLink;
+      }(Link));
+
+      chain.useMiddleware(middleware);
+      chain.addLink(new SuccessLink());
+
+      const ctx = new Context({ test: 'data' });
+      await chain.run(ctx);
+
+      expect(middleware.beforeCount).toBe(1);
+      expect(middleware.afterCount).toBe(1);
+      expect(middleware.errorCount).toBe(0);
+    });
+
+    test('ES6 class extending from ES5-converted Middleware should work', async () => {
+      // ES6 class syntax extending the ES5-compatible Middleware
+      class ES6Middleware extends require('../core').Middleware {
+        constructor() {
+          super();
+          this.callCount = 0;
+        }
+
+        async before(link, ctx, linkName) {
+          this.callCount++;
+        }
+      }
+
+      const middleware = new ES6Middleware();
+      const chain = new Chain();
+      
+      class TestLink extends Link {
+        async call(ctx) {
+          return ctx.insert('tested', true);
+        }
+      }
+
+      chain.useMiddleware(middleware);
+      chain.addLink(new TestLink());
+
+      const ctx = new Context({ initial: 'value' });
+      await chain.run(ctx);
+
+      expect(middleware.callCount).toBe(1);
+      expect(middleware).toBeInstanceOf(require('../core').Middleware);
+      expect(middleware).toBeInstanceOf(ES6Middleware);
+    });
+  });
+
   describe('Real-world ES5 TypeScript Scenario', () => {
     test('complete workflow with ES5-compiled TypeScript classes', async () => {
       // Simulate a real-world scenario where TypeScript compiles to ES5
