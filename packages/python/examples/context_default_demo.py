@@ -68,7 +68,9 @@ def main():
     retry_count = config_ctx.get("retry_count", 3)
     debug = config_ctx.get("debug", False)
     
-    print(f"API Key: {api_key}")
+    # Mask the API key for display (security best practice)
+    masked_key = api_key[:4] + "*" * (len(api_key) - 4) if api_key else "(none)"
+    print(f"API Key: {masked_key}")
     print(f"Endpoint: {endpoint}")
     print(f"Timeout: {timeout}s (default)")
     print(f"Retry Count: {retry_count} (default)")
