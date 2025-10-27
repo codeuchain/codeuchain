@@ -103,6 +103,49 @@ class TestContext:
         assert "Context" in repr_str
         assert "Alice" in repr_str
 
+    @pytest.mark.unit
+    @pytest.mark.core
+    def test_get_with_default_value(self):
+        """Test get() method with default parameter."""
+        ctx = Context({"name": "Alice", "age": 30})
+        
+        # Existing keys should ignore default
+        assert ctx.get("name", "default") == "Alice"
+        assert ctx.get("age", 0) == 30
+        
+        # Missing keys should return the default
+        assert ctx.get("missing", "default_value") == "default_value"
+        assert ctx.get("missing", 0) == 0
+        assert ctx.get("missing", False) is False
+        assert ctx.get("missing", []) == []
+        assert ctx.get("missing", {}) == {}
+        
+        # Without default, should still return None
+        assert ctx.get("missing") is None
+        
+    @pytest.mark.unit
+    @pytest.mark.core
+    def test_get_with_falsy_values(self):
+        """Test that default parameter works correctly with falsy stored values."""
+        # This tests that we're not using 'or' logic which would incorrectly
+        # replace falsy values with the default
+        ctx = Context({
+            "zero": 0,
+            "false": False,
+            "empty_string": "",
+            "empty_list": [],
+            "none": None
+        })
+        
+        # All falsy values should be returned, not the default
+        assert ctx.get("zero", 999) == 0
+        assert ctx.get("false", True) is False
+        assert ctx.get("empty_string", "default") == ""
+        assert ctx.get("empty_list", ["default"]) == []
+        
+        # None value should still be returned (not default)
+        assert ctx.get("none", "default") is None
+
 
 class TestMutableContext:
     """Test the mutable MutableContext class."""
@@ -152,6 +195,24 @@ class TestMutableContext:
         repr_str = repr(mutable)
         assert "MutableContext" in repr_str
         assert "Alice" in repr_str
+
+    @pytest.mark.unit
+    @pytest.mark.core
+    def test_mutable_get_with_default_value(self):
+        """Test get() method with default parameter for mutable context."""
+        mutable = MutableContext({"name": "Alice", "age": 30})
+        
+        # Existing keys should ignore default
+        assert mutable.get("name", "default") == "Alice"
+        assert mutable.get("age", 0) == 30
+        
+        # Missing keys should return the default
+        assert mutable.get("missing", "default_value") == "default_value"
+        assert mutable.get("missing", 0) == 0
+        assert mutable.get("missing", False) is False
+        
+        # Without default, should still return None
+        assert mutable.get("missing") is None
 
 
 class TestContextIntegration:

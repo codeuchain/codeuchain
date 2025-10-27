@@ -35,9 +35,9 @@ class Context(Generic[T]):
             except (TypeError, ValueError):
                 self._data = {}
 
-    def get(self, key: str) -> Any:
-        """With gentle care, return the value or None, forgiving absence."""
-        return self._data.get(key)
+    def get(self, key: str, default: Any = None) -> Any:
+        """With gentle care, return the value or default, forgiving absence."""
+        return self._data.get(key, default)
 
     def insert(self, key: str, value: Any) -> 'Context[T]':
         """With selfless safety, return a fresh context with the addition."""
@@ -81,8 +81,8 @@ class MutableContext(Generic[T]):
     def __init__(self, data: Optional[Dict[str, Any]] = None):
         self._data = data or {}
 
-    def get(self, key: str) -> Any:
-        return self._data.get(key)
+    def get(self, key: str, default: Any = None) -> Any:
+        return self._data.get(key, default)
 
     def set(self, key: str, value: Any) -> None:
         """Change in place with gentle permission."""
