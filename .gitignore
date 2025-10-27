@@ -42,6 +42,11 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
 
 # .NET
 *.user
