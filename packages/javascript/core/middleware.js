@@ -8,9 +8,6 @@
  * @since 1.0.0
  */
 
-const { Context } = require('./context');
-const { Link } = require('./link');
-
 /**
  * @template T - The context type that this middleware operates on
  */

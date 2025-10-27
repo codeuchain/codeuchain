@@ -8,8 +8,6 @@
  * @since 1.0.0
  */
 
-const { Context } = require('./context');
-
 /**
  * @template TInput - The input context type for this link
  * @template TOutput - The output context type for this link
@@ -49,9 +47,9 @@ function Link() {
  *   return ctx.insert('output', result);
  * }
  */
-Link.prototype.call = async function(ctx) {
+Link.prototype.call = async function (_ctx) {
   // Base implementation - should be overridden
-  throw new Error('Link.call() must be implemented by subclass');
+  throw new Error("Link.call() must be implemented by subclass");
 };
 
 /**

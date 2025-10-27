@@ -8,8 +8,7 @@
  * @since 1.0.0
  */
 
-const { Context } = require('./context');
-const { Link } = require('./link');
+const { Link } = require("./link");
 
 /**
  * @template TInput - The input context type for the chain
@@ -54,7 +53,7 @@ function Chain() {
  */
 Chain.prototype.addLink = function(link, name) {
   if (!(link instanceof Link)) {
-    throw new Error('Link must be an instance of Link class');
+    throw new Error("Link must be an instance of Link class");
   }
 
   // Use provided name or default to link's constructor name
@@ -88,7 +87,7 @@ Chain.prototype.connect = function(source, target, condition) {
   this._connections.push({
     from: source,
     to: target,
-    condition: condition
+    condition
   });
   return this;
 };
@@ -135,20 +134,16 @@ Chain.prototype.onError = function(handler) {
  * @param {Context<TInput>} ctx - Current context for condition evaluation
  * @returns {number} Next link index, or -1 if none found
  */
-Chain.prototype._findNextLinkIndex = function(currentIndex, linksArray, ctx) {
+Chain.prototype._findNextLinkIndex = function (currentIndex, linksArray, ctx) {
   const currentName = linksArray[currentIndex][0];
 
   // Find all connections from current link
-  const outgoingConnections = this._connections.filter(function(conn) { 
-    return conn.from === currentName; 
-  });
+  const outgoingConnections = this._connections.filter((conn) => conn.from === currentName);
 
   // Check each connection in order
   for (const conn of outgoingConnections) {
     // Find target link index
-    const targetIndex = linksArray.findIndex(function(entry) { 
-      return entry[0] === conn.to; 
-    });
+    const targetIndex = linksArray.findIndex((entry) => entry[0] === conn.to);
     if (targetIndex !== -1) {
       // Check condition
       if (conn.condition(ctx)) {
@@ -184,9 +179,7 @@ Chain.prototype.run = async function(initialCtx) {
 
   // Find links with no incoming connections (index-based)
   const incoming = new Set();
-  this._connections.forEach(function(conn) { 
-    incoming.add(conn.to); 
-  });
+  this._connections.forEach((conn) => incoming.add(conn.to));
 
   for (let i = 0; i < linksArray.length; i++) {
     const name = linksArray[i][0];
@@ -284,9 +277,7 @@ Chain.createLinear = function() {
   const chain = new Chain();
 
   // Add links with automatic naming
-  links.forEach(function(link) {
-    chain.addLink(link);
-  });
+  links.forEach((link) => chain.addLink(link));
 
   return chain;
 };

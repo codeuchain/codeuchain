@@ -41,14 +41,14 @@ function Context(data) {
  * @returns {Object} The deep frozen object
  */
 Context.prototype._deepFreeze = function(obj) {
-  if (obj === null || typeof obj !== 'object') return obj;
+  if (obj === null || typeof obj !== "object") return obj;
 
   // Freeze the object
   Object.freeze(obj);
 
   // Recursively freeze all properties
   Object.keys(obj).forEach(key => {
-    if (typeof obj[key] === 'object' && obj[key] !== null && !Object.isFrozen(obj[key])) {
+    if (typeof obj[key] === "object" && obj[key] !== null && !Object.isFrozen(obj[key])) {
       this._deepFreeze(obj[key]);
     }
   });
@@ -100,7 +100,7 @@ Context.prototype.get = function(key) {
   if (value === undefined) return undefined;
   
   // Return deep copy for objects and arrays to maintain immutability
-  if (typeof value === 'object' && value !== null) {
+  if (typeof value === "object" && value !== null) {
     return JSON.parse(JSON.stringify(value));
   }
   
