@@ -24,7 +24,7 @@ rsync -av \
   --exclude '*.a' \
   --exclude '*.exe' \
   --exclude '.DS_Store' \
-  --exclude '._*' \
+  --exclude '._*' \         # macOS metadata files created by Finder
   --exclude '__pycache__' \
   --exclude '*.pyc' \
   --exclude '.pytest_cache' \
@@ -275,7 +275,9 @@ echo ""
 # Create archives
 echo "Creating archives..."
 cd "$ROOT/releases"
+# Exclude macOS metadata files from both archives
 tar --exclude='._*' -czf "codeuchain-cpp-$VERSION.tar.gz" "codeuchain-cpp-$VERSION"
+# Zip uses different pattern syntax - need full path with wildcard
 zip -r "codeuchain-cpp-$VERSION.zip" "codeuchain-cpp-$VERSION" -x "*/._*"
 
 echo "✅ Archives created:"
