@@ -10,7 +10,7 @@
  * Solution: Convert runtime classes to ES5-compatible function constructors
  */
 
-const { Link, Chain, Context } = require('../core');
+const { Link, Chain, Context, Middleware } = require('../core');
 
 // Simulate TypeScript ES5 compilation output for extending Link
 // This is what TypeScript generates when target is ES5
@@ -325,7 +325,7 @@ describe('ES5 TypeScript Inheritance Compatibility', () => {
           return _super !== null && _super.apply(this, arguments) || this;
         }
         return CustomMiddleware;
-      }(require('../core').Middleware));
+      }(Middleware));
 
       // Should be able to instantiate without "cannot be invoked without 'new'" error
       expect(() => {
@@ -333,7 +333,7 @@ describe('ES5 TypeScript Inheritance Compatibility', () => {
       }).not.toThrow();
 
       const middleware = new CustomMiddleware();
-      expect(middleware).toBeInstanceOf(require('../core').Middleware);
+      expect(middleware).toBeInstanceOf(Middleware);
       expect(middleware).toBeInstanceOf(CustomMiddleware);
     });
 
@@ -360,7 +360,7 @@ describe('ES5 TypeScript Inheritance Compatibility', () => {
           return Promise.resolve();
         };
         return CountingMiddleware;
-      }(require('../core').Middleware));
+      }(Middleware));
 
       const middleware = new CountingMiddleware();
       const chain = new Chain();
@@ -389,7 +389,7 @@ describe('ES5 TypeScript Inheritance Compatibility', () => {
 
     test('ES6 class extending from ES5-converted Middleware should work', async () => {
       // ES6 class syntax extending the ES5-compatible Middleware
-      class ES6Middleware extends require('../core').Middleware {
+      class ES6Middleware extends Middleware {
         constructor() {
           super();
           this.callCount = 0;
@@ -416,7 +416,7 @@ describe('ES5 TypeScript Inheritance Compatibility', () => {
       await chain.run(ctx);
 
       expect(middleware.callCount).toBe(1);
-      expect(middleware).toBeInstanceOf(require('../core').Middleware);
+      expect(middleware).toBeInstanceOf(Middleware);
       expect(middleware).toBeInstanceOf(ES6Middleware);
     });
   });

@@ -100,11 +100,12 @@ var ValidateLink = /** @class */ (function (_super) {
     function ValidateLink() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    ValidateLink.prototype.call = function (ctx) {
+    ValidateLink.prototype.call = async function (ctx) {
         this.validateContext(ctx, ['value']);
         var value = ctx.get('value');
         var isValid = typeof value === 'number' && value > 0;
-        return Promise.resolve(ctx.insertAs('isValid', isValid));
+        // insertAs returns Context synchronously, but async function automatically wraps it
+        return ctx.insertAs('isValid', isValid);
     };
     return ValidateLink;
 }(Link));
@@ -114,7 +115,7 @@ var ProcessLink = /** @class */ (function (_super) {
     function ProcessLink() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    ProcessLink.prototype.call = function (ctx) {
+    ProcessLink.prototype.call = async function (ctx) {
         var value = ctx.get('value');
         var isValid = ctx.get('isValid');
         
@@ -123,7 +124,8 @@ var ProcessLink = /** @class */ (function (_super) {
         }
         
         var result = value * 2;
-        return Promise.resolve(ctx.insertAs('result', result));
+        // insertAs returns Context synchronously, but async function automatically wraps it
+        return ctx.insertAs('result', result);
     };
     return ProcessLink;
 }(Link));
