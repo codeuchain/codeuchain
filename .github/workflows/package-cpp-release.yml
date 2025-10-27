@@ -10,9 +10,14 @@ on:
         required: true
         default: '1.0.0'
 
+permissions:
+  contents: write  # Required to upload release assets
+
 jobs:
   package-cpp:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Upload release assets
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -85,6 +90,8 @@ jobs:
   validate-package:
     needs: package-cpp
     runs-on: ubuntu-latest
+    permissions:
+      contents: read  # Only needs to read artifacts
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

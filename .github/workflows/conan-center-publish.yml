@@ -26,9 +26,14 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: read  # Only needs to read repo contents
+
 jobs:
   conan-center-publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read  # Only needs to read repo
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -92,6 +97,8 @@ jobs:
     needs: conan-center-publish
     runs-on: ubuntu-latest
     if: ${{ !inputs.dry_run }}
+    permissions:
+      contents: read  # Only needs to read for testing
     steps:
       - name: Setup Python
         uses: actions/setup-python@v4

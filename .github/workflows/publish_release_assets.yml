@@ -4,9 +4,14 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write  # Required to upload release assets
+
 jobs:
   prepare-cpp-assets:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read  # Only needs to read repo contents
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -56,6 +61,8 @@ jobs:
   upload-assets:
     needs: prepare-cpp-assets
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required to upload release assets
     steps:
       - name: Checkout
         uses: actions/checkout@v4
