@@ -155,14 +155,33 @@ return executePipeline;
   console.log('Step 5: Validating that both versions produce identical results...');
   console.log('-'.repeat(70));
 
-  const validation = await converter.validate(chain, executePipeline, testCases);
+  // Manual validation instead of using converter.validate due to circular dependency
+  let allValid = true;
+  const validationErrors = [];
+  
+  for (let i = 0; i < testCases.length; i++) {
+    const testData = testCases[i];
+    try {
+      const chainResult = await chain.run(new Context(testData));
+      const chainData = chainResult.toObject();
+      const funcResult = await executePipeline(testData);
+      
+      if (JSON.stringify(chainData) !== JSON.stringify(funcResult)) {
+        allValid = false;
+        validationErrors.push(`Test ${i + 1}: Results differ`);
+      }
+    } catch (error) {
+      allValid = false;
+      validationErrors.push(`Test ${i + 1}: ${error.message}`);
+    }
+  }
 
-  if (validation.isValid) {
+  if (allValid) {
     console.log('✓ VALIDATION PASSED: Both versions produce identical results!');
     console.log('  The traditional code has ZERO overhead compared to the chain.');
   } else {
     console.log('✗ VALIDATION FAILED: Results differ!');
-    for (const error of validation.errors) {
+    for (const error of validationErrors) {
       console.log(`  ${error}`);
     }
   }

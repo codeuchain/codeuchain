@@ -40,6 +40,7 @@ class ChainConverter {
    * @param {Chain} chain - The CodeUChain chain to convert
    * @param {string} functionName - Name for the generated function
    * @param {boolean} includeJsDoc - Whether to include JSDoc comments
+   * @param {boolean} includeClasses - Whether to include link class definitions
    * @returns {string} JavaScript source code as a string
    *
    * @example
@@ -50,7 +51,7 @@ class ChainConverter {
    * const code = converter.chainToCode(chain);
    * console.log(code);
    */
-  chainToCode(chain, functionName = 'executePipeline', includeJsDoc = true) {
+  chainToCode(chain, functionName = 'executePipeline', includeJsDoc = true, includeClasses = false) {
     const linksInfo = this._extractLinksInfo(chain);
 
     const lines = [];
@@ -60,11 +61,13 @@ class ChainConverter {
     lines.push('// Zero-overhead traditional code');
     lines.push('');
 
-    // Extract and add link class implementations
-    for (const linkInfo of linksInfo) {
-      if (linkInfo.sourceCode) {
-        lines.push(linkInfo.sourceCode);
-        lines.push('');
+    // Optionally include link class implementations
+    if (includeClasses) {
+      for (const linkInfo of linksInfo) {
+        if (linkInfo.sourceCode) {
+          lines.push(linkInfo.sourceCode);
+          lines.push('');
+        }
       }
     }
 
@@ -334,6 +337,7 @@ class ChainConverter {
    *
    * @param {Chain} chain - The CodeUChain chain to convert
    * @param {string} className - Name for the generated class
+   * @param {boolean} includeClasses - Whether to include link class definitions
    * @returns {string} JavaScript source code for the optimized class
    *
    * @example
@@ -343,7 +347,7 @@ class ChainConverter {
    * const pipeline = new MyOptimizedPipeline();
    * const result = await pipeline.execute({ input: 'data' });
    */
-  generateOptimizedClass(chain, className = 'OptimizedPipeline') {
+  generateOptimizedClass(chain, className = 'OptimizedPipeline', includeClasses = false) {
     const linksInfo = this._extractLinksInfo(chain);
 
     const lines = [];
@@ -352,11 +356,13 @@ class ChainConverter {
     lines.push('// Auto-generated optimized pipeline class');
     lines.push('');
 
-    // Extract link class definitions
-    for (const linkInfo of linksInfo) {
-      if (linkInfo.sourceCode) {
-        lines.push(linkInfo.sourceCode);
-        lines.push('');
+    // Optionally include link class definitions
+    if (includeClasses) {
+      for (const linkInfo of linksInfo) {
+        if (linkInfo.sourceCode) {
+          lines.push(linkInfo.sourceCode);
+          lines.push('');
+        }
       }
     }
 
