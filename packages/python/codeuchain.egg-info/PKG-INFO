@@ -1,0 +1,7 @@
+Metadata-Version: 2.4
+Name: codeuchain
+Version: 1.0.1
+Summary: Python implementation of CodeUChain with comprehensive async support
+Author: CodeUChain Team
+License-File: LICENSE
+Dynamic: license-file
