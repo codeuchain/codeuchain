@@ -11,7 +11,6 @@
  */
 
 const { Context, Chain, Link } = require('../core');
-const acorn = require('acorn');
 
 class ChainConverter {
   /**
@@ -167,6 +166,10 @@ class ChainConverter {
    * This analyzes the code structure and reconstructs the chain definition,
    * enabling maintenance and modification using the CodeUChain framework.
    *
+   * Note: This is a simplified implementation that extracts link patterns
+   * from code comments. For full AST-based parsing, consider using a
+   * dedicated parser library.
+   *
    * @param {string} code - JavaScript source code to analyze
    * @param {string} functionName - Name of the function to convert
    * @returns {Chain} A reconstructed CodeUChain chain
@@ -187,33 +190,21 @@ class ChainConverter {
    * const chain = converter.codeToChain(code);
    */
   codeToChain(code, functionName = 'executePipeline') {
-    // Parse the code using acorn
-    let ast;
-    try {
-      ast = acorn.parse(code, {
-        ecmaVersion: 2020,
-        sourceType: 'module'
-      });
-    } catch (error) {
-      throw new Error(`Failed to parse code: ${error.message}`);
+    // Extract link patterns using regex (simplified approach)
+    const linkPattern = /const\s+(\w+)Link\s*=\s*new\s+(\w+)\(\)/g;
+    const links = [];
+    
+    let match;
+    while ((match = linkPattern.exec(code)) !== null) {
+      const linkName = match[1];
+      const className = match[2];
+      links.push({ linkName, className });
     }
-
-    // Find the target function
-    const funcNode = this._findFunction(ast, functionName);
-
-    if (!funcNode) {
-      throw new Error(`Function '${functionName}' not found in code`);
-    }
-
-    // Extract link patterns from the function body
-    const links = this._extractLinksFromAST(funcNode);
 
     // Build the chain
     const chain = new Chain();
 
-    // Execute the code to get the link classes
-    const namespace = {};
-
+    // Try to execute the code to get the link classes
     try {
       // Use Function constructor to evaluate code
       const evalFunc = new Function('Context', 'Chain', 'Link', `
@@ -231,64 +222,11 @@ class ChainConverter {
         }
       }
     } catch (error) {
-      // If we can't evaluate, at least return empty chain structure
+      // If we can't evaluate, return empty chain structure
       console.warn(`Could not evaluate code: ${error.message}`);
     }
 
     return chain;
-  }
-
-  /**
-   * Find a function node in the AST.
-   *
-   * @private
-   * @param {Object} ast - The AST to search
-   * @param {string} functionName - Name of the function to find
-   * @returns {Object|null} The function node or null
-   */
-  _findFunction(ast, functionName) {
-    for (const node of ast.body) {
-      if (node.type === 'FunctionDeclaration' && node.id.name === functionName) {
-        return node;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Extract link information from the AST of a function.
-   *
-   * @private
-   * @param {Object} funcNode - The function AST node
-   * @returns {Array<Object>} Array of link information
-   */
-  _extractLinksFromAST(funcNode) {
-    const links = [];
-
-    // Walk through the function body looking for link patterns
-    for (const statement of funcNode.body.body) {
-      if (statement.type === 'VariableDeclaration') {
-        for (const declaration of statement.declarations) {
-          // Look for: const nameLink = new ClassName();
-          if (
-            declaration.id.name.endsWith('Link') &&
-            declaration.init &&
-            declaration.init.type === 'NewExpression' &&
-            declaration.init.callee.type === 'Identifier'
-          ) {
-            const linkName = declaration.id.name.replace(/Link$/, '');
-            const className = declaration.init.callee.name;
-
-            links.push({
-              linkName: linkName,
-              className: className
-            });
-          }
-        }
-      }
-    }
-
-    return links;
   }
 
   /**
