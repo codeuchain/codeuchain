@@ -75,6 +75,15 @@ CodeUChain provides optional features that enhance development without adding co
 - **Zero Performance Impact**: Identical runtime behavior with or without typing
 - **Gradual Adoption**: Add typing incrementally to existing code
 
+### **Zero-Overhead Converter** 🔥 NEW
+- **Chain → Traditional Code**: Convert modular chains to optimized imperative code
+- **Validated Conversion**: Ensure both versions produce identical results
+- **Production Ready**: Generate optimized classes for high-throughput services
+- **Bidirectional**: Switch between chain and traditional representations
+- **Performance**: Traditional code runs with 0% overhead, optimized classes with ~2% overhead
+
+Learn more: [Converter Documentation](./docs/CONVERTER.md) | [Quick Start](./CONVERTER_README.md)
+
 ### **Advanced Orchestration**
 - **Conditional Branching**: Route execution based on Context data
 - **Parallel Execution**: Run multiple Links simultaneously
