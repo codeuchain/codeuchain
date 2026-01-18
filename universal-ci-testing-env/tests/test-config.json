@@ -1,0 +1,14 @@
+{
+  "tasks": [
+    {
+      "name": "Echo Test",
+      "working_directory": ".",
+      "command": "echo 'Hello, World!'"
+    },
+    {
+      "name": "Fail Test",
+      "working_directory": ".",
+      "command": "exit 1"
+    }
+  ]
+}
