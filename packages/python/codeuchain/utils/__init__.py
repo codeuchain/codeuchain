@@ -6,5 +6,6 @@ These are the helpers that make development easier.
 """
 
 from .error_handling import ErrorHandlingMixin, RetryLink
+from .converter import ChainConverter
 
-__all__ = ["ErrorHandlingMixin", "RetryLink"]
+__all__ = ["ErrorHandlingMixin", "RetryLink", "ChainConverter"]

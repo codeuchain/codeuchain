@@ -14,6 +14,7 @@ const {
   TimingMiddleware,
   ValidationMiddleware
 } = require('./middleware');
+const { ChainConverter } = require('./converter');
 
 module.exports = {
   // Core classes
@@ -27,6 +28,9 @@ module.exports = {
   LoggingMiddleware,
   TimingMiddleware,
   ValidationMiddleware,
+
+  // Utilities
+  ChainConverter,
 
   // Version info
   version: '0.1.0'
