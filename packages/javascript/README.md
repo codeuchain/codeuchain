@@ -4,6 +4,23 @@
 
 CodeUChain for JavaScript brings the power of chained processing to the world's most ubiquitous runtime. With Node.js ubiquity and browser compatibility, JavaScript implementations excel in event-driven architectures, real-time processing, and web-first applications.
 
+## 🔄 ES5 Legacy & ES6+ Support
+
+**Full Compatibility**: Supports both ES5 Legacy environments (IE11+) and modern ES6+ environments through dual builds:
+
+```javascript
+// Automatic detection (recommended)
+const { Context, Link, Chain } = require('codeuchain');
+
+// Explicit ES5 for legacy environments
+const { Context, Link, Chain } = require('codeuchain/es5');
+
+// Explicit ES6+ for modern environments  
+const { Context, Link, Chain } = require('codeuchain/es6');
+```
+
+📖 See [ES5_SUPPORT.md](./ES5_SUPPORT.md) for complete compatibility guide.
+
 ## 📦 Installation
 
 ```bash
