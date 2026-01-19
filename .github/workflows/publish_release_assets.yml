@@ -4,9 +4,14 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write  # Required to upload release assets
+
 jobs:
-  upload-assets:
+  prepare-cpp-assets:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read  # Only needs to read repo contents
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -15,16 +20,73 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      
+      - name: Setup CMake
+        uses: lukka/get-cmake@latest
 
-      - name: Download artifacts from repo
-        # release assets are already in the repo under `releases/`; no build required
-        run: ls -la releases || true
+      - name: Setup C++ compiler
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: 11
+          platform: x64
+
+      - name: Generate clean C++ release package
+        run: |
+          # Extract version from tag (e.g., v1.0.0 -> v1.0.0)
+          VERSION="${GITHUB_REF#refs/tags/}"
+          echo "Packaging for version: $VERSION"
+          
+          # Generate clean standalone package
+          chmod +x scripts/package_cpp_release.sh
+          ./scripts/package_cpp_release.sh "$VERSION"
+          
+          echo "✅ Clean C++ release package created"
+          ls -lh releases/codeuchain-cpp-$VERSION*
+      
+      - name: Verify C++ package builds
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/}"
+          cd /tmp
+          tar -xzf $GITHUB_WORKSPACE/releases/codeuchain-cpp-$VERSION.tar.gz
+          cd codeuchain-cpp-$VERSION
+          ./build.sh
+          ./build/examples/simple_math
+          echo "✅ C++ package verified"
+
+      - name: List all release assets
+        run: |
+          echo "Available release assets:"
+          ls -lh releases/*.{tar.gz,zip} 2>/dev/null || echo "No archives found"
+
+  upload-assets:
+    needs: prepare-cpp-assets
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required to upload release assets
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Setup C++ compiler
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: 11
+          platform: x64
+
+      - name: Regenerate C++ assets
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/}"
+          chmod +x scripts/package_cpp_release.sh
+          ./scripts/package_cpp_release.sh "$VERSION"
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            releases/*.zip
-            releases/*.tar.gz
+            releases/codeuchain-*-v*.zip
+            releases/codeuchain-*-v*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
