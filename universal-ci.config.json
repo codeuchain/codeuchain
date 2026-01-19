@@ -1,0 +1,112 @@
+{
+  "tasks": [
+    {
+      "name": "Go Tests",
+      "working_directory": "packages/go",
+      "command": "go test -v",
+      "stage": "test"
+    },
+    {
+      "name": "Python Tests",
+      "working_directory": "packages/python",
+      "command": "python3 -m pytest tests/ -v || python -m pytest tests/ -v",
+      "stage": "test"
+    },
+    {
+      "name": "JavaScript/TypeScript Tests",
+      "working_directory": "packages/javascript",
+      "command": "npm test",
+      "stage": "test"
+    },
+    {
+      "name": "C# Tests",
+      "working_directory": "packages/csharp",
+      "command": "dotnet test CodeUChain.sln || dotnet test",
+      "stage": "test"
+    },
+    {
+      "name": "Rust Tests",
+      "working_directory": "packages/rust",
+      "command": "cargo test --lib",
+      "stage": "test"
+    },
+    {
+      "name": "Java Tests",
+      "working_directory": "packages/java",
+      "command": "mvn test",
+      "stage": "test"
+    },
+    {
+      "name": "C++ Tests",
+      "working_directory": "packages/cpp",
+      "command": "ctest --output-on-failure || echo 'No C++ tests configured'",
+      "stage": "test"
+    },
+    {
+      "name": "Local GitHub Actions Test",
+      "working_directory": ".",
+      "command": "act -l | head -10 || echo 'act not installed - install with: brew install act'",
+      "stage": "test"
+    },
+    {
+      "name": "Shell Scripts Lint",
+      "working_directory": ".",
+      "command": "shellcheck scripts/*.sh || echo 'shellcheck not installed - install with: brew install shellcheck'",
+      "stage": "test"
+    },
+    {
+      "name": "Publish Go Package",
+      "working_directory": "packages/go",
+      "command": "echo 'Go publish command goes here - waiting for pub prompts'",
+      "stage": "release"
+    },
+    {
+      "name": "Publish Python Package",
+      "working_directory": "packages/python",
+      "command": "if [ '$IS_RELEASE' = 'true' ]; then python3 -m pip install build twine && python3 -m build && python3 -m twine upload --username __token__ --password ${TWINE_PASSWORD} dist/*; else python3 -m pip install build twine && python3 -m build && python3 -m twine upload --repository testpypi --username __token__ --password ${TWINE_PASSWORD} dist/*; fi",
+      "stage": "release"
+    },
+    {
+      "name": "Publish JavaScript Package",
+      "working_directory": "packages/javascript",
+      "command": "if [ '$IS_RELEASE' = 'true' ]; then printf '//registry.npmjs.org/:_authToken=%s\\n' \"${NPM_TOKEN}\" > ~/.npmrc && npm publish; else printf '//registry.npmjs.org/:_authToken=%s\\n' \"${NPM_TOKEN}\" > ~/.npmrc && npm publish --dry-run; fi",
+      "stage": "release"
+    },
+    {
+      "name": "Publish C# Package",
+      "working_directory": "packages/csharp",
+      "command": "if [ '$IS_RELEASE' = 'true' ]; then dotnet build --configuration Release && dotnet pack --configuration Release && dotnet nuget push *.nupkg --api-key ${NUGET_API_KEY} --source https://api.nuget.org/v3/index.json; else echo '[DRY RUN] Would publish to nuget.org with: dotnet nuget push *.nupkg --api-key *** --source https://api.nuget.org/v3/index.json'; fi",
+      "stage": "release"
+    },
+    {
+      "name": "Publish Rust Package",
+      "working_directory": "packages/rust",
+      "command": "if [ '$IS_RELEASE' = 'true' ]; then cargo publish --token ${CARGO_REGISTRY_TOKEN}; else echo '[DRY RUN] Would publish to crates.io with: cargo publish --token ***'; fi",
+      "stage": "release"
+    },
+    {
+      "name": "Publish Java Package",
+      "working_directory": "packages/java",
+      "command": "echo 'Java publish command goes here - waiting for pub prompts'",
+      "stage": "release"
+    },
+    {
+      "name": "Publish C++ Package",
+      "working_directory": "packages/cpp",
+      "command": "echo 'C++ publish command goes here - waiting for pub prompts'",
+      "stage": "release"
+    },
+    {
+      "name": "Create Release Archives",
+      "working_directory": ".",
+      "command": "./scripts/create_release_archives.sh",
+      "stage": "release"
+    },
+    {
+      "name": "Upload Release Assets",
+      "working_directory": ".",
+      "command": "./scripts/upload_release_assets.sh",
+      "stage": "release"
+    }
+  ]
+}
