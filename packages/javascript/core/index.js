@@ -5,15 +5,15 @@
  * The core building blocks for context flow.
  */
 
-const { Context, MutableContext } = require('./context');
-const { Link } = require('./link');
-const { Chain } = require('./chain');
+const { Context, MutableContext } = require("./context");
+const { Link } = require("./link");
+const { Chain } = require("./chain");
 const {
   Middleware,
   LoggingMiddleware,
   TimingMiddleware,
   ValidationMiddleware
-} = require('./middleware');
+} = require("./middleware");
 
 module.exports = {
   // Core classes
@@ -29,5 +29,5 @@ module.exports = {
   ValidationMiddleware,
 
   // Version info
-  version: '0.1.0'
+  version: "0.1.0"
 };
