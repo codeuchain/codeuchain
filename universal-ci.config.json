@@ -27,7 +27,7 @@
     {
       "name": "Rust Tests",
       "working_directory": "packages/rust",
-      "command": "cargo test --lib",
+      "command": "cargo test --lib --tests",
       "stage": "test"
     },
     {
