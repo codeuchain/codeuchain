@@ -1,49 +1,41 @@
 {
   "description": "CodeUChain package versions - one version per language implementation",
   "lastUpdated": "2026-01-19T00:57:00Z",
-  "status": "✅ FIXED - Git tags now match published versions",
   "versions": {
     "python": {
       "version": "1.0.2",
       "registry": "PyPI",
-      "packageName": "codeuchain",
-      "note": "Git tag: python-v1.0.2 (FIXED ✅)"
+      "packageName": "codeuchain"
     },
     "go": {
       "version": "1.0.0",
       "registry": "pkg.go.dev",
-      "packageName": "github.com/codeuchain/codeuchain/packages/go",
-      "note": "Git tag: go-v1.0.0 (FIXED ✅)"
+      "packageName": "github.com/codeuchain/codeuchain/packages/go"
     },
     "javascript": {
       "version": "1.1.2",
       "registry": "npm",
-      "packageName": "codeuchain",
-      "note": "Git tag: javascript-v1.1.2 (FIXED ✅)"
+      "packageName": "codeuchain"
     },
     "csharp": {
       "version": "1.0.1",
       "registry": "NuGet",
-      "packageName": "CodeUChain",
-      "note": "Git tag: csharp-v1.0.1 (FIXED ✅)"
+      "packageName": "CodeUChain"
     },
     "rust": {
       "version": "1.0.1",
       "registry": "crates.io",
-      "packageName": "codeuchain",
-      "note": "Git tag: rust-v1.0.1 (FIXED ✅)"
+      "packageName": "codeuchain"
     },
     "java": {
       "version": "0.2.0",
       "registry": "Maven Central",
-      "packageName": "com.codeuchain:codeuchain-core",
-      "note": "Git tag: java-v0.2.0 (not yet published)"
+      "packageName": "com.codeuchain:codeuchain-core"
     },
     "cpp": {
       "version": "0.2.0",
       "registry": "Conan Center",
-      "packageName": "codeuchain",
-      "note": "Git tag: cpp-v0.2.0 (not yet published)"
+      "packageName": "codeuchain"
     }
   },
   "notes": {
@@ -52,33 +44,14 @@
     "updating": "Update the version field when releasing a language",
     "automation": "release.sh can read this file for version validation"
   },
-  "criticalIssue": {
-    "title": "Version Disconnect (RESOLVED ✅)",
-    "severity": "RESOLVED",
-    "resolutionDate": "2026-01-19T00:57:00Z",
-    "resolutionMethod": "Option A: Git tags re-created to match published package versions",
-    "description": "RESOLVED: Git repository tags are now synchronized with published package registries. All languages at correct versions.",
-    "resolutionDetails": {
-      "pythonTag": "python-v1.0.2 (synced with PyPI)",
-      "goTag": "go-v1.0.0 (users now get modern version)",
-      "javascriptTag": "javascript-v1.1.2 (synced with npm)",
-      "rustTag": "rust-v1.0.1 (synced with crates.io)",
-      "csharpTag": "csharp-v1.0.1 (synced with NuGet)",
-      "javaTag": "java-v0.2.0 (not published)",
-      "cppTag": "cpp-v0.2.0 (not published)"
-    },
-    "previousState": {
-      "javascript": "npm registry: 1.1.2 | git tag: 0.2.0 (FIXED)",
-      "python": "PyPI registry: 1.0.2 | git tag: 0.2.0 (FIXED)",
-      "rust": "crates.io registry: 1.0.1 | git tag: 0.2.0 (FIXED)",
-      "csharp": "NuGet registry: 1.0.1 | git tag: 0.2.0 (FIXED)",
-      "go": "No registry | git tag: 0.2.0 (FIXED to 1.0.0)"
-    },
-    "remainingWork": [
-      "✅ Tags fixed and pushed (COMPLETE)",
-      "⏳ Update release.sh to ensure tags are always pushed with package releases",
-      "⏳ Add version consistency checks to CI/CD",
-      "⏳ Monitor with regular VERSIONS.json audits"
+  "resolution": {
+    "issue": "Version disconnect between git tags (0.2.0) and published packages (1.0.1-1.1.2)",
+    "resolved": "2026-01-19T00:57:00Z",
+    "method": "Option A: Git tags re-created to match published versions",
+    "details": "See VERSION_AUDIT.md for full investigation",
+    "remaining": [
+      "Update release.sh to push tags with releases",
+      "Add CI/CD version consistency checks"
     ]
   }
 }
