@@ -43,15 +43,5 @@
     "releases": "Release tags are created per-language: python-v1.0.0, go-v1.0.0, etc",
     "updating": "Update the version field when releasing a language",
     "automation": "release.sh can read this file for version validation"
-  },
-  "resolution": {
-    "issue": "Version disconnect between git tags (0.2.0) and published packages (1.0.1-1.1.2)",
-    "resolved": "2026-01-19T00:57:00Z",
-    "method": "Option A: Git tags re-created to match published versions",
-    "details": "See VERSION_AUDIT.md for full investigation",
-    "remaining": [
-      "Update release.sh to push tags with releases",
-      "Add CI/CD version consistency checks"
-    ]
   }
 }
