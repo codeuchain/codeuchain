@@ -15,7 +15,7 @@ from .core import Context, MutableContext, Link, Chain, Middleware
 # Utility helpers
 from .utils import ErrorHandlingMixin, RetryLink
 
-__version__ = "0.1.0"
+__version__ = "1.1.0"
 __all__ = [
     # Core
     "Context", "MutableContext", "Link", "Chain", "Middleware",
