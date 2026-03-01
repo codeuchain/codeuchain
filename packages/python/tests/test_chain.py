@@ -6,7 +6,7 @@ Testing the Chain protocol with concrete implementations.
 
 import pytest
 import asyncio
-from typing import Dict, List, Callable, Optional
+from typing import Optional
 from codeuchain.core.context import Context
 from codeuchain.core.link import Link
 from codeuchain.core.chain import Chain
