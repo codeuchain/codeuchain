@@ -5,6 +5,7 @@ Testing the Chain protocol with concrete implementations.
 """
 
 import pytest
+import asyncio
 from typing import Dict, List, Callable, Optional
 from codeuchain.core.context import Context
 from codeuchain.core.link import Link
@@ -52,7 +53,6 @@ class TestSimpleChain:
             result = await chain.run(ctx)
             assert result.get("input") == "test"
 
-        import asyncio
         asyncio.run(run_test())
 
     @pytest.mark.unit
@@ -75,7 +75,6 @@ class TestSimpleChain:
             assert result.get("processed") is True
             assert result.get("input") == "test"
 
-        import asyncio
         asyncio.run(run_test())
 
     @pytest.mark.unit
@@ -100,7 +99,6 @@ class TestSimpleChain:
             assert result.get("step1") is True
             assert result.get("step2") is True
 
-        import asyncio
         asyncio.run(run_test())
 
 
@@ -110,7 +108,7 @@ class TestConditionalChain:
     @pytest.mark.unit
     @pytest.mark.core
     def test_conditional_execution(self):
-        """Test conditional link execution."""
+        """Test conditional link execution - skipped links must NOT run."""
         chain = Chain()
 
         class SuccessLink:
@@ -132,9 +130,81 @@ class TestConditionalChain:
         async def run_test():
             result = await chain.run(Context())
             assert result.get("success") is True
-            # Should not have failure since success condition was met
+            # failure_path predicate evaluates False, so failure link must NOT have run
+            assert result.get("failure") is None
 
-        import asyncio
+        asyncio.run(run_test())
+
+    @pytest.mark.unit
+    @pytest.mark.core
+    def test_predicate_false_skips_link(self):
+        """A link whose predicate is always False must be skipped entirely."""
+        chain = Chain()
+        executed = []
+
+        class FirstLink:
+            async def call(self, ctx):
+                executed.append("first")
+                return ctx.insert("first_ran", True)
+
+        class GatedLink:
+            async def call(self, ctx):
+                executed.append("gated")
+                return ctx.insert("gated_ran", True)
+
+        chain.add_link(FirstLink(), "first")
+        chain.add_link(GatedLink(), "gated")
+        chain.connect("first", "gated", lambda ctx: False)
+
+        async def run_test():
+            result = await chain.run(Context())
+            assert "first" in executed
+            assert "gated" not in executed
+            assert result.get("first_ran") is True
+            assert result.get("gated_ran") is None
+
+        asyncio.run(run_test())
+
+    @pytest.mark.unit
+    @pytest.mark.core
+    def test_predicate_true_executes_link(self):
+        """A link whose predicate evaluates to True must execute."""
+        chain = Chain()
+
+        class FirstLink:
+            async def call(self, ctx):
+                return ctx.insert("value", 42)
+
+        class GatedLink:
+            async def call(self, ctx):
+                return ctx.insert("gated_ran", True)
+
+        chain.add_link(FirstLink(), "first")
+        chain.add_link(GatedLink(), "gated")
+        chain.connect("first", "gated", lambda ctx: ctx.get("value") == 42)
+
+        async def run_test():
+            result = await chain.run(Context())
+            assert result.get("gated_ran") is True
+
+        asyncio.run(run_test())
+
+    @pytest.mark.unit
+    @pytest.mark.core
+    def test_link_without_connections_always_runs(self):
+        """Links with no incoming connections are always executed."""
+        chain = Chain()
+
+        class AlwaysLink:
+            async def call(self, ctx):
+                return ctx.insert("always_ran", True)
+
+        chain.add_link(AlwaysLink(), "always")
+
+        async def run_test():
+            result = await chain.run(Context())
+            assert result.get("always_ran") is True
+
         asyncio.run(run_test())
 
 
@@ -166,7 +236,6 @@ class TestChainWithMiddleware:
             assert "after_test_link" in middleware.log
             assert "after_chain_end" in middleware.log
 
-        import asyncio
         asyncio.run(run_test())
 
     @pytest.mark.unit
@@ -190,7 +259,6 @@ class TestChainWithMiddleware:
             # Check error was logged
             assert any("error" in entry for entry in middleware.log)
 
-        import asyncio
         asyncio.run(run_test())
 
 
@@ -232,7 +300,6 @@ class TestChainIntegration:
             # Check middleware execution
             assert len(middleware.log) > 0
 
-        import asyncio
         asyncio.run(run_test())
 
     @pytest.mark.integration
@@ -251,5 +318,4 @@ class TestChainIntegration:
             with pytest.raises(RuntimeError, match="Processing failed"):
                 await chain.run(Context({"input": "test"}))
 
-        import asyncio
         asyncio.run(run_test())

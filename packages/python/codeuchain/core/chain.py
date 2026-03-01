@@ -6,7 +6,7 @@ Core implementation that all chain implementations can build upon.
 Enhanced with generic typing for type-safe workflows.
 """
 
-from typing import Dict, List, Callable, Optional, TypeVar, Generic
+from typing import Dict, List, Callable, Optional, Tuple, TypeVar, Generic
 from .context import Context
 from .link import Link
 from .middleware import Middleware
@@ -37,7 +37,16 @@ class Chain(Generic[TInput, TOutput]):
         self._links[link_name] = link
 
     def connect(self, source: str, target: str, condition: Callable[[Context[TInput]], bool]) -> None:
-        """With compassionate logic, add a connection."""
+        """
+        With compassionate logic, add a conditional connection between two links.
+
+        The condition is evaluated just before the target link would execute.
+        If *any* registered condition for a given target link evaluates to True,
+        the target link executes.  If *all* conditions evaluate to False the
+        target link is skipped entirely.
+
+        Links that have no incoming connections are always executed.
+        """
         self._connections.append((source, target, condition))
 
     def use_middleware(self, middleware: Middleware) -> None:
@@ -48,6 +57,12 @@ class Chain(Generic[TInput, TOutput]):
         """With selfless execution, flow through links."""
         ctx = initial_ctx
 
+        # Build a map of target link name -> list of (source, condition) pairs
+        # so we can evaluate predicates before each link executes.
+        incoming: Dict[str, List[Tuple[str, Callable[[Context[TInput]], bool]]]] = {}
+        for source, target, condition in self._connections:
+            incoming.setdefault(target, []).append((source, condition))
+
         # Execute middleware before hooks
         for mw in self._middleware:
             await mw.before(None, ctx)
@@ -55,6 +70,12 @@ class Chain(Generic[TInput, TOutput]):
         try:
             # Simple linear execution for now
             for name, link in self._links.items():
+                # If this link has incoming connections, skip it unless at
+                # least one predicate evaluates to True.
+                if name in incoming:
+                    if not any(cond(ctx) for _, cond in incoming[name]):
+                        continue
+
                 # Execute middleware before each link
                 for mw in self._middleware:
                     await mw.before(link, ctx)
