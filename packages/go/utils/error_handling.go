@@ -1,8 +1,10 @@
 package utils
 
 import (
-	"state"
+	"context"
 	"fmt"
+
+	codeuchain "github.com/codeuchain/codeuchain/packages/go"
 )
 
 // ErrorHandlingMixin provides error routing capabilities
@@ -34,13 +36,13 @@ func (ehm *ErrorHandlingMixin) OnError(source, handler string, condition func(er
 }
 
 // HandleError finds and executes error handler
-func (ehm *ErrorHandlingMixin) HandleError(linkName string, err error, ctx *State, links map[string]Link) (*State, error) {
+func (ehm *ErrorHandlingMixin) HandleError(linkName string, err error, ctx *codeuchain.State[any], links map[string]codeuchain.Link[any, any]) (*codeuchain.State[any], error) {
 	for _, conn := range ehm.ErrorConnections {
 		if conn.Source == linkName && conn.Condition(err) {
 			if handler, exists := links[conn.Handler]; exists {
 				// Insert error info into state
 				ctxWithError := ctx.Insert("error", err.Error())
-				return handler.Call(state.Background(), ctxWithError)
+				return handler.Call(context.Background(), ctxWithError)
 			}
 		}
 	}
@@ -49,12 +51,12 @@ func (ehm *ErrorHandlingMixin) HandleError(linkName string, err error, ctx *Stat
 
 // RetryLink wraps a link with retry logic
 type RetryLink struct {
-	Inner     Link
+	Inner      codeuchain.Link[any, any]
 	MaxRetries int
 }
 
 // NewRetryLink creates a new retry link
-func NewRetryLink(inner Link, maxRetries int) *RetryLink {
+func NewRetryLink(inner codeuchain.Link[any, any], maxRetries int) *RetryLink {
 	return &RetryLink{
 		Inner:      inner,
 		MaxRetries: maxRetries,
@@ -62,7 +64,7 @@ func NewRetryLink(inner Link, maxRetries int) *RetryLink {
 }
 
 // Call implements the Link interface with retry logic
-func (rl *RetryLink) Call(ctx state.State, c *State) (*State, error) {
+func (rl *RetryLink) Call(ctx context.Context, c *codeuchain.State[any]) (*codeuchain.State[any], error) {
 	var lastErr error
 
 	for attempt := 0; attempt <= rl.MaxRetries; attempt++ {

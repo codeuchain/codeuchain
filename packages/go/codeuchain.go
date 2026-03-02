@@ -3,7 +3,7 @@
 package codeuchain
 
 import (
-	"state"
+	"context"
 )
 
 // State holds data carefully, immutable by default for safety, mutable for flexibility.
@@ -95,18 +95,18 @@ func (mc *MutableState) ToImmutable() *State[any] {
 // Link defines the selfless processor interface
 type Link[TInput any, TOutput any] interface {
 	// Call processes the state and returns a transformed state
-	Call(ctx state.State, c *State[TInput]) (*State[TOutput], error)
+	Call(ctx context.Context, c *State[TInput]) (*State[TOutput], error)
 }
 
 // Hook defines optional enhancement hooks for processing links.
 // All methods have default no-op implementations - override only what you need.
 type Hook[TInput any, TOutput any] interface {
 	// Before is called before link execution (optional - defaults to no-op)
-	Before(ctx state.State, link Link[TInput, TOutput], c *State[TInput]) error
+	Before(ctx context.Context, link Link[TInput, TOutput], c *State[TInput]) error
 	// After is called after successful link execution (optional - defaults to no-op)
-	After(ctx state.State, link Link[TInput, TOutput], c *State[TOutput]) error
+	After(ctx context.Context, link Link[TInput, TOutput], c *State[TOutput]) error
 	// OnError is called when link execution fails (optional - defaults to no-op)
-	OnError(ctx state.State, link Link[TInput, TOutput], err error, c *State[TInput]) error
+	OnError(ctx context.Context, link Link[TInput, TOutput], err error, c *State[TInput]) error
 }
 
 // NopHook provides no-op implementations for all hook methods.
@@ -115,15 +115,15 @@ var NopHook = &nopHook{}
 
 type nopHook struct{}
 
-func (n *nopHook) Before(ctx state.State, link Link[any, any], c *State[any]) error {
+func (n *nopHook) Before(ctx context.Context, link Link[any, any], c *State[any]) error {
 	return nil // No-op
 }
 
-func (n *nopHook) After(ctx state.State, link Link[any, any], c *State[any]) error {
+func (n *nopHook) After(ctx context.Context, link Link[any, any], c *State[any]) error {
 	return nil // No-op
 }
 
-func (n *nopHook) OnError(ctx state.State, link Link[any, any], err error, c *State[any]) error {
+func (n *nopHook) OnError(ctx context.Context, link Link[any, any], err error, c *State[any]) error {
 	return nil // No-op
 }
 
@@ -175,7 +175,7 @@ func (ch *Chain) UseHook(mw Hook[any, any]) {
 }
 
 // Run executes the chain with the given state
-func (ch *Chain) Run(ctx state.State, initialCtx *State[any]) (*State[any], error) {
+func (ch *Chain) Run(ctx context.Context, initialCtx *State[any]) (*State[any], error) {
 	currentCtx := initialCtx
 
 	// Execute before hooks
@@ -262,7 +262,7 @@ func (ehm *ErrorHandlingMixin) HandleError(linkName string, err error, ctx *Stat
 		if conn.Source == linkName && conn.Condition(err) {
 			if handler, exists := links[conn.Handler]; exists {
 				ctxWithError := ctx.Insert("error", err.Error())
-				return handler.Call(state.Background(), ctxWithError)
+				return handler.Call(context.Background(), ctxWithError)
 			}
 		}
 	}
@@ -284,7 +284,7 @@ func NewRetryLink(inner Link[any, any], maxRetries int) *RetryLink {
 }
 
 // Call implements the Link interface with retry logic
-func (rl *RetryLink) Call(ctx state.State, c *State[any]) (*State[any], error) {
+func (rl *RetryLink) Call(ctx context.Context, c *State[any]) (*State[any], error) {
 	var lastErr error
 
 	for attempt := 0; attempt <= rl.MaxRetries; attempt++ {

@@ -1,7 +1,7 @@
 package codeuchain
 
 import (
-	"state"
+	"context"
 	"errors"
 	"testing"
 
@@ -23,7 +23,7 @@ func NewMockLinkWithError() *MockLink {
 	return &MockLink{shouldError: true}
 }
 
-func (ml *MockLink) Call(ctx state.State, c *State[any]) (*State[any], error) {
+func (ml *MockLink) Call(ctx context.Context, c *State[any]) (*State[any], error) {
 	if ml.shouldError {
 		return nil, errors.New("mock error")
 	}
@@ -41,17 +41,17 @@ func NewMockHook() *MockHook {
 	return &MockHook{}
 }
 
-func (mm *MockHook) Before(ctx state.State, link Link[any, any], c *State[any]) error {
+func (mm *MockHook) Before(ctx context.Context, link Link[any, any], c *State[any]) error {
 	mm.beforeCalled = true
 	return nil
 }
 
-func (mm *MockHook) After(ctx state.State, link Link[any, any], c *State[any]) error {
+func (mm *MockHook) After(ctx context.Context, link Link[any, any], c *State[any]) error {
 	mm.afterCalled = true
 	return nil
 }
 
-func (mm *MockHook) OnError(ctx state.State, link Link[any, any], err error, c *State[any]) error {
+func (mm *MockHook) OnError(ctx context.Context, link Link[any, any], err error, c *State[any]) error {
 	mm.errorCalled = true
 	return nil
 }
@@ -67,7 +67,7 @@ func NewSelectiveHook() *SelectiveHook {
 }
 
 // Only override Before - After and OnError will use nopHook's no-op implementations
-func (sm *SelectiveHook) Before(ctx state.State, link Link[any, any], c *State[any]) error {
+func (sm *SelectiveHook) Before(ctx context.Context, link Link[any, any], c *State[any]) error {
 	sm.beforeCalled = true
 	return nil
 }
@@ -84,12 +84,12 @@ func NewLoggingHook() *LoggingHook {
 	return &LoggingHook{logs: make([]string, 0)}
 }
 
-func (lm *LoggingHook) Before(ctx state.State, link Link[any, any], c *State[any]) error {
+func (lm *LoggingHook) Before(ctx context.Context, link Link[any, any], c *State[any]) error {
 	lm.logs = append(lm.logs, "before")
 	return nil
 }
 
-func (lm *LoggingHook) After(ctx state.State, link Link[any, any], c *State[any]) error {
+func (lm *LoggingHook) After(ctx context.Context, link Link[any, any], c *State[any]) error {
 	lm.logs = append(lm.logs, "after")
 	return nil
 }
@@ -104,7 +104,7 @@ func NewErrorRecoveryHook() *ErrorRecoveryHook {
 	return &ErrorRecoveryHook{}
 }
 
-func (erm *ErrorRecoveryHook) OnError(ctx state.State, link Link[any, any], err error, c *State[any]) error {
+func (erm *ErrorRecoveryHook) OnError(ctx context.Context, link Link[any, any], err error, c *State[any]) error {
 	erm.recovered = true
 	return nil // Recover from error - for now, just mark as recovered
 }
@@ -152,7 +152,7 @@ func TestChainExecution(t *testing.T) {
 	chain.AddLink("test", mockLink)
 
 	ctx := NewState[any](nil)
-	result, err := chain.Run(state.Background(), ctx)
+	result, err := chain.Run(context.Background(), ctx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "test_result", result.Get("result"))
@@ -167,7 +167,7 @@ func TestChainWithHook(t *testing.T) {
 	chain.UseHook(mockMw)
 
 	ctx := NewState[any](map[string]interface{}{})
-	result, err := chain.Run(state.Background(), ctx)
+	result, err := chain.Run(context.Background(), ctx)
 
 	require.NoError(t, err)
 	assert.Equal(t, "test_result", result.Get("result"))
@@ -185,7 +185,7 @@ func TestChainWithError(t *testing.T) {
 	chain.UseHook(mockMw)
 
 	ctx := NewState[any](map[string]interface{}{})
-	_, err := chain.Run(state.Background(), ctx)
+	_, err := chain.Run(context.Background(), ctx)
 
 	require.Error(t, err)
 	assert.True(t, mockMw.beforeCalled)
@@ -198,14 +198,14 @@ func TestRetryLink(t *testing.T) {
 	retryLink := NewRetryLink(NewMockLink("success"), 3)
 
 	ctx := NewState[any](map[string]interface{}{})
-	result, err := retryLink.Call(state.Background(), ctx)
+	result, err := retryLink.Call(context.Background(), ctx)
 
 	require.NoError(t, err)
 	assert.Equal(t, "success", result.Get("result"))
 
 	// Test failed retry
 	failingLink := NewRetryLink(NewMockLinkWithError(), 2)
-	result, err = failingLink.Call(state.Background(), ctx)
+	result, err = failingLink.Call(context.Background(), ctx)
 
 	require.Error(t, err)
 	assert.Equal(t, "mock error", result.Get("error"))
@@ -237,7 +237,7 @@ func TestLinkCall(t *testing.T) {
 	link := NewMockLink(123)
 	ctx := NewState[any](nil)
 
-	result, err := link.Call(state.Background(), ctx)
+	result, err := link.Call(context.Background(), ctx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 123, result.Get("result"))
@@ -293,7 +293,7 @@ func TestTypedLinkExecution(t *testing.T) {
 	})
 
 	// Execute link
-	resultCtx, err := link.Call(state.Background(), inputCtx)
+	resultCtx, err := link.Call(context.Background(), inputCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 42, resultCtx.Get("result"))
@@ -314,7 +314,7 @@ func TestTypedChainExecution(t *testing.T) {
 	})
 
 	// Execute chain
-	resultCtx, err := chain.Run(state.Background(), inputCtx)
+	resultCtx, err := chain.Run(context.Background(), inputCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 100, resultCtx.Get("result"))
@@ -339,7 +339,7 @@ func TestTypedChainWithHook(t *testing.T) {
 	})
 
 	// Execute chain
-	resultCtx, err := chain.Run(state.Background(), inputCtx)
+	resultCtx, err := chain.Run(context.Background(), inputCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 200, resultCtx.Get("result"))
@@ -379,7 +379,7 @@ func TestTypedErrorHandling(t *testing.T) {
 	})
 
 	// Execute chain (should fail)
-	_, err := chain.Run(state.Background(), inputCtx)
+	_, err := chain.Run(context.Background(), inputCtx)
 
 	assert.Error(t, err)
 	assert.True(t, mockMw.beforeCalled)
@@ -546,7 +546,7 @@ func TestTypedLinkWithSpecificTypes(t *testing.T) {
 		"input": "test string",
 	})
 
-	result, err := link.Call(state.Background(), inputCtx)
+	result, err := link.Call(context.Background(), inputCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 100, result.Get("result"))
@@ -569,7 +569,7 @@ func TestTypedChainWithMultipleLinks(t *testing.T) {
 		"input": "start",
 	})
 
-	result, err := chain.Run(state.Background(), inputCtx)
+	result, err := chain.Run(context.Background(), inputCtx)
 
 	assert.NoError(t, err)
 	// Last link's result should be returned
@@ -595,7 +595,7 @@ func TestTypedChainWithConditionalConnections(t *testing.T) {
 		"input": "test",
 	})
 
-	result, err := chain.Run(state.Background(), inputCtx)
+	result, err := chain.Run(context.Background(), inputCtx)
 
 	assert.NoError(t, err)
 	// Current implementation runs all links, so last link's result is returned
@@ -611,7 +611,7 @@ func TestTypedRetryLinkWithTypeSafety(t *testing.T) {
 		"input": "test",
 	})
 
-	result, err := retryLink.Call(state.Background(), inputCtx)
+	result, err := retryLink.Call(context.Background(), inputCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "success", result.Get("result"))
@@ -661,7 +661,7 @@ func TestTypedHookWithStateEvolution(t *testing.T) {
 		"stage": "initial",
 	})
 
-	result, err := chain.Run(state.Background(), inputCtx)
+	result, err := chain.Run(context.Background(), inputCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "result", result.Get("result"))
@@ -682,7 +682,7 @@ func TestSelectiveHookABCPattern(t *testing.T) {
 		"input": "test",
 	})
 
-	result, err := chain.Run(state.Background(), inputCtx)
+	result, err := chain.Run(context.Background(), inputCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "result", result.Get("result"))
@@ -703,7 +703,7 @@ func TestLoggingHookABCPattern(t *testing.T) {
 		"input": "test",
 	})
 
-	result, err := chain.Run(state.Background(), inputCtx)
+	result, err := chain.Run(context.Background(), inputCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "processed", result.Get("result"))
@@ -726,7 +726,7 @@ func TestErrorRecoveryHookABCPattern(t *testing.T) {
 	})
 
 	// This should still fail, but our recovery hook should be notified
-	_, err := chain.Run(state.Background(), inputCtx)
+	_, err := chain.Run(context.Background(), inputCtx)
 
 	// The error should still propagate, but hook should be notified
 	assert.Error(t, err)
@@ -778,7 +778,7 @@ func TestTypedChainEmptyExecution(t *testing.T) {
 		"input": "test",
 	})
 
-	result, err := chain.Run(state.Background(), inputCtx)
+	result, err := chain.Run(context.Background(), inputCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "test", result.Get("input"))
@@ -817,7 +817,7 @@ func TestHookInterfaceOnError(t *testing.T) {
 	testErr := errors.New("test error")
 
 	// Directly call OnError method to ensure interface coverage
-	err := mockMw.OnError(state.Background(), failingLink, testErr, ctx)
+	err := mockMw.OnError(context.Background(), failingLink, testErr, ctx)
 
 	// Should return nil (no-op implementation)
 	assert.NoError(t, err)
@@ -831,13 +831,13 @@ func TestHookInterfaceBeforeAndAfter(t *testing.T) {
 	ctx := NewState[any](map[string]interface{}{"input": "test"})
 
 	// Test Before
-	err := mockMw.Before(state.Background(), link, ctx)
+	err := mockMw.Before(context.Background(), link, ctx)
 	assert.NoError(t, err)
 	assert.True(t, mockMw.beforeCalled)
 
 	// Test After
 	resultCtx := ctx.Insert("result", "processed")
-	err = mockMw.After(state.Background(), link, resultCtx)
+	err = mockMw.After(context.Background(), link, resultCtx)
 	assert.NoError(t, err)
 	assert.True(t, mockMw.afterCalled)
 }
@@ -849,7 +849,7 @@ type FailingBeforeHook struct {
 	nopHook
 }
 
-func (fbm *FailingBeforeHook) Before(ctx state.State, link Link[any, any], c *State[any]) error {
+func (fbm *FailingBeforeHook) Before(ctx context.Context, link Link[any, any], c *State[any]) error {
 	return errors.New("before hook failed")
 }
 
@@ -858,7 +858,7 @@ type FailingAfterHook struct {
 	nopHook
 }
 
-func (fam *FailingAfterHook) After(ctx state.State, link Link[any, any], c *State[any]) error {
+func (fam *FailingAfterHook) After(ctx context.Context, link Link[any, any], c *State[any]) error {
 	return errors.New("after hook failed")
 }
 
@@ -874,7 +874,7 @@ func TestChainRunInitialBeforeHookFailure(t *testing.T) {
 	ctx := NewState[any](map[string]interface{}{"input": "test"})
 
 	// Should fail at initial before hook
-	_, err := chain.Run(state.Background(), ctx)
+	_, err := chain.Run(context.Background(), ctx)
 	assert.Error(t, err)
 	assert.Equal(t, "before hook failed", err.Error())
 }
@@ -891,7 +891,7 @@ func TestChainRunFinalAfterHookFailure(t *testing.T) {
 	ctx := NewState[any](map[string]interface{}{"input": "test"})
 
 	// Should fail at final after hook
-	_, err := chain.Run(state.Background(), ctx)
+	_, err := chain.Run(context.Background(), ctx)
 	assert.Error(t, err)
 	assert.Equal(t, "after hook failed", err.Error())
 }
@@ -905,7 +905,7 @@ func TestChainRunWithHookOnly(t *testing.T) {
 
 	ctx := NewState[any](map[string]interface{}{"input": "test"})
 
-	result, err := chain.Run(state.Background(), ctx)
+	result, err := chain.Run(context.Background(), ctx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "test", result.Get("input"))
@@ -981,7 +981,7 @@ func NewCountingMockLink(result interface{}, failUntilAttempt int) *CountingMock
 	}
 }
 
-func (cml *CountingMockLink) Call(ctx state.State, c *State[any]) (*State[any], error) {
+func (cml *CountingMockLink) Call(ctx context.Context, c *State[any]) (*State[any], error) {
 	cml.callCount++
 	if cml.shouldError && cml.callCount <= cml.failUntilAttempt {
 		return nil, errors.New("simulated failure")
@@ -997,7 +997,7 @@ func TestRetryLinkMaxRetriesExceeded(t *testing.T) {
 
 	ctx := NewState[any](map[string]interface{}{"input": "test"})
 
-	result, err := retryLink.Call(state.Background(), ctx)
+	result, err := retryLink.Call(context.Background(), ctx)
 
 	// Should have tried 3 times (initial + 2 retries)
 	assert.Equal(t, 3, countingLink.callCount)
@@ -1014,7 +1014,7 @@ func TestRetryLinkZeroRetries(t *testing.T) {
 
 	ctx := NewState[any](map[string]interface{}{"input": "test"})
 
-	result, err := retryLink.Call(state.Background(), ctx)
+	result, err := retryLink.Call(context.Background(), ctx)
 
 	// Should have tried only once
 	assert.Equal(t, 1, countingLink.callCount)
@@ -1030,7 +1030,7 @@ func TestRetryLinkExactRetryCount(t *testing.T) {
 
 	ctx := NewState[any](map[string]interface{}{"input": "test"})
 
-	result, err := retryLink.Call(state.Background(), ctx)
+	result, err := retryLink.Call(context.Background(), ctx)
 
 	// Should have tried 3 times: fail, fail, success
 	assert.Equal(t, 3, countingLink.callCount)
@@ -1046,7 +1046,7 @@ func TestRetryLinkSuccessOnFirstTry(t *testing.T) {
 
 	ctx := NewState[any](map[string]interface{}{"input": "test"})
 
-	result, err := retryLink.Call(state.Background(), ctx)
+	result, err := retryLink.Call(context.Background(), ctx)
 
 	// Should have tried only once
 	assert.Equal(t, 1, countingLink.callCount)
@@ -1066,14 +1066,14 @@ func TestHookInterfaceDirectCall(t *testing.T) {
 	testErr := errors.New("test error")
 
 	// Call methods through interface
-	err := mw.Before(state.Background(), link, ctx)
+	err := mw.Before(context.Background(), link, ctx)
 	assert.NoError(t, err)
 
 	resultCtx := ctx.Insert("result", "processed")
-	err = mw.After(state.Background(), link, resultCtx)
+	err = mw.After(context.Background(), link, resultCtx)
 	assert.NoError(t, err)
 
-	err = mw.OnError(state.Background(), link, testErr, ctx)
+	err = mw.OnError(context.Background(), link, testErr, ctx)
 	assert.NoError(t, err)
 }
 
@@ -1086,7 +1086,7 @@ func TestChainRunNoHook(t *testing.T) {
 
 	ctx := NewState[any](map[string]interface{}{"input": "test"})
 
-	result, err := chain.Run(state.Background(), ctx)
+	result, err := chain.Run(context.Background(), ctx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "result", result.Get("result"))
@@ -1107,7 +1107,7 @@ func TestChainRunPerLinkBeforeHookFailure(t *testing.T) {
 	ctx := NewState[any](map[string]interface{}{"input": "test"})
 
 	// Should fail at per-link before hook
-	_, err := chain.Run(state.Background(), ctx)
+	_, err := chain.Run(context.Background(), ctx)
 	assert.Error(t, err)
 	assert.Equal(t, "per-link before failed", err.Error())
 }
@@ -1118,7 +1118,7 @@ type PerLinkFailingBeforeHook struct {
 	callCount int
 }
 
-func (plfbm *PerLinkFailingBeforeHook) Before(ctx state.State, link Link[any, any], c *State[any]) error {
+func (plfbm *PerLinkFailingBeforeHook) Before(ctx context.Context, link Link[any, any], c *State[any]) error {
 	plfbm.callCount++
 	// Fail only on the second call (per-link before, not initial before)
 	if plfbm.callCount == 2 && link != nil {
@@ -1140,7 +1140,7 @@ func TestChainRunPerLinkAfterHookFailure(t *testing.T) {
 	ctx := NewState[any](map[string]interface{}{"input": "test"})
 
 	// Should fail at per-link after hook
-	_, err := chain.Run(state.Background(), ctx)
+	_, err := chain.Run(context.Background(), ctx)
 	assert.Error(t, err)
 	assert.Equal(t, "per-link after failed", err.Error())
 }
@@ -1150,7 +1150,7 @@ type PerLinkFailingAfterHook struct {
 	nopHook
 }
 
-func (plfam *PerLinkFailingAfterHook) After(ctx state.State, link Link[any, any], c *State[any]) error {
+func (plfam *PerLinkFailingAfterHook) After(ctx context.Context, link Link[any, any], c *State[any]) error {
 	// Fail only when called with a link (per-link after, not final after)
 	if link != nil {
 		return errors.New("per-link after failed")

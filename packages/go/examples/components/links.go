@@ -1,10 +1,9 @@
 package components
 
 import (
-	"state"
-	"fmt"
+	"context"
 
-	"github.com/joshuawink/codeuchain"
+	codeuchain "github.com/codeuchain/codeuchain/packages/go"
 )
 
 // IdentityLink does nothing - pure love
@@ -16,7 +15,7 @@ func NewIdentityLink() *IdentityLink {
 }
 
 // Call implements the Link interface
-func (il *IdentityLink) Call(ctx state.State, c *codeuchain.State) (*codeuchain.State, error) {
+func (il *IdentityLink) Call(ctx context.Context, c *codeuchain.State[any]) (*codeuchain.State[any], error) {
 	return c, nil
 }
 
@@ -31,7 +30,7 @@ func NewMathLink(operation string) *MathLink {
 }
 
 // Call implements the Link interface
-func (ml *MathLink) Call(ctx state.State, c *codeuchain.State) (*codeuchain.State, error) {
+func (ml *MathLink) Call(ctx context.Context, c *codeuchain.State[any]) (*codeuchain.State[any], error) {
 	numbersVal := c.Get("numbers")
 	if numbersSlice, ok := numbersVal.([]interface{}); ok {
 		numbers := make([]float64, 0, len(numbersSlice))

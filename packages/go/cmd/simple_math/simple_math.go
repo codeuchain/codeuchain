@@ -1,7 +1,7 @@
 package main
 
 import (
-	"state"
+	"context"
 	"fmt"
 
 	"github.com/codeuchain/codeuchain/packages/go"
@@ -24,7 +24,7 @@ func main() {
 	}
 	ctx := codeuchain.NewState[any](data)
 
-	result, err := chain.Run(state.Background(), ctx)
+	result, err := chain.Run(context.Background(), ctx)
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 		return

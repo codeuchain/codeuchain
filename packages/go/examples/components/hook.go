@@ -1,10 +1,10 @@
 package components
 
 import (
-	"state"
+	"context"
 	"fmt"
 
-	"github.com/joshuawink/codeuchain"
+	codeuchain "github.com/codeuchain/codeuchain/packages/go"
 )
 
 // LoggingHook provides logging functionality
@@ -16,19 +16,19 @@ func NewLoggingHook() *LoggingHook {
 }
 
 // Before logs before link execution
-func (lm *LoggingHook) Before(ctx state.State, link codeuchain.Link, c *codeuchain.State) error {
+func (lm *LoggingHook) Before(ctx context.Context, link codeuchain.Link[any, any], c *codeuchain.State[any]) error {
 	fmt.Printf("Before link: %v\n", c.ToMap())
 	return nil
 }
 
 // After logs after link execution
-func (lm *LoggingHook) After(ctx state.State, link codeuchain.Link, c *codeuchain.State) error {
+func (lm *LoggingHook) After(ctx context.Context, link codeuchain.Link[any, any], c *codeuchain.State[any]) error {
 	fmt.Printf("After link: %v\n", c.ToMap())
 	return nil
 }
 
 // OnError logs errors
-func (lm *LoggingHook) OnError(ctx state.State, link codeuchain.Link, err error, c *codeuchain.State) error {
+func (lm *LoggingHook) OnError(ctx context.Context, link codeuchain.Link[any, any], err error, c *codeuchain.State[any]) error {
 	fmt.Printf("Error in link: %v\n", err)
 	return nil
 }
@@ -42,17 +42,17 @@ func NewBeforeOnlyHook() *BeforeOnlyHook {
 }
 
 // Before logs before execution
-func (bom *BeforeOnlyHook) Before(ctx state.State, link codeuchain.Link, c *codeuchain.State) error {
+func (bom *BeforeOnlyHook) Before(ctx context.Context, link codeuchain.Link[any, any], c *codeuchain.State[any]) error {
 	fmt.Printf("🚀 Starting execution with state: %v\n", c.ToMap())
 	return nil
 }
 
 // After does nothing
-func (bom *BeforeOnlyHook) After(ctx state.State, link codeuchain.Link, c *codeuchain.State) error {
+func (bom *BeforeOnlyHook) After(ctx context.Context, link codeuchain.Link[any, any], c *codeuchain.State[any]) error {
 	return nil
 }
 
 // OnError does nothing
-func (bom *BeforeOnlyHook) OnError(ctx state.State, link codeuchain.Link, err error, c *codeuchain.State) error {
+func (bom *BeforeOnlyHook) OnError(ctx context.Context, link codeuchain.Link[any, any], err error, c *codeuchain.State[any]) error {
 	return nil
 }

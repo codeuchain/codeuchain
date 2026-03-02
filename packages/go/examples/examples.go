@@ -2,7 +2,7 @@
 package examples
 
 import (
-	"state"
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -19,7 +19,7 @@ func NewIdentityLink() *IdentityLink {
 }
 
 // Call implements the Link interface
-func (il *IdentityLink) Call(ctx state.State, c *codeuchain.State[any]) (*codeuchain.State[any], error) {
+func (il *IdentityLink) Call(ctx context.Context, c *codeuchain.State[any]) (*codeuchain.State[any], error) {
 	return c, nil
 }
 
@@ -34,7 +34,7 @@ func NewMathLink(operation string) *MathLink {
 }
 
 // Call implements the Link interface
-func (ml *MathLink) Call(ctx state.State, c *codeuchain.State[any]) (*codeuchain.State[any], error) {
+func (ml *MathLink) Call(ctx context.Context, c *codeuchain.State[any]) (*codeuchain.State[any], error) {
 	numbersVal := c.Get("numbers")
 	numbers, ok := numbersVal.([]interface{})
 	if !ok {
@@ -91,7 +91,7 @@ func NewLoggingHook() *LoggingHook {
 }
 
 // Before implements the Hook interface
-func (lm *LoggingHook) Before(ctx state.State, link codeuchain.Link[any, any], c *codeuchain.State[any]) error {
+func (lm *LoggingHook) Before(ctx context.Context, link codeuchain.Link[any, any], c *codeuchain.State[any]) error {
 	if link != nil {
 		log.Printf("Before link execution: %v", c.ToMap())
 	} else {
@@ -101,7 +101,7 @@ func (lm *LoggingHook) Before(ctx state.State, link codeuchain.Link[any, any], c
 }
 
 // After implements the Hook interface
-func (lm *LoggingHook) After(ctx state.State, link codeuchain.Link[any, any], c *codeuchain.State[any]) error {
+func (lm *LoggingHook) After(ctx context.Context, link codeuchain.Link[any, any], c *codeuchain.State[any]) error {
 	if link != nil {
 		log.Printf("After link execution: %v", c.ToMap())
 	} else {
@@ -111,7 +111,7 @@ func (lm *LoggingHook) After(ctx state.State, link codeuchain.Link[any, any], c 
 }
 
 // OnError implements the Hook interface
-func (lm *LoggingHook) OnError(ctx state.State, link codeuchain.Link[any, any], err error, c *codeuchain.State[any]) error {
+func (lm *LoggingHook) OnError(ctx context.Context, link codeuchain.Link[any, any], err error, c *codeuchain.State[any]) error {
 	log.Printf("Error in execution: %v, state: %v", err, c.ToMap())
 	return nil
 }
@@ -129,7 +129,7 @@ func NewTimingHook() *TimingHook {
 }
 
 // Before implements the Hook interface
-func (tm *TimingHook) Before(ctx state.State, link codeuchain.Link[any, any], c *codeuchain.State[any]) error {
+func (tm *TimingHook) Before(ctx context.Context, link codeuchain.Link[any, any], c *codeuchain.State[any]) error {
 	if link != nil {
 		// Use a simple string representation for timing
 		linkKey := fmt.Sprintf("%p", link)
@@ -139,7 +139,7 @@ func (tm *TimingHook) Before(ctx state.State, link codeuchain.Link[any, any], c 
 }
 
 // After implements the Hook interface
-func (tm *TimingHook) After(ctx state.State, link codeuchain.Link[any, any], c *codeuchain.State[any]) error {
+func (tm *TimingHook) After(ctx context.Context, link codeuchain.Link[any, any], c *codeuchain.State[any]) error {
 	if link != nil {
 		linkKey := fmt.Sprintf("%p", link)
 		if startTime, exists := tm.StartTimes[linkKey]; exists {
@@ -152,7 +152,7 @@ func (tm *TimingHook) After(ctx state.State, link codeuchain.Link[any, any], c *
 }
 
 // OnError implements the Hook interface
-func (tm *TimingHook) OnError(ctx state.State, link codeuchain.Link[any, any], err error, c *codeuchain.State[any]) error {
+func (tm *TimingHook) OnError(ctx context.Context, link codeuchain.Link[any, any], err error, c *codeuchain.State[any]) error {
 	if link != nil {
 		linkKey := fmt.Sprintf("%p", link)
 		if startTime, exists := tm.StartTimes[linkKey]; exists {
@@ -200,7 +200,7 @@ func SimpleMathExample() {
 	ctx := codeuchain.NewState[any](data)
 
 	// Run the chain
-	result, err := chain.Run(state.Background(), ctx)
+	result, err := chain.Run(context.Background(), ctx)
 	if err != nil {
 		log.Printf("Error: %v", err)
 		return
@@ -228,7 +228,7 @@ func HookExample() {
 	ctx := codeuchain.NewState[any](data)
 
 	// Run with hook
-	result, err := chain.Run(state.Background(), ctx)
+	result, err := chain.Run(context.Background(), ctx)
 	if err != nil {
 		log.Printf("Error: %v", err)
 		return
