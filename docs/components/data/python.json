@@ -2,7 +2,10 @@
   "language_name": "Python",
   "title": "CodeUChain Python - Async-First Chain Architecture",
   "hero_description": "Beautiful async chains with type hints and runtime flexibility. The same elegant patterns, powered by Python's async ecosystem.",
-  "import://base.json:source_link": null,
+  "source_link": "https://github.com/codeuchain/codeuchain/tree/main/packages/python",
+  "install_command": "pip install codeuchain",
+  "quick_example": "from codeuchain import Chain, Link, State\n\ndef fetch_user(ctx):\n    ctx.set('user', {'id': ctx.get('user_id'), 'role': 'admin'})\n    return ctx\n\ndef check_permissions(ctx):\n    if ctx.get('user')['role'] != 'admin':\n        raise Exception('Unauthorized')\n    return ctx\n\nworkflow = Chain()\\\n    .add_link(Link('fetch', fetch_user))\\\n    .add_link(Link('auth', check_permissions))\n\nresult = workflow.execute(State({'user_id': 101}))\nprint(result.get('user'))",
+  "import://base.json:version": null,
   "import://base.json:logo_link": null,
   "is_homepage": false
 }

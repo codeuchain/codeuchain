@@ -3,6 +3,9 @@
   "title": "CodeUChain C# - Enterprise Chain Architecture",
   "hero_description": "Enterprise-grade chains with LINQ integration and async patterns. Production-ready for .NET ecosystems.",
   "source_link": "https://github.com/codeuchain/codeuchain/tree/main/packages/csharp",
+  "install_command": "dotnet add package CodeUChain",
+  "quick_example": "var pipeline = new Chain()\n  .AddLink(new Link(\"validate_stock\", ctx => {\n    int qty = (int)ctx.Get(\"quantity\");\n    if (qty > 100) throw new Exception(\"Out of stock\");\n    return ctx;\n  }))\n  .AddLink(new Link(\"calc_total\", ctx => {\n    ctx.Set(\"total\", 10.00 * (int)ctx.Get(\"quantity\"));\n    return ctx;\n  }));\n\nvar result = pipeline.Execute(new State().Set(\"quantity\", 5));\nConsole.WriteLine($\"Total: ${result.Get(\"total\")}\");",
+  "import://base.json:version": null,
   "import://base.json:logo_link": null,
   "is_homepage": false
 }

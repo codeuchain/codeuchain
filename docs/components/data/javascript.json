@@ -3,6 +3,9 @@
   "title": "CodeUChain JavaScript - TypeScript Generics & Async Chains",
   "hero_description": "Modern JavaScript with TypeScript generics and async processing pipelines. The future of web development, today.",
   "source_link": "https://github.com/codeuchain/codeuchain/tree/main/packages/javascript",
+  "install_command": "npm install codeuchain",
+  "quick_example": "import { Chain, Link, State } from 'codeuchain';\n\nconst pipeline = new Chain()\n  .addLink(new Link('validate', ctx => {\n    if (!ctx.get('email').includes('@'))\n      throw new Error('Invalid email');\n    return ctx;\n  }))\n  .addLink(new Link('save', ctx => {\n    ctx.set('user_id', 42);\n    return ctx;\n  }));\n\nconst result = pipeline.execute(\n  new State({ email: 'user@example.com' })\n);\nconsole.log('User ID:', result.get('user_id'));",
+  "import://base.json:version": null,
   "import://base.json:logo_link": null,
   "is_homepage": false
 }

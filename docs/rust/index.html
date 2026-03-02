@@ -115,7 +115,7 @@
     <section class="pt-24 pb-16 px-6">
         <div class="max-w-7xl mx-auto text-center">
             <div class="inline-block glass-morphism px-4 py-2 rounded-full text-sm mb-8 animate-fade-in">
-                <span class="text-code-accent">v1.0.0</span> • Rust Edition
+                <span class="text-code-accent">v2.0.0</span> • Rust Edition
             </div>
 
             <h1 class="text-6xl lg:text-8xl font-bold mb-6 animate-slide-up">
@@ -424,77 +424,61 @@
     <section id="quickstart" class="py-20 px-6 bg-gradient-to-r from-code-darker to-black">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-16">
-                <h2 class="text-4xl lg:text-5xl font-bold mb-6 gradient-text">Getting Started</h2>
-                <p class="text-xl text-gray-400">Your journey to elegant architecture begins here</p>
+                <h2 class="text-4xl lg:text-5xl font-bold mb-6 gradient-text">Quick Start</h2>
+                <p class="text-xl text-gray-400">Install and write your first chain in minutes</p>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                <!-- Natural Language Approach -->
+                <!-- Install -->
                 <div class="code-block rounded-2xl p-8">
-                    <h3 class="text-2xl font-bold text-code-accent mb-6">📖 Understanding Through Language</h3>
+                    <h3 class="text-xl font-bold text-code-accent mb-4">📦 Install</h3>
+                    <div class="bg-black/60 rounded-xl p-4 font-mono text-sm border border-code-accent/20 mb-6">
+                        <span class="text-code-green select-all">cargo add codeuchain</span>
+                    </div>
 
-                    <div class="space-y-6">
-                        <div>
-                            <h4 class="text-code-green mb-2">No Programming Required</h4>
-                            <p class="text-gray-300 text-sm">The pseudocode explains concepts in plain English, making the architecture accessible to everyone.</p>
+                    <h3 class="text-xl font-bold text-code-accent mb-4">🧠 Mental Model</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-16 text-code-accent font-mono font-bold shrink-0">State</span>
+                            <span class="text-gray-300">The data box flowing through your pipeline</span>
                         </div>
-
-                        <div>
-                            <h4 class="text-code-green mb-2">Human-Centered Design</h4>
-                            <p class="text-gray-300 text-sm">Built around how humans naturally think and solve problems, not machine optimization.</p>
+                        <div class="flex items-center space-x-3">
+                            <span class="w-16 text-code-green font-mono font-bold shrink-0">Link</span>
+                            <span class="text-gray-300">One focused unit of work — receives State, returns State</span>
                         </div>
-
-                        <div>
-                            <h4 class="text-code-green mb-2">Universal Understanding</h4>
-                            <p class="text-gray-300 text-sm">The same mental model works across all programming languages and domains.</p>
+                        <div class="flex items-center space-x-3">
+                            <span class="w-16 text-code-purple font-mono font-bold shrink-0">Chain</span>
+                            <span class="text-gray-300">Ordered sequence of Links — runs them in order</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="w-16 text-code-orange font-mono font-bold shrink-0">Hook</span>
+                            <span class="text-gray-300">Parallel observer — logging, metrics, caching</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Next Steps -->
+                <!-- Code Example -->
                 <div class="code-block rounded-2xl p-8">
-                    <h3 class="text-2xl font-bold text-code-purple mb-6">🚀 Your Next Steps</h3>
+                    <h3 class="text-xl font-bold text-code-purple mb-4">⚡ Your First Chain</h3>
+                    <div class="bg-black/60 rounded-xl p-4 font-mono text-xs border border-code-purple/20 overflow-x-auto">
+                        <pre class="text-gray-200 whitespace-pre">let chain = Chain::new()
+  .add_link(Box::new(Link::new("sanitize", |ctx| {
+    let input = ctx.get("input")
+      .and_then(|v| v.as_str())
+      .unwrap_or("")
+      .trim().to_string();
+    ctx.set("input", json!(input));
+    ctx
+  })))
+  .add_link(Box::new(Link::new("process", |ctx| {
+    ctx.set("result", json!("done"));
+    ctx
+  })));
 
-                    <div class="space-y-4">
-                        <div class="flex items-start space-x-3">
-                            <div class="w-8 h-8 bg-code-accent/20 rounded-lg flex items-center justify-center mt-1">
-                                <span class="text-code-accent font-bold">1</span>
-                            </div>
-                            <div>
-                                <h4 class="text-code-accent font-semibold">Read the Concepts</h4>
-                                <p class="text-gray-300 text-sm">Understand Link, State, and Chain primitives</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start space-x-3">
-                            <div class="w-8 h-8 bg-code-green/20 rounded-lg flex items-center justify-center mt-1">
-                                <span class="text-code-green font-bold">2</span>
-                            </div>
-                            <div>
-                                <h4 class="text-code-green font-semibold">Choose Your Language</h4>
-                                <p class="text-gray-300 text-sm">Pick from Python, Go, JavaScript, C#, Rust, and more</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start space-x-3">
-                            <div class="w-8 h-8 bg-code-purple/20 rounded-lg flex items-center justify-center mt-1">
-                                <span class="text-code-purple font-bold">3</span>
-                            </div>
-                            <div>
-                                <h4 class="text-code-purple font-semibold">Build Your First Chain</h4>
-                                <p class="text-gray-300 text-sm">Create simple links and compose them together</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start space-x-3">
-                            <div class="w-8 h-8 bg-code-orange/20 rounded-lg flex items-center justify-center mt-1">
-                                <span class="text-code-orange font-bold">4</span>
-                            </div>
-                            <div>
-                                <h4 class="text-code-orange font-semibold">Experience the Flow</h4>
-                                <p class="text-gray-300 text-sm">Discover why this architecture feels so fundamentally right</p>
-                            </div>
-                        </div>
+let mut ctx = State::new();
+ctx.set("input", json!("  hello  "));
+let result = chain.execute(ctx);
+println!("{:?}", result.get("result"));</pre>
                     </div>
                 </div>
             </div>

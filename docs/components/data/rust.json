@@ -3,6 +3,9 @@
   "title": "CodeUChain Rust - Memory-Safe Chain Architecture",
   "hero_description": "Zero-cost abstractions with compile-time guarantees. Memory-safe chains that perform like C++.",
   "source_link": "https://github.com/codeuchain/codeuchain/tree/main/packages/rust",
+  "install_command": "cargo add codeuchain",
+  "quick_example": "let chain = Chain::new()\n  .add_link(Box::new(Link::new(\"sanitize\", |ctx| {\n    let input = ctx.get(\"input\")\n      .and_then(|v| v.as_str())\n      .unwrap_or(\"\")\n      .trim().to_string();\n    ctx.set(\"input\", json!(input));\n    ctx\n  })))\n  .add_link(Box::new(Link::new(\"process\", |ctx| {\n    ctx.set(\"result\", json!(\"done\"));\n    ctx\n  })));\n\nlet mut ctx = State::new();\nctx.set(\"input\", json!(\"  hello  \"));\nlet result = chain.execute(ctx);\nprintln!(\"{:?}\", result.get(\"result\"));",
+  "import://base.json:version": null,
   "import://base.json:logo_link": null,
   "is_homepage": false
 }

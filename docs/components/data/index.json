@@ -3,7 +3,10 @@
   "language_name": "CodeUChain",
   "language_description": "Universal Chain Architecture",
   "hero_description": "The same elegant patterns, expressed in every programming language. A universal architecture that makes complex systems simple, beautiful, and maintainable across Python, Go, JavaScript, C#, Rust, and beyond.",
+  "install_command": "pip install codeuchain  # Python\nnpm install codeuchain  # JavaScript\ncargo add codeuchain    # Rust\ngo get github.com/codeuchain/codeuchain/go  # Go",
+  "quick_example": "# Universal pattern — same in every language\nstate  = new State({ user_id: 101 })\n\nchain = new Chain()\n  .add(Link('fetch',   ctx -> fetch_user(ctx)))\n  .add(Link('auth',    ctx -> check_role(ctx, 'admin')))\n  .add(Link('process', ctx -> run_business_logic(ctx)))\n\nresult = chain.execute(state)\n\nif result.error:\n    handle_failure(result.error)\nelse:\n    print(result.get('output'))",
   "import://base.json:source_link": null,
+  "import://base.json:version": null,
   "import://base.json:logo_link": null,
   "is_homepage": true
 }

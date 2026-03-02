@@ -2,7 +2,10 @@
   "language_name": "Go",
   "title": "CodeUChain Go - High-Performance Chain Architecture",
   "hero_description": "Lightning-fast concurrency with Go's goroutines and channels. Production-ready chains that scale beautifully.",
-  "import://base.json:source_link": null,
+  "source_link": "https://github.com/codeuchain/codeuchain/tree/main/packages/go",
+  "install_command": "go get github.com/codeuchain/codeuchain/go",
+  "quick_example": "import (\n    cuc \"github.com/codeuchain/codeuchain/go\"\n)\n\nvalidate := func(ctx *cuc.State) *cuc.State {\n    if ctx.Get(\"age\").(int) < 18 {\n        ctx.Error = errors.New(\"too young\")\n    }\n    return ctx\n}\n\napprove := func(ctx *cuc.State) *cuc.State {\n    ctx.Set(\"status\", \"approved\")\n    return ctx\n}\n\npipeline := cuc.Chain{}\npipeline.AddLink(cuc.NewLink(\"validate\", validate))\npipeline.AddLink(cuc.NewLink(\"approve\", approve))\n\nresult := pipeline.Execute(cuc.NewState(map[string]any{\"age\": 20}))\nfmt.Println(result.Get(\"status\"))",
+  "import://base.json:version": null,
   "import://base.json:logo_link": null,
   "is_homepage": false
 }
