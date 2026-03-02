@@ -6,7 +6,7 @@ Core implementation that all chain implementations can build upon.
 Enhanced with generic typing for type-safe workflows.
 """
 
-from typing import Dict, List, Callable, Optional, TypeVar, Generic
+from typing import Any, Dict, List, Callable, Optional, Set, Tuple, TypeVar, Generic
 from .state import State
 from .link import Link
 from .hook import Hook
@@ -36,8 +36,21 @@ class Chain(Generic[TInput, TOutput]):
         link_name = name or link.__class__.__name__
         self._links[link_name] = link
 
-    def connect(self, source: str, target: str, condition: Callable[[State[TInput]], bool]) -> None:
-        """With compassionate logic, add a connection."""
+    def connect(self, source: str, target: str, condition: Callable[[State[Any]], bool]) -> None:
+        """
+        With compassionate logic, add a conditional connection between two links.
+
+        The condition is evaluated just before the target link would execute, but
+        only if its *source* link has already executed in this run.  If *any*
+        registered condition (whose source has run) evaluates to True, the target
+        link executes.  If *all* such conditions evaluate to False—or if no source
+        link has executed yet—the target link is skipped entirely.
+
+        Links that have no incoming connections are always executed.
+
+        The predicate accepts ``State[Any]`` so it works correctly across all
+        stages of a typed chain where the state type evolves between links.
+        """
         self._connections.append((source, target, condition))
 
     def use_hook(self, hook: Hook) -> None:
@@ -48,6 +61,16 @@ class Chain(Generic[TInput, TOutput]):
         """With selfless execution, flow through links."""
         ctx = initial_ctx
 
+        # Build a map of target link name -> list of (source, condition) pairs
+        # so we can evaluate predicates before each link executes.
+        incoming: Dict[str, List[Tuple[str, Any]]] = {}
+        for source, target, condition in self._connections:
+            incoming.setdefault(target, []).append((source, condition))
+
+        # Track which links have completed so we only evaluate predicates from
+        # sources that have actually run.
+        executed_links: Set[str] = set()
+
         # Execute hook before hooks
         for mw in self._hook:
             await mw.before(None, ctx)
@@ -55,12 +78,25 @@ class Chain(Generic[TInput, TOutput]):
         try:
             # Simple linear execution for now
             for name, link in self._links.items():
+                # If this link has incoming connections, only evaluate predicates
+                # whose source has already executed.  Skip unless at least one
+                # predicate evaluates to True.
+                if name in incoming:
+                    relevant = [
+                        cond for src, cond in incoming[name]
+                        if src in executed_links
+                    ]
+                    if not relevant or not any(cond(ctx) for cond in relevant):
+                        continue
+
                 # Execute hook before each link
                 for mw in self._hook:
                     await mw.before(link, ctx)
 
                 # Execute the link - this evolves the state type
                 ctx = await link.call(ctx)  # type: ignore
+
+                executed_links.add(name)
 
                 # Execute hook after each link
                 for mw in self._hook:
