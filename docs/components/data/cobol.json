@@ -3,6 +3,8 @@
   "title": "CodeUChain COBOL - Enterprise Chain Architecture",
   "hero_description": "Battle-tested chain patterns for enterprise systems. The reliability of COBOL meets the flexibility of modern architecture.",
   "source_link": "https://github.com/codeuchain/codeuchain/tree/main/packages/cobol",
+  "install_command": "npm install codeuchain-cobol",
+  "quick_example": "CALL 'STATE-INIT' USING WS-STATE\nCALL 'STATE-SET' USING WS-STATE 'NAME' 'WORLD'\nCALL 'CHAIN-ADD' USING WS-CHAIN 'GREET'\nCALL 'CHAIN-EXECUTE' USING WS-CHAIN WS-STATE\nCALL 'STATE-GET' USING WS-STATE 'GREETING' WS-RESULT",
   "import://base.json:version": null,
   "import://base.json:logo_link": null,
   "is_homepage": false

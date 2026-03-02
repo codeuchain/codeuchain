@@ -4,7 +4,7 @@
   "hero_description": "Robust, scalable chains for enterprise applications. The power of Java's ecosystem meets modern architectural patterns.",
   "source_link": "https://github.com/codeuchain/codeuchain/tree/main/packages/java",
   "install_command": "<!-- Maven -->\n<dependency>\n  <groupId>io.codeuchain</groupId>\n  <artifactId>codeuchain</artifactId>\n  <version>0.3.0</version>\n</dependency>",
-  "quick_example": "Chain chain = new Chain()\n  .addLink(new Link(\"parse\", ctx -> {\n    ctx.set(\"body\", \"{ data: ... }\");\n    return ctx;\n  }))\n  .addLink(new Link(\"validate\", ctx -> {\n    String body = (String) ctx.get(\"body\");\n    if (body == null) ctx.error = new Exception(\"No body\");\n    return ctx;\n  }));\n\nContext result = chain.execute(new Context().set(\"raw\", \"...\"));\nSystem.out.println(result.error != null ? \"Failed\" : \"Success\");",
+  "quick_example": "Chain chain = new Chain()\n  .addLink(new Link(\"parse\", ctx -> {\n    ctx.set(\"body\", \"{ data: ... }\");\n    return ctx;\n  }))\n  .addLink(new Link(\"validate\", ctx -> {\n    String body = (String) ctx.get(\"body\");\n    if (body == null) ctx.error = new Exception(\"No body\");\n    return ctx;\n  }));\n\nState result = chain.execute(new State().set(\"raw\", \"...\"));\nSystem.out.println(result.error != null ? \"Failed\" : \"Success\");",
   "import://base.json:version": null,
   "import://base.json:logo_link": null,
   "is_homepage": false

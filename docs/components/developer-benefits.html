@@ -3,64 +3,109 @@
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-16">
                 <h2 class="text-4xl lg:text-5xl font-bold mb-6 gradient-text">Developer Benefits</h2>
-                <p class="text-xl text-gray-400">Why developers naturally gravitate toward this architecture</p>
+                <p class="text-xl text-gray-400">Practical advantages you get from day one</p>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                <div class="space-y-8">
-                    <div class="code-block rounded-2xl p-8 border-l-4 border-code-accent">
-                        <div class="flex items-center mb-4">
-                            <div class="w-10 h-10 bg-code-accent/20 rounded-lg flex items-center justify-center mr-3">
-                                <span class="text-xl">🎯</span>
-                            </div>
-                            <h3 class="text-2xl font-bold text-code-accent">Predictable Behavior</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Testable -->
+                <div class="code-block rounded-2xl p-8 border-l-4 border-code-accent hover-lift animate-slide-up">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-code-accent/20 rounded-lg flex items-center justify-center mr-3">
+                            <span class="text-xl">&#x1F9EA;</span>
                         </div>
-                        <p class="text-gray-300 mb-4">
-                            CodeUChain gives you psychological safety with predictable behavior, composition, and evolution.
-                        </p>
-                        <div class="bg-black/50 rounded-lg p-4 border border-code-accent/20">
-                            <p class="text-code-accent italic text-center">
-                                "You can confidently make changes because you know the impact will be contained."
-                            </p>
-                        </div>
+                        <h3 class="text-xl font-bold text-code-accent">Testable by Default</h3>
                     </div>
-
-                    <div class="code-block rounded-2xl p-8 border-l-4 border-code-green">
-                        <div class="flex items-center mb-4">
-                            <div class="w-10 h-10 bg-code-green/20 rounded-lg flex items-center justify-center mr-3">
-                                <span class="text-xl">🌊</span>
-                            </div>
-                            <h3 class="text-2xl font-bold text-code-green">Creative Flow State</h3>
-                        </div>
-                        <p class="text-gray-300">
-                            CodeUChain unlocks the flow state that makes programming addictive:
-                        </p>
-                        <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-green/20 mt-4">
-                            <div class="text-code-green">Clear goal → Immediate feedback → Sense of progress → Deep focus</div>
-                        </div>
+                    <p class="text-gray-300 mb-4">
+                        Each Link is a pure function: State in, State out. Mock nothing &mdash; just pass test data.
+                    </p>
+                    <div class="bg-black/50 rounded-lg p-3 font-mono text-xs border border-code-accent/20">
+                        <div class="text-code-green">result = myLink.call(State({ input: "test" }))</div>
+                        <div class="text-code-green">assert result.get("output") == expected</div>
                     </div>
                 </div>
 
-                <div class="code-block rounded-2xl p-8 border-l-4 border-code-purple">
-                    <div class="flex items-center mb-6">
-                        <div class="w-10 h-10 bg-code-purple/20 rounded-lg flex items-center justify-center mr-3">
-                            <span class="text-xl">⚡</span>
+                <!-- Reusable -->
+                <div class="code-block rounded-2xl p-8 border-l-4 border-code-green hover-lift animate-slide-up animate-delay-1">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-code-green/20 rounded-lg flex items-center justify-center mr-3">
+                            <span class="text-xl">&#x1F504;</span>
                         </div>
-                        <h3 class="text-2xl font-bold text-code-purple">Architectural Elegance</h3>
+                        <h3 class="text-xl font-bold text-code-green">Reusable Components</h3>
                     </div>
-                    <div class="space-y-6">
-                        <div>
-                            <h4 class="text-code-purple font-semibold mb-2">Symmetry in Design</h4>
-                            <p class="text-gray-300 text-sm">Input → Processing → Output: Clean, unidirectional flow</p>
+                    <p class="text-gray-300 mb-4">
+                        Write a Link once, drop it into any Chain. Build a library of battle-tested building blocks.
+                    </p>
+                    <div class="bg-black/50 rounded-lg p-3 font-mono text-xs border border-code-green/20">
+                        <div class="text-code-green">orderChain.add(validateEmail)   // reuse</div>
+                        <div class="text-code-green">signupChain.add(validateEmail)  // reuse</div>
+                    </div>
+                </div>
+
+                <!-- Polyglot -->
+                <div class="code-block rounded-2xl p-8 border-l-4 border-code-purple hover-lift animate-slide-up animate-delay-2">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-code-purple/20 rounded-lg flex items-center justify-center mr-3">
+                            <span class="text-xl">&#x1F30D;</span>
                         </div>
-                        <div>
-                            <h4 class="text-code-purple font-semibold mb-2">Power of Constraints</h4>
-                            <p class="text-gray-300 text-sm">Freedom within structure, creativity within predictability</p>
+                        <h3 class="text-xl font-bold text-code-purple">One Pattern, Every Language</h3>
+                    </div>
+                    <p class="text-gray-300 mb-4">
+                        Same State &rarr; Link &rarr; Chain model in Python, Go, TypeScript, C#, Rust, Java, and C++.
+                    </p>
+                    <div class="bg-black/50 rounded-lg p-3 font-mono text-xs border border-code-purple/20">
+                        <div class="text-code-green">// Learn once, apply everywhere</div>
+                        <div class="text-code-green">chain.add(link).execute(state)</div>
+                    </div>
+                </div>
+
+                <!-- Contained -->
+                <div class="code-block rounded-2xl p-8 border-l-4 border-code-orange hover-lift animate-slide-up animate-delay-3">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-code-orange/20 rounded-lg flex items-center justify-center mr-3">
+                            <span class="text-xl">&#x1F6E1;&#xFE0F;</span>
                         </div>
-                        <div>
-                            <h4 class="text-code-purple font-semibold mb-2">Emergent Complexity</h4>
-                            <p class="text-gray-300 text-sm">Simple rules create systems of breathtaking complexity</p>
+                        <h3 class="text-xl font-bold text-code-orange">Contained Impact</h3>
+                    </div>
+                    <p class="text-gray-300 mb-4">
+                        Changes to one Link cannot break another. Errors stop the Chain without side effects.
+                    </p>
+                    <div class="bg-black/50 rounded-lg p-3 font-mono text-xs border border-code-orange/20">
+                        <div class="text-code-green">// Link 2 fails? Links 3-5 never run.</div>
+                        <div class="text-code-green">// State stays immutable throughout.</div>
+                    </div>
+                </div>
+
+                <!-- Self-Documenting -->
+                <div class="code-block rounded-2xl p-8 border-l-4 border-code-accent hover-lift animate-slide-up animate-delay-4">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-code-accent/20 rounded-lg flex items-center justify-center mr-3">
+                            <span class="text-xl">&#x1F4D6;</span>
                         </div>
+                        <h3 class="text-xl font-bold text-code-accent">Self-Documenting</h3>
+                    </div>
+                    <p class="text-gray-300 mb-4">
+                        A Chain reads like a checklist. New developers understand the flow in seconds.
+                    </p>
+                    <div class="bg-black/50 rounded-lg p-3 font-mono text-xs border border-code-accent/20">
+                        <div class="text-code-green">Chain: ValidateInput</div>
+                        <div class="text-code-green">&nbsp;&nbsp;&rarr; EnrichData &rarr; Save &rarr; Notify</div>
+                    </div>
+                </div>
+
+                <!-- Typed -->
+                <div class="code-block rounded-2xl p-8 border-l-4 border-code-green hover-lift animate-slide-up animate-delay-5">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-code-green/20 rounded-lg flex items-center justify-center mr-3">
+                            <span class="text-xl">&#x26A1;</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-code-green">Opt-In Type Safety</h3>
+                    </div>
+                    <p class="text-gray-300 mb-4">
+                        Start untyped for speed. Add generics when you need compile-time guarantees.
+                    </p>
+                    <div class="bg-black/50 rounded-lg p-3 font-mono text-xs border border-code-green/20">
+                        <div class="text-code-green">Link[UserInput, UserOutput]</div>
+                        <div class="text-code-green">State[T].insertAs&lt;U&gt;(k, v)</div>
                     </div>
                 </div>
             </div>

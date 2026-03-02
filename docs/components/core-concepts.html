@@ -2,91 +2,106 @@
     <section id="concepts" class="py-20 px-6">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-16">
-                <h2 class="text-4xl lg:text-5xl font-bold mb-6 gradient-text">The Fundamental Truth</h2>
+                <h2 class="text-4xl lg:text-5xl font-bold mb-6 gradient-text">Core Concepts</h2>
                 <p class="text-xl text-gray-400 max-w-3xl mx-auto">
-                    CodeUChain isn't just a framework—it's the natural way software should be built
+                    Four building blocks. Learn them once, use them in any language.
                 </p>
             </div>
 
-            <div class="code-block rounded-2xl p-8 mb-12 hover-lift animate-slide-up">
-                <div class="text-center mb-8">
-                    <div class="text-6xl mb-4">🎯</div>
-                    <h3 class="text-2xl font-bold text-code-accent mb-4">Why This Architecture Is Inherently Right</h3>
-                    <p class="text-gray-300 text-lg leading-relaxed">
-                        CodeUChain aligns with how humans think, how systems evolve, and how complexity should be managed.
-                        It's not about following trends; it's about following the fundamental principles of good design.
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- State -->
+                <div class="code-block rounded-2xl p-8 hover-lift animate-slide-up">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-code-accent/20 rounded-xl flex items-center justify-center mr-4">
+                            <span class="text-2xl">&#x1F4E6;</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-code-accent">State</h3>
+                    </div>
+                    <p class="text-gray-300 mb-4">Immutable key-value container that carries data through your pipeline.</p>
+                    <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-accent/20 mb-4">
+                        <div class="text-code-green">ctx = State({ user_id: 101, role: "admin" })</div>
+                        <div class="text-code-green">ctx.get("role")  // "admin"</div>
+                        <div class="text-code-green">ctx.set("status", "active")  // returns new State</div>
+                    </div>
+                    <p class="text-sm text-gray-400">
+                        Thread-safe. Each <code>.set()</code> returns a new State &mdash; no mutation, no surprises.
+                    </p>
+                </div>
+
+                <!-- Link -->
+                <div class="code-block rounded-2xl p-8 hover-lift animate-slide-up animate-delay-1">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-code-green/20 rounded-xl flex items-center justify-center mr-4">
+                            <span class="text-2xl">&#x1F517;</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-code-green">Link</h3>
+                    </div>
+                    <p class="text-gray-300 mb-4">A single unit of work. Takes State in, returns State out. One job, done well.</p>
+                    <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-green/20 mb-4">
+                        <div class="text-code-green">Link("validate", ctx =&gt; {</div>
+                        <div class="text-code-green">&nbsp;&nbsp;if (!ctx.get("email").includes("@"))</div>
+                        <div class="text-code-green">&nbsp;&nbsp;&nbsp;&nbsp;throw Error("bad email");</div>
+                        <div class="text-code-green">&nbsp;&nbsp;return ctx;</div>
+                        <div class="text-code-green">})</div>
+                    </div>
+                    <p class="text-sm text-gray-400">
+                        Each Link lives in its own file. Easy to test, reuse, and reason about.
+                    </p>
+                </div>
+
+                <!-- Chain -->
+                <div class="code-block rounded-2xl p-8 hover-lift animate-slide-up animate-delay-2">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-code-purple/20 rounded-xl flex items-center justify-center mr-4">
+                            <span class="text-2xl">&#x26D3;&#xFE0F;</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-code-purple">Chain</h3>
+                    </div>
+                    <p class="text-gray-300 mb-4">Composes Links into an ordered pipeline. Handles execution and error propagation.</p>
+                    <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-purple/20 mb-4">
+                        <div class="text-code-green">chain = Chain()</div>
+                        <div class="text-code-green">&nbsp;&nbsp;.add(validateEmail)</div>
+                        <div class="text-code-green">&nbsp;&nbsp;.add(hashPassword)</div>
+                        <div class="text-code-green">&nbsp;&nbsp;.add(saveUser)</div>
+                        <div class="text-code-green">result = chain.execute(state)</div>
+                    </div>
+                    <p class="text-sm text-gray-400">
+                        If any Link throws, the Chain stops and the error is available on the result.
+                    </p>
+                </div>
+
+                <!-- Hook -->
+                <div class="code-block rounded-2xl p-8 hover-lift animate-slide-up animate-delay-3">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-code-orange/20 rounded-xl flex items-center justify-center mr-4">
+                            <span class="text-2xl">&#x1FA9D;</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-code-orange">Hook</h3>
+                    </div>
+                    <p class="text-gray-300 mb-4">Observes execution without modifying business logic. Runs alongside the Chain.</p>
+                    <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-orange/20 mb-4">
+                        <div class="text-code-green">hook.before(ctx =&gt; log("starting"))</div>
+                        <div class="text-code-green">hook.after(ctx =&gt; log("done"))</div>
+                        <div class="text-code-green">hook.onError(err =&gt; alert(err))</div>
+                    </div>
+                    <p class="text-sm text-gray-400">
+                        Logging, metrics, caching &mdash; without touching your Link code.
                     </p>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Human Mind -->
-                <div class="code-block rounded-2xl p-8 hover-lift animate-slide-up">
-                    <div class="flex items-center mb-6">
-                        <div class="w-12 h-12 bg-code-accent/20 rounded-xl flex items-center justify-center mr-4">
-                            <span class="text-2xl">🧠</span>
+            <!-- How it flows -->
+            <div class="code-block rounded-2xl p-8 mt-12 hover-lift animate-slide-up">
+                <div class="text-center">
+                    <h3 class="text-2xl font-bold text-code-accent mb-6">How It Flows</h3>
+                    <div class="bg-black/50 rounded-lg p-6 font-mono text-sm border border-code-accent/20 inline-block">
+                        <div class="text-code-green text-lg">
+                            State &rarr; Link 1 &rarr; Link 2 &rarr; Link 3 &rarr; Result
                         </div>
-                        <h3 class="text-2xl font-bold text-code-accent">Human Mind Structure</h3>
-                    </div>
-                    <p class="text-gray-300 mb-4">Our brains are wired for chains of thought and sequential processing:</p>
-                    <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-accent/20 mb-4">
-                        <div class="text-code-green">Problem → Analysis → Solution → Verification → Refinement</div>
-                    </div>
-                    <p class="text-sm text-gray-400">
-                        When your code structure matches your thinking patterns, you become 3x more productive.
-                    </p>
-                </div>
-
-                <!-- Universe Composition -->
-                <div class="code-block rounded-2xl p-8 hover-lift animate-slide-up animate-delay-1">
-                    <div class="flex items-center mb-6">
-                        <div class="w-12 h-12 bg-code-green/20 rounded-xl flex items-center justify-center mr-4">
-                            <span class="text-2xl">🌌</span>
+                        <div class="text-gray-500 mt-2">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&uarr; Hook observes each step &uarr;
                         </div>
-                        <h3 class="text-2xl font-bold text-code-green">Universal Composition</h3>
                     </div>
-                    <p class="text-gray-300 mb-4">Everything in nature is built through composition:</p>
-                    <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-green/20 mb-4">
-                        <div class="text-code-green">Small pieces → Combine → Complex systems</div>
-                    </div>
-                    <p class="text-sm text-gray-400">
-                        Atoms form molecules, cells form organs, links form beautiful systems.
-                    </p>
-                </div>
-
-                <!-- Error as Information -->
-                <div class="code-block rounded-2xl p-8 hover-lift animate-slide-up animate-delay-2">
-                    <div class="flex items-center mb-6">
-                        <div class="w-12 h-12 bg-code-purple/20 rounded-xl flex items-center justify-center mr-4">
-                            <span class="text-2xl">📊</span>
-                        </div>
-                        <h3 class="text-2xl font-bold text-code-purple">Error as Information</h3>
-                    </div>
-                    <p class="text-gray-300 mb-4">Traditional systems treat errors as failures. CodeUChain sees them as signals:</p>
-                    <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-purple/20 mb-4">
-                        <div class="text-code-green">Error → Information → Learning → Better System</div>
-                    </div>
-                    <p class="text-sm text-gray-400">
-                        Instead of "crashed," you get "learned something new and became stronger."
-                    </p>
-                </div>
-
-                <!-- Cognitive Freedom -->
-                <div class="code-block rounded-2xl p-8 hover-lift animate-slide-up animate-delay-3">
-                    <div class="flex items-center mb-6">
-                        <div class="w-12 h-12 bg-code-orange/20 rounded-xl flex items-center justify-center mr-4">
-                            <span class="text-2xl">🆓</span>
-                        </div>
-                        <h3 class="text-2xl font-bold text-code-orange">Cognitive Freedom</h3>
-                    </div>
-                    <p class="text-gray-300 mb-4">Traditional code forces you to hold everything in your head:</p>
-                    <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-orange/20 mb-4">
-                        <div class="text-code-green">Before: "Understand everything at once"</div>
-                        <div class="text-code-green">After: "Focus on one link at a time"</div>
-                    </div>
-                    <p class="text-sm text-gray-400">
-                        Your brain can finally relax. Be a focused craftsman, not a superhero.
-                    </p>
                 </div>
             </div>
         </div>

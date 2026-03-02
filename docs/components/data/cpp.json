@@ -3,6 +3,8 @@
   "title": "CodeUChain C++ - High-Performance Chain Architecture",
   "hero_description": "Zero-cost abstractions with maximum performance. Modern C++ patterns for systems that demand speed and efficiency.",
   "source_link": "https://github.com/codeuchain/codeuchain/tree/main/packages/cpp",
+  "install_command": "# CMake\nfind_package(codeuchain REQUIRED)\ntarget_link_libraries(myapp codeuchain::codeuchain)",
+  "quick_example": "auto chain = Chain()\n  .addLink(Link(\"validate\", [](State& ctx) {\n    if (ctx.get(\"input\").empty())\n      throw std::runtime_error(\"empty input\");\n    return ctx;\n  }))\n  .addLink(Link(\"process\", [](State& ctx) {\n    ctx.set(\"result\", \"done\");\n    return ctx;\n  }));\n\nState ctx;\nctx.set(\"input\", \"hello\");\nauto result = chain.execute(ctx);",
   "import://base.json:version": null,
   "import://base.json:logo_link": null,
   "is_homepage": false

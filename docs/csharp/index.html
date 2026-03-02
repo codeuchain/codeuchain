@@ -102,7 +102,7 @@
                     <a href="../" class="hover:text-code-accent transition-colors">Home</a>
                     <a href="#concepts" class="hover:text-code-accent transition-colors">Concepts</a>
                     <a href="#benefits" class="hover:text-code-accent transition-colors">Benefits</a>
-                    <a href="#ai-love" class="hover:text-code-accent transition-colors">AI Love</a>
+                    <a href="#ai-ready" class="hover:text-code-accent transition-colors">AI-Ready</a>
                     <a href="#languages" class="hover:text-code-accent transition-colors">Languages</a>
                     <a href="https://github.com/codeuchain/codeuchain" class="hover:text-code-accent transition-colors">GitHub</a>
                     
@@ -141,191 +141,241 @@
     <section id="concepts" class="py-20 px-6">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-16">
-                <h2 class="text-4xl lg:text-5xl font-bold mb-6 gradient-text">The Fundamental Truth</h2>
+                <h2 class="text-4xl lg:text-5xl font-bold mb-6 gradient-text">Core Concepts</h2>
                 <p class="text-xl text-gray-400 max-w-3xl mx-auto">
-                    CodeUChain isn't just a framework—it's the natural way software should be built
+                    Four building blocks. Learn them once, use them in any language.
                 </p>
             </div>
 
-            <div class="code-block rounded-2xl p-8 mb-12 hover-lift animate-slide-up">
-                <div class="text-center mb-8">
-                    <div class="text-6xl mb-4">🎯</div>
-                    <h3 class="text-2xl font-bold text-code-accent mb-4">Why This Architecture Is Inherently Right</h3>
-                    <p class="text-gray-300 text-lg leading-relaxed">
-                        CodeUChain aligns with how humans think, how systems evolve, and how complexity should be managed.
-                        It's not about following trends; it's about following the fundamental principles of good design.
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- State -->
+                <div class="code-block rounded-2xl p-8 hover-lift animate-slide-up">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-code-accent/20 rounded-xl flex items-center justify-center mr-4">
+                            <span class="text-2xl">&#x1F4E6;</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-code-accent">State</h3>
+                    </div>
+                    <p class="text-gray-300 mb-4">Immutable key-value container that carries data through your pipeline.</p>
+                    <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-accent/20 mb-4">
+                        <div class="text-code-green">ctx = State({ user_id: 101, role: "admin" })</div>
+                        <div class="text-code-green">ctx.get("role")  // "admin"</div>
+                        <div class="text-code-green">ctx.set("status", "active")  // returns new State</div>
+                    </div>
+                    <p class="text-sm text-gray-400">
+                        Thread-safe. Each <code>.set()</code> returns a new State &mdash; no mutation, no surprises.
+                    </p>
+                </div>
+
+                <!-- Link -->
+                <div class="code-block rounded-2xl p-8 hover-lift animate-slide-up animate-delay-1">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-code-green/20 rounded-xl flex items-center justify-center mr-4">
+                            <span class="text-2xl">&#x1F517;</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-code-green">Link</h3>
+                    </div>
+                    <p class="text-gray-300 mb-4">A single unit of work. Takes State in, returns State out. One job, done well.</p>
+                    <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-green/20 mb-4">
+                        <div class="text-code-green">Link("validate", ctx =&gt; {</div>
+                        <div class="text-code-green">&nbsp;&nbsp;if (!ctx.get("email").includes("@"))</div>
+                        <div class="text-code-green">&nbsp;&nbsp;&nbsp;&nbsp;throw Error("bad email");</div>
+                        <div class="text-code-green">&nbsp;&nbsp;return ctx;</div>
+                        <div class="text-code-green">})</div>
+                    </div>
+                    <p class="text-sm text-gray-400">
+                        Each Link lives in its own file. Easy to test, reuse, and reason about.
+                    </p>
+                </div>
+
+                <!-- Chain -->
+                <div class="code-block rounded-2xl p-8 hover-lift animate-slide-up animate-delay-2">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-code-purple/20 rounded-xl flex items-center justify-center mr-4">
+                            <span class="text-2xl">&#x26D3;&#xFE0F;</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-code-purple">Chain</h3>
+                    </div>
+                    <p class="text-gray-300 mb-4">Composes Links into an ordered pipeline. Handles execution and error propagation.</p>
+                    <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-purple/20 mb-4">
+                        <div class="text-code-green">chain = Chain()</div>
+                        <div class="text-code-green">&nbsp;&nbsp;.add(validateEmail)</div>
+                        <div class="text-code-green">&nbsp;&nbsp;.add(hashPassword)</div>
+                        <div class="text-code-green">&nbsp;&nbsp;.add(saveUser)</div>
+                        <div class="text-code-green">result = chain.execute(state)</div>
+                    </div>
+                    <p class="text-sm text-gray-400">
+                        If any Link throws, the Chain stops and the error is available on the result.
+                    </p>
+                </div>
+
+                <!-- Hook -->
+                <div class="code-block rounded-2xl p-8 hover-lift animate-slide-up animate-delay-3">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-code-orange/20 rounded-xl flex items-center justify-center mr-4">
+                            <span class="text-2xl">&#x1FA9D;</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-code-orange">Hook</h3>
+                    </div>
+                    <p class="text-gray-300 mb-4">Observes execution without modifying business logic. Runs alongside the Chain.</p>
+                    <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-orange/20 mb-4">
+                        <div class="text-code-green">hook.before(ctx =&gt; log("starting"))</div>
+                        <div class="text-code-green">hook.after(ctx =&gt; log("done"))</div>
+                        <div class="text-code-green">hook.onError(err =&gt; alert(err))</div>
+                    </div>
+                    <p class="text-sm text-gray-400">
+                        Logging, metrics, caching &mdash; without touching your Link code.
                     </p>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Human Mind -->
-                <div class="code-block rounded-2xl p-8 hover-lift animate-slide-up">
-                    <div class="flex items-center mb-6">
-                        <div class="w-12 h-12 bg-code-accent/20 rounded-xl flex items-center justify-center mr-4">
-                            <span class="text-2xl">🧠</span>
+            <!-- How it flows -->
+            <div class="code-block rounded-2xl p-8 mt-12 hover-lift animate-slide-up">
+                <div class="text-center">
+                    <h3 class="text-2xl font-bold text-code-accent mb-6">How It Flows</h3>
+                    <div class="bg-black/50 rounded-lg p-6 font-mono text-sm border border-code-accent/20 inline-block">
+                        <div class="text-code-green text-lg">
+                            State &rarr; Link 1 &rarr; Link 2 &rarr; Link 3 &rarr; Result
                         </div>
-                        <h3 class="text-2xl font-bold text-code-accent">Human Mind Structure</h3>
-                    </div>
-                    <p class="text-gray-300 mb-4">Our brains are wired for chains of thought and sequential processing:</p>
-                    <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-accent/20 mb-4">
-                        <div class="text-code-green">Problem → Analysis → Solution → Verification → Refinement</div>
-                    </div>
-                    <p class="text-sm text-gray-400">
-                        When your code structure matches your thinking patterns, you become 3x more productive.
-                    </p>
-                </div>
-
-                <!-- Universe Composition -->
-                <div class="code-block rounded-2xl p-8 hover-lift animate-slide-up animate-delay-1">
-                    <div class="flex items-center mb-6">
-                        <div class="w-12 h-12 bg-code-green/20 rounded-xl flex items-center justify-center mr-4">
-                            <span class="text-2xl">🌌</span>
+                        <div class="text-gray-500 mt-2">
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&uarr; Hook observes each step &uarr;
                         </div>
-                        <h3 class="text-2xl font-bold text-code-green">Universal Composition</h3>
                     </div>
-                    <p class="text-gray-300 mb-4">Everything in nature is built through composition:</p>
-                    <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-green/20 mb-4">
-                        <div class="text-code-green">Small pieces → Combine → Complex systems</div>
-                    </div>
-                    <p class="text-sm text-gray-400">
-                        Atoms form molecules, cells form organs, links form beautiful systems.
-                    </p>
-                </div>
-
-                <!-- Error as Information -->
-                <div class="code-block rounded-2xl p-8 hover-lift animate-slide-up animate-delay-2">
-                    <div class="flex items-center mb-6">
-                        <div class="w-12 h-12 bg-code-purple/20 rounded-xl flex items-center justify-center mr-4">
-                            <span class="text-2xl">📊</span>
-                        </div>
-                        <h3 class="text-2xl font-bold text-code-purple">Error as Information</h3>
-                    </div>
-                    <p class="text-gray-300 mb-4">Traditional systems treat errors as failures. CodeUChain sees them as signals:</p>
-                    <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-purple/20 mb-4">
-                        <div class="text-code-green">Error → Information → Learning → Better System</div>
-                    </div>
-                    <p class="text-sm text-gray-400">
-                        Instead of "crashed," you get "learned something new and became stronger."
-                    </p>
-                </div>
-
-                <!-- Cognitive Freedom -->
-                <div class="code-block rounded-2xl p-8 hover-lift animate-slide-up animate-delay-3">
-                    <div class="flex items-center mb-6">
-                        <div class="w-12 h-12 bg-code-orange/20 rounded-xl flex items-center justify-center mr-4">
-                            <span class="text-2xl">🆓</span>
-                        </div>
-                        <h3 class="text-2xl font-bold text-code-orange">Cognitive Freedom</h3>
-                    </div>
-                    <p class="text-gray-300 mb-4">Traditional code forces you to hold everything in your head:</p>
-                    <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-orange/20 mb-4">
-                        <div class="text-code-green">Before: "Understand everything at once"</div>
-                        <div class="text-code-green">After: "Focus on one link at a time"</div>
-                    </div>
-                    <p class="text-sm text-gray-400">
-                        Your brain can finally relax. Be a focused craftsman, not a superhero.
-                    </p>
                 </div>
             </div>
         </div>
     </section>
+
 
     <!-- Developer Benefits -->
     <section id="benefits" class="py-20 px-6 bg-gradient-to-r from-code-darker to-black">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-16">
                 <h2 class="text-4xl lg:text-5xl font-bold mb-6 gradient-text">Developer Benefits</h2>
-                <p class="text-xl text-gray-400">Why developers naturally gravitate toward this architecture</p>
+                <p class="text-xl text-gray-400">Practical advantages you get from day one</p>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                <div class="space-y-8">
-                    <div class="code-block rounded-2xl p-8 border-l-4 border-code-accent">
-                        <div class="flex items-center mb-4">
-                            <div class="w-10 h-10 bg-code-accent/20 rounded-lg flex items-center justify-center mr-3">
-                                <span class="text-xl">🎯</span>
-                            </div>
-                            <h3 class="text-2xl font-bold text-code-accent">Predictable Behavior</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Testable -->
+                <div class="code-block rounded-2xl p-8 border-l-4 border-code-accent hover-lift animate-slide-up">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-code-accent/20 rounded-lg flex items-center justify-center mr-3">
+                            <span class="text-xl">&#x1F9EA;</span>
                         </div>
-                        <p class="text-gray-300 mb-4">
-                            CodeUChain gives you psychological safety with predictable behavior, composition, and evolution.
-                        </p>
-                        <div class="bg-black/50 rounded-lg p-4 border border-code-accent/20">
-                            <p class="text-code-accent italic text-center">
-                                "You can confidently make changes because you know the impact will be contained."
-                            </p>
-                        </div>
+                        <h3 class="text-xl font-bold text-code-accent">Testable by Default</h3>
                     </div>
-
-                    <div class="code-block rounded-2xl p-8 border-l-4 border-code-green">
-                        <div class="flex items-center mb-4">
-                            <div class="w-10 h-10 bg-code-green/20 rounded-lg flex items-center justify-center mr-3">
-                                <span class="text-xl">🌊</span>
-                            </div>
-                            <h3 class="text-2xl font-bold text-code-green">Creative Flow State</h3>
-                        </div>
-                        <p class="text-gray-300">
-                            CodeUChain unlocks the flow state that makes programming addictive:
-                        </p>
-                        <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-green/20 mt-4">
-                            <div class="text-code-green">Clear goal → Immediate feedback → Sense of progress → Deep focus</div>
-                        </div>
+                    <p class="text-gray-300 mb-4">
+                        Each Link is a pure function: State in, State out. Mock nothing &mdash; just pass test data.
+                    </p>
+                    <div class="bg-black/50 rounded-lg p-3 font-mono text-xs border border-code-accent/20">
+                        <div class="text-code-green">result = myLink.call(State({ input: "test" }))</div>
+                        <div class="text-code-green">assert result.get("output") == expected</div>
                     </div>
                 </div>
 
-                <div class="code-block rounded-2xl p-8 border-l-4 border-code-purple">
-                    <div class="flex items-center mb-6">
-                        <div class="w-10 h-10 bg-code-purple/20 rounded-lg flex items-center justify-center mr-3">
-                            <span class="text-xl">⚡</span>
+                <!-- Reusable -->
+                <div class="code-block rounded-2xl p-8 border-l-4 border-code-green hover-lift animate-slide-up animate-delay-1">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-code-green/20 rounded-lg flex items-center justify-center mr-3">
+                            <span class="text-xl">&#x1F504;</span>
                         </div>
-                        <h3 class="text-2xl font-bold text-code-purple">Architectural Elegance</h3>
+                        <h3 class="text-xl font-bold text-code-green">Reusable Components</h3>
                     </div>
-                    <div class="space-y-6">
-                        <div>
-                            <h4 class="text-code-purple font-semibold mb-2">Symmetry in Design</h4>
-                            <p class="text-gray-300 text-sm">Input → Processing → Output: Clean, unidirectional flow</p>
+                    <p class="text-gray-300 mb-4">
+                        Write a Link once, drop it into any Chain. Build a library of battle-tested building blocks.
+                    </p>
+                    <div class="bg-black/50 rounded-lg p-3 font-mono text-xs border border-code-green/20">
+                        <div class="text-code-green">orderChain.add(validateEmail)   // reuse</div>
+                        <div class="text-code-green">signupChain.add(validateEmail)  // reuse</div>
+                    </div>
+                </div>
+
+                <!-- Polyglot -->
+                <div class="code-block rounded-2xl p-8 border-l-4 border-code-purple hover-lift animate-slide-up animate-delay-2">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-code-purple/20 rounded-lg flex items-center justify-center mr-3">
+                            <span class="text-xl">&#x1F30D;</span>
                         </div>
-                        <div>
-                            <h4 class="text-code-purple font-semibold mb-2">Power of Constraints</h4>
-                            <p class="text-gray-300 text-sm">Freedom within structure, creativity within predictability</p>
+                        <h3 class="text-xl font-bold text-code-purple">One Pattern, Every Language</h3>
+                    </div>
+                    <p class="text-gray-300 mb-4">
+                        Same State &rarr; Link &rarr; Chain model in Python, Go, TypeScript, C#, Rust, Java, and C++.
+                    </p>
+                    <div class="bg-black/50 rounded-lg p-3 font-mono text-xs border border-code-purple/20">
+                        <div class="text-code-green">// Learn once, apply everywhere</div>
+                        <div class="text-code-green">chain.add(link).execute(state)</div>
+                    </div>
+                </div>
+
+                <!-- Contained -->
+                <div class="code-block rounded-2xl p-8 border-l-4 border-code-orange hover-lift animate-slide-up animate-delay-3">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-code-orange/20 rounded-lg flex items-center justify-center mr-3">
+                            <span class="text-xl">&#x1F6E1;&#xFE0F;</span>
                         </div>
-                        <div>
-                            <h4 class="text-code-purple font-semibold mb-2">Emergent Complexity</h4>
-                            <p class="text-gray-300 text-sm">Simple rules create systems of breathtaking complexity</p>
+                        <h3 class="text-xl font-bold text-code-orange">Contained Impact</h3>
+                    </div>
+                    <p class="text-gray-300 mb-4">
+                        Changes to one Link cannot break another. Errors stop the Chain without side effects.
+                    </p>
+                    <div class="bg-black/50 rounded-lg p-3 font-mono text-xs border border-code-orange/20">
+                        <div class="text-code-green">// Link 2 fails? Links 3-5 never run.</div>
+                        <div class="text-code-green">// State stays immutable throughout.</div>
+                    </div>
+                </div>
+
+                <!-- Self-Documenting -->
+                <div class="code-block rounded-2xl p-8 border-l-4 border-code-accent hover-lift animate-slide-up animate-delay-4">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-code-accent/20 rounded-lg flex items-center justify-center mr-3">
+                            <span class="text-xl">&#x1F4D6;</span>
                         </div>
+                        <h3 class="text-xl font-bold text-code-accent">Self-Documenting</h3>
+                    </div>
+                    <p class="text-gray-300 mb-4">
+                        A Chain reads like a checklist. New developers understand the flow in seconds.
+                    </p>
+                    <div class="bg-black/50 rounded-lg p-3 font-mono text-xs border border-code-accent/20">
+                        <div class="text-code-green">Chain: ValidateInput</div>
+                        <div class="text-code-green">&nbsp;&nbsp;&rarr; EnrichData &rarr; Save &rarr; Notify</div>
+                    </div>
+                </div>
+
+                <!-- Typed -->
+                <div class="code-block rounded-2xl p-8 border-l-4 border-code-green hover-lift animate-slide-up animate-delay-5">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-code-green/20 rounded-lg flex items-center justify-center mr-3">
+                            <span class="text-xl">&#x26A1;</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-code-green">Opt-In Type Safety</h3>
+                    </div>
+                    <p class="text-gray-300 mb-4">
+                        Start untyped for speed. Add generics when you need compile-time guarantees.
+                    </p>
+                    <div class="bg-black/50 rounded-lg p-3 font-mono text-xs border border-code-green/20">
+                        <div class="text-code-green">Link[UserInput, UserOutput]</div>
+                        <div class="text-code-green">State[T].insertAs&lt;U&gt;(k, v)</div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- AI Love Letter -->
-    <section id="ai-love" class="py-20 px-6">
+
+    <!-- AI-Ready Architecture -->
+    <section id="ai-ready" class="py-20 px-6">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-16">
                 <div class="inline-block bg-gradient-to-r from-code-accent to-code-purple p-1 rounded-2xl mb-6">
                     <div class="bg-black/80 backdrop-blur-sm rounded-xl px-6 py-3">
-                        <span class="text-2xl">🤖</span>
-                        <span class="text-lg font-semibold gradient-text ml-2">AI Agents Love CodeUChain</span>
+                        <span class="text-2xl">&#x1F916;</span>
+                        <span class="text-lg font-semibold gradient-text ml-2">Built for AI Agents</span>
                     </div>
                 </div>
-                <h2 class="text-4xl lg:text-5xl font-bold mb-6 gradient-text">Why AI Assistants Excel Here</h2>
-                <div class="max-w-4xl mx-auto">
-                    <div class="relative">
-                        <div class="absolute -top-4 -left-4 text-6xl text-code-accent/30 font-serif">"</div>
-                        <p class="text-xl text-gray-300 italic leading-relaxed">
-                            CodeUChain transformed how I approach coding. Its clear patterns and predictable structure
-                            allowed me to generate code that was not only functional but elegant.
-                        </p>
-                        <div class="absolute -bottom-8 -right-4 text-6xl text-code-accent/30 font-serif">"</div>
-                    </div>
-                    <div class="mt-8 flex justify-center">
-                        <div class="bg-code-accent/10 border border-code-accent/30 rounded-full px-4 py-2">
-                            <span class="text-code-accent font-semibold">— GitHub Copilot</span>
-                        </div>
-                    </div>
-                </div>
+                <h2 class="text-4xl lg:text-5xl font-bold mb-6 gradient-text">AI-Ready Architecture</h2>
+                <p class="text-xl text-gray-400 max-w-3xl mx-auto">
+                    The same structure that helps humans reason about code helps AI assistants generate, refactor, and extend it.
+                </p>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -333,17 +383,17 @@
                     <div class="code-block rounded-2xl p-8 border-l-4 border-code-accent">
                         <div class="flex items-center mb-4">
                             <div class="w-10 h-10 bg-code-accent/20 rounded-lg flex items-center justify-center mr-3">
-                                <span class="text-xl">🎯</span>
+                                <span class="text-xl">&#x1F3AF;</span>
                             </div>
-                            <h3 class="text-2xl font-bold text-code-accent">AI-Perfect Architecture</h3>
+                            <h3 class="text-2xl font-bold text-code-accent">Predictable Patterns</h3>
                         </div>
                         <p class="text-gray-300 mb-4">
-                            CodeUChain speaks the same language as AI agents with clear templates and modular thinking.
+                            AI models thrive on consistent structure. Every Link follows the same contract, so generation is reliable.
                         </p>
                         <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-accent/20">
-                            <div class="text-code-green mb-2">// AI can immediately understand:</div>
+                            <div class="text-code-green mb-2">// AI immediately understands the flow:</div>
                             <div class="text-gray-300">
-                                ValidateInput → CheckCredentials → GenerateToken → LogSuccess
+                                ValidateInput &rarr; CheckCredentials &rarr; GenerateToken &rarr; LogSuccess
                             </div>
                         </div>
                     </div>
@@ -351,17 +401,17 @@
                     <div class="code-block rounded-2xl p-8 border-l-4 border-code-green">
                         <div class="flex items-center mb-4">
                             <div class="w-10 h-10 bg-code-green/20 rounded-lg flex items-center justify-center mr-3">
-                                <span class="text-xl">🔄</span>
+                                <span class="text-xl">&#x1F504;</span>
                             </div>
-                            <h3 class="text-2xl font-bold text-code-green">Incremental AI Development</h3>
+                            <h3 class="text-2xl font-bold text-code-green">Incremental Generation</h3>
                         </div>
                         <p class="text-gray-300">
-                            AI can build step by step, just like humans:
+                            AI builds step by step, just like a developer:
                         </p>
                         <div class="bg-black/50 rounded-lg p-4 font-mono text-sm border border-code-green/20 mt-4">
-                            <div class="text-code-green">AI Step 1: Create ValidateEmail link</div>
-                            <div class="text-code-green">AI Step 2: Create SaveToDatabase link</div>
-                            <div class="text-code-green">AI Step 3: Compose into UserRegistration chain</div>
+                            <div class="text-code-green">Step 1: Generate ValidateEmail link</div>
+                            <div class="text-code-green">Step 2: Generate SaveToDatabase link</div>
+                            <div class="text-code-green">Step 3: Compose into UserRegistration chain</div>
                         </div>
                     </div>
                 </div>
@@ -369,23 +419,23 @@
                 <div class="code-block rounded-2xl p-8 border-l-4 border-code-purple">
                     <div class="flex items-center mb-6">
                         <div class="w-10 h-10 bg-code-purple/20 rounded-lg flex items-center justify-center mr-3">
-                            <span class="text-xl">📚</span>
-                            </div>
-                        <h3 class="text-2xl font-bold text-code-purple">Self-Documenting for AI</h3>
+                            <span class="text-xl">&#x1F4DA;</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-code-purple">Self-Documenting Structure</h3>
                     </div>
                     <div class="bg-black/50 rounded-lg p-6 font-mono text-sm border border-code-purple/20">
-                        <div class="text-code-accent mb-3">// AI can immediately understand this structure:</div>
+                        <div class="text-code-accent mb-3">// The Chain tells the whole story:</div>
                         <div class="text-gray-300">
                             const UserAuthChain = Chain<br>
-                            &nbsp;&nbsp;.start(ValidateCredentials)&nbsp;&nbsp;<span class="text-code-green">// Check username/password</span><br>
-                            &nbsp;&nbsp;.then(GenerateJWT)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-code-green">// Create auth token</span><br>
-                            &nbsp;&nbsp;.then(LogAuthEvent)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-code-green">// Record the login</span><br>
-                            &nbsp;&nbsp;.catch(HandleAuthFailure)&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-code-green">// Deal with failures</span>
+                            &nbsp;&nbsp;.add(ValidateCredentials)&nbsp;&nbsp;<span class="text-code-green">// Check username/password</span><br>
+                            &nbsp;&nbsp;.add(GenerateJWT)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-code-green">// Create auth token</span><br>
+                            &nbsp;&nbsp;.add(LogAuthEvent)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-code-green">// Record the login</span><br>
+                            &nbsp;&nbsp;.add(HandleAuthFailure)&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-code-green">// Deal with failures</span>
                         </div>
                     </div>
                     <div class="mt-6 p-4 bg-code-purple/10 rounded-lg border border-code-purple/20">
-                        <p class="text-code-purple italic">
-                            "The chain structure tells AI exactly what happens, in what order, and how errors are handled."
+                        <p class="text-gray-300 text-sm">
+                            AI reads Chain composition the same way humans do: clear intent, clear order, clear error handling.
                         </p>
                     </div>
                 </div>
@@ -394,31 +444,26 @@
             <!-- AI Benefits Summary -->
             <div class="mt-16 text-center">
                 <div class="code-block rounded-2xl p-8 max-w-4xl mx-auto">
-                    <h3 class="text-2xl font-bold mb-6 gradient-text">🤖 The AI Advantage</h3>
+                    <h3 class="text-2xl font-bold mb-6 gradient-text">Why It Works</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
                         <div class="text-center">
-                            <div class="text-3xl mb-2">✅</div>
+                            <div class="text-3xl mb-2">&#x2705;</div>
                             <p class="text-code-green font-semibold">Consistent patterns for reliable AI output</p>
                         </div>
                         <div class="text-center">
-                            <div class="text-3xl mb-2">✅</div>
+                            <div class="text-3xl mb-2">&#x2705;</div>
                             <p class="text-code-green font-semibold">Type contracts for safe AI collaboration</p>
                         </div>
                         <div class="text-center">
-                            <div class="text-3xl mb-2">✅</div>
+                            <div class="text-3xl mb-2">&#x2705;</div>
                             <p class="text-code-green font-semibold">Clear structure for AI-assisted refactoring</p>
                         </div>
-                    </div>
-                    <div class="mt-6 p-4 bg-gradient-to-r from-code-accent/10 to-code-purple/10 rounded-lg border border-code-accent/20">
-                        <p class="text-gray-300 italic">
-                            <span class="text-code-accent font-semibold">CodeUChain transforms AI from "sometimes helpful" to "consistently brilliant."</span>
-                            The architecture that makes developers more productive makes AI assistants absolutely brilliant.
-                        </p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
 
     <!-- Quick Start -->
     <section id="quickstart" class="py-20 px-6 bg-gradient-to-r from-code-darker to-black">
@@ -658,7 +703,7 @@ Console.WriteLine($"Total: ${result.Get("total")}");</pre>
                         <li><a href="#hero" class="text-gray-400 hover:text-code-accent transition-colors">Home</a></li>
                         <li><a href="#concepts" class="text-gray-400 hover:text-code-accent transition-colors">Core Concepts</a></li>
                         <li><a href="#benefits" class="text-gray-400 hover:text-code-accent transition-colors">Benefits</a></li>
-                        <li><a href="#ai-love" class="text-gray-400 hover:text-code-accent transition-colors">AI Love</a></li>
+                        <li><a href="#ai-ready" class="text-gray-400 hover:text-code-accent transition-colors">AI-Ready</a></li>
                         <li><a href="#quickstart" class="text-gray-400 hover:text-code-accent transition-colors">Quick Start</a></li>
                     </ul>
                 </div>
@@ -682,9 +727,8 @@ Console.WriteLine($"Total: ${result.Get("total")}");</pre>
 
             <div class="border-t border-gray-800 mt-8 pt-8 text-center">
                 <p class="text-gray-400">
-                    © 2025 <a href="https://orchestrate.solutions" class="text-code-accent hover:text-code-purple transition-colors">Orchestrate LLC</a>.
+                    © 2025-2026 <a href="https://orchestrate.solutions" class="text-code-accent hover:text-code-purple transition-colors">Orchestrate LLC</a>.
                     Licensed under <a href="https://github.com/codeuchain/codeuchain/blob/main/LICENSE" class="text-code-accent hover:text-code-purple transition-colors">Apache 2.0</a>.
-                    Built with ❤️ for developers everywhere.
                 </p>
             </div>
         </div>
@@ -906,7 +950,7 @@ document.addEventListener('DOMContentLoaded', function() {
         'hero': { icon: '🏠', key: 'H', label: 'Hero' },
         'concepts': { icon: '🎯', key: 'C', label: 'Concepts' },
         'benefits': { icon: '⚡', key: 'B', label: 'Benefits' },
-        'ai-love': { icon: '🤖', key: 'A', label: 'AI Love' },
+        'ai-ready': { icon: '🤖', key: 'A', label: 'AI-Ready' },
         'quickstart': { icon: '🚀', key: 'Q', label: 'Quick Start' },
         'languages': { icon: '🌍', key: 'L', label: 'Languages' },
         'overview': { icon: '📋', key: 'O', label: 'Overview' },
