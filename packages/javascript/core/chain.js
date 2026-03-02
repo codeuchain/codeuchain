@@ -1,19 +1,19 @@
 /**
  * Chain: The Orchestrator
  *
- * The Chain orchestrates link execution with conditional flows and middleware.
+ * The Chain orchestrates link execution with conditional flows and hook.
  * Base class that implementations can extend.
  * Enhanced with generic typing for type-safe workflows.
  *
  * @since 1.0.0
  */
 
-const { Context } = require('./context');
+const { State } = require('./state');
 const { Link } = require('./link');
 
 /**
- * @template TInput - The input context type for the chain
- * @template TOutput - The output context type for the chain
+ * @template TInput - The input state type for the chain
+ * @template TOutput - The output state type for the chain
  */
 class Chain {
   /**
@@ -25,12 +25,12 @@ class Chain {
    * chain.addLink(new ValidationLink());
    * chain.addLink(new ProcessingLink());
    * chain.connect('ValidationLink', 'ProcessingLink');
-   * const result = await chain.run(initialContext);
+   * const result = await chain.run(initialState);
    */
   constructor() {
     this._links = new Map(); // name -> link
     this._connections = []; // [{from, to, condition}]
-    this._middleware = [];
+    this._hook = [];
     this._errorHandlers = [];
   }
 
@@ -65,7 +65,7 @@ class Chain {
    *
    * @param {string} source - Name of the source link
    * @param {string} target - Name of the target link
-   * @param {Function} [condition] - Function that takes context and returns boolean (defaults to always true)
+   * @param {Function} [condition] - Function that takes state and returns boolean (defaults to always true)
    * @returns {Chain<TInput, TOutput>} This chain for method chaining
    * @throws {Error} If source or target link doesn't exist
    * @example
@@ -89,17 +89,17 @@ class Chain {
   }
 
   /**
-   * Lovingly attach middleware to enhance chain execution.
-   * Middleware can observe and modify execution flow.
+   * Lovingly attach hook to enhance chain execution.
+   * Hook can observe and modify execution flow.
    *
-   * @param {Middleware} middleware - The middleware instance to attach
+   * @param {Hook} hook - The hook instance to attach
    * @returns {Chain<TInput, TOutput>} This chain for method chaining
    * @example
-   * chain.useMiddleware(new LoggingMiddleware());
-   * chain.useMiddleware(new TimingMiddleware());
+   * chain.useHook(new LoggingHook());
+   * chain.useHook(new TimingHook());
    */
-  useMiddleware(middleware) {
-    this._middleware.push(middleware);
+  useHook(hook) {
+    this._hook.push(hook);
     return this;
   }
 
@@ -107,7 +107,7 @@ class Chain {
    * Add an error handler for the entire chain.
    * Error handlers are called when any link in the chain throws an error.
    *
-   * @param {Function} handler - Function that takes (error, context, linkName)
+   * @param {Function} handler - Function that takes (error, state, linkName)
    * @returns {Chain<TInput, TOutput>} This chain for method chaining
    * @example
    * chain.onError((error, ctx, linkName) => {
@@ -127,7 +127,7 @@ class Chain {
    * @private
    * @param {number} currentIndex - Current link index in the execution array
    * @param {Array} linksArray - Array of [name, link] entries
-   * @param {Context<TInput>} ctx - Current context for condition evaluation
+   * @param {State<TInput>} ctx - Current state for condition evaluation
    * @returns {number} Next link index, or -1 if none found
    */
   _findNextLinkIndex(currentIndex, linksArray, ctx) {
@@ -156,11 +156,11 @@ class Chain {
    * With selfless execution, flow through links according to connections.
    * Executes the chain starting from links with no incoming connections.
    *
-   * @param {Context<TInput>} initialCtx - The initial context to process
-   * @returns {Promise<Context<TOutput>>} The final context after all processing
+   * @param {State<TInput>} initialCtx - The initial state to process
+   * @returns {Promise<State<TOutput>>} The final state after all processing
    * @throws {Error} If any link in the chain throws an error (after error handlers)
    * @example
-   * const initialCtx = new Context({ userId: 123 });
+   * const initialCtx = new State({ userId: 123 });
    * const resultCtx = await chain.run(initialCtx);
    * console.log('Processing complete:', resultCtx.toObject());
    */
@@ -197,20 +197,20 @@ class Chain {
       if (!link) break;
 
       try {
-        // Run middleware before
-        for (const middleware of this._middleware) {
-          if (middleware.before) {
-            ctx = await middleware.before(link, ctx, currentLinkName) || ctx;
+        // Run hook before
+        for (const hook of this._hook) {
+          if (hook.before) {
+            ctx = await hook.before(link, ctx, currentLinkName) || ctx;
           }
         }
 
         // Execute the link
         ctx = await link.call(ctx);
 
-        // Run middleware after
-        for (const middleware of this._middleware) {
-          if (middleware.after) {
-            ctx = await middleware.after(link, ctx, currentLinkName) || ctx;
+        // Run hook after
+        for (const hook of this._hook) {
+          if (hook.after) {
+            ctx = await hook.after(link, ctx, currentLinkName) || ctx;
           }
         }
 
@@ -218,10 +218,10 @@ class Chain {
         currentLinkIndex = this._findNextLinkIndex(currentLinkIndex, linksArray, ctx);
 
       } catch (error) {
-        // Run error middleware
-        for (const middleware of this._middleware) {
-          if (middleware.onError) {
-            await middleware.onError(link, error, ctx, currentLinkName);
+        // Run error hook
+        for (const hook of this._hook) {
+          if (hook.onError) {
+            await hook.onError(link, error, ctx, currentLinkName);
           }
         }
 

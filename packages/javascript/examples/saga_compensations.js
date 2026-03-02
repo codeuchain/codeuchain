@@ -15,7 +15,7 @@
  * with compensation logic for rollback scenarios.
  */
 
-const { Context, Chain, Link, LoggingMiddleware } = require('../core');
+const { State, Chain, Link, LoggingHook } = require('../core');
 
 class SagaOrchestrator {
   constructor() {
@@ -247,11 +247,11 @@ async function main() {
     }
 
     try {
-      const initialCtx = new Context({ userData: scenario.userData });
+      const initialCtx = new State({ userData: scenario.userData });
       const resultCtx = await saga.execute(initialCtx);
 
       console.log('✅ Saga completed successfully!');
-      console.log('📊 Final context keys:', Object.keys(resultCtx.toObject()));
+      console.log('📊 Final state keys:', Object.keys(resultCtx.toObject()));
 
     } catch (error) {
       console.log('❌ Saga failed and was compensated:', error.message);

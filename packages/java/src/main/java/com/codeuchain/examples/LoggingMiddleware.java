@@ -3,32 +3,32 @@ package com.codeuchain.examples;
 import com.codeuchain.*;
 
 /**
- * Logging Middleware
+ * Logging Hook
  */
-public class LoggingMiddleware implements Middleware {
+public class LoggingHook implements Hook {
     @Override
-    public Context before(Link link, Context context) throws Exception {
+    public State before(Link link, State state) throws Exception {
         if (link == null) {
-            System.out.println("Starting chain execution: " + context.toMap());
+            System.out.println("Starting chain execution: " + state.toMap());
         } else {
-            System.out.println("Before link execution: " + context.toMap());
+            System.out.println("Before link execution: " + state.toMap());
         }
-        return context;
+        return state;
     }
 
     @Override
-    public Context after(Link link, Context context) throws Exception {
+    public State after(Link link, State state) throws Exception {
         if (link == null) {
-            System.out.println("Chain execution completed: " + context.toMap());
+            System.out.println("Chain execution completed: " + state.toMap());
         } else {
-            System.out.println("After link execution: " + context.toMap());
+            System.out.println("After link execution: " + state.toMap());
         }
-        return context;
+        return state;
     }
 
     @Override
-    public Context onError(Link link, Exception error, Context context) throws Exception {
+    public State onError(Link link, Exception error, State state) throws Exception {
         System.err.println("Error in execution: " + error.getMessage());
-        return context;
+        return state;
     }
 }

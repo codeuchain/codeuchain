@@ -1,7 +1,7 @@
 package components
 
 import (
-	"context"
+	"state"
 
 	"github.com/joshuawink/codeuchain"
 )
@@ -24,16 +24,16 @@ func (bc *BasicChain) AddLink(name string, link codeuchain.Link) {
 }
 
 // Connect adds a connection between links
-func (bc *BasicChain) Connect(source, target string, condition func(*codeuchain.Context) bool) {
+func (bc *BasicChain) Connect(source, target string, condition func(*codeuchain.State) bool) {
 	bc.chain.Connect(source, target, condition)
 }
 
-// UseMiddleware adds middleware to the chain
-func (bc *BasicChain) UseMiddleware(mw codeuchain.Middleware) {
-	bc.chain.UseMiddleware(mw)
+// UseHook adds hook to the chain
+func (bc *BasicChain) UseHook(mw codeuchain.Hook) {
+	bc.chain.UseHook(mw)
 }
 
 // Run executes the chain
-func (bc *BasicChain) Run(ctx context.Context, initialCtx *codeuchain.Context) (*codeuchain.Context, error) {
+func (bc *BasicChain) Run(ctx state.State, initialCtx *codeuchain.State) (*codeuchain.State, error) {
 	return bc.chain.Run(ctx, initialCtx)
 }

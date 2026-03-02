@@ -4,26 +4,26 @@
 
 import * as runtime from './core/index';
 import type {
-  Context as ContextType,
-  MutableContext as MutableContextType,
+  State as StateType,
+  MutableState as MutableStateType,
   Link as LinkType,
   Chain as ChainType,
-  Middleware as MiddlewareType,
-  LoggingMiddleware as LoggingMiddlewareType,
-  TimingMiddleware as TimingMiddlewareType,
-  ValidationMiddleware as ValidationMiddlewareType,
+  Hook as HookType,
+  LoggingHook as LoggingHookType,
+  TimingHook as TimingHookType,
+  ValidationHook as ValidationHookType,
   DefaultExport
 } from './types';
 
 // Re-export runtime constructors with proper types (value exports)
-export const Context: typeof ContextType = (runtime as any).Context;
-export const MutableContext: typeof MutableContextType = (runtime as any).MutableContext;
+export const State: typeof StateType = (runtime as any).State;
+export const MutableState: typeof MutableStateType = (runtime as any).MutableState;
 export const Link: typeof LinkType = (runtime as any).Link;
 export const Chain: typeof ChainType = (runtime as any).Chain;
-export const Middleware: typeof MiddlewareType = (runtime as any).Middleware;
-export const LoggingMiddleware: typeof LoggingMiddlewareType = (runtime as any).LoggingMiddleware;
-export const TimingMiddleware: typeof TimingMiddlewareType = (runtime as any).TimingMiddleware;
-export const ValidationMiddleware: typeof ValidationMiddlewareType = (runtime as any).ValidationMiddleware;
+export const Hook: typeof HookType = (runtime as any).Hook;
+export const LoggingHook: typeof LoggingHookType = (runtime as any).LoggingHook;
+export const TimingHook: typeof TimingHookType = (runtime as any).TimingHook;
+export const ValidationHook: typeof ValidationHookType = (runtime as any).ValidationHook;
 
 export const version: string = (runtime as any).version || '';
 

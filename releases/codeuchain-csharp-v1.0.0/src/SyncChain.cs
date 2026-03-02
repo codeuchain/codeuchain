@@ -3,17 +3,17 @@
 /// </summary>
 public interface ISyncLink
 {
-    Context Call(Context context);
+    State Call(State state);
 }
 
 /// <summary>
-/// Synchronous version of the Middleware interface.
+/// Synchronous version of the Hook interface.
 /// </summary>
-public interface ISyncMiddleware
+public interface ISyncHook
 {
-    Context Before(ISyncLink? link, Context context);
-    Context After(ISyncLink? link, Context context);
-    Context OnError(ISyncLink? link, Exception exception, Context context);
+    State Before(ISyncLink? link, State state);
+    State After(ISyncLink? link, State state);
+    State OnError(ISyncLink? link, Exception exception, State state);
 }
 
 /// <summary>
@@ -22,12 +22,12 @@ public interface ISyncMiddleware
 public class SyncChain
 {
     private readonly List<KeyValuePair<string, ISyncLink>> _links;
-    private readonly List<ISyncMiddleware> _middlewares;
+    private readonly List<ISyncHook> _hooks;
 
     public SyncChain()
     {
         _links = new List<KeyValuePair<string, ISyncLink>>();
-        _middlewares = new List<ISyncMiddleware>();
+        _hooks = new List<ISyncHook>();
     }
 
     public SyncChain AddLink(string name, ISyncLink link)
@@ -36,48 +36,48 @@ public class SyncChain
         return this;
     }
 
-    public SyncChain UseMiddleware(ISyncMiddleware middleware)
+    public SyncChain UseHook(ISyncHook hook)
     {
-        _middlewares.Add(middleware);
+        _hooks.Add(hook);
         return this;
     }
 
-    public Context Run(Context initialContext)
+    public State Run(State initialState)
     {
-        var currentContext = initialContext;
+        var currentState = initialState;
 
         // Execute before hooks
-        foreach (var middleware in _middlewares)
+        foreach (var hook in _hooks)
         {
-            currentContext = middleware.Before(null, currentContext);
+            currentState = hook.Before(null, currentState);
         }
 
         // Execute links
         foreach (var (name, link) in _links)
         {
             // Before each link
-            foreach (var middleware in _middlewares)
+            foreach (var hook in _hooks)
             {
-                currentContext = middleware.Before(link, currentContext);
+                currentState = hook.Before(link, currentState);
             }
 
             // Execute link
-            currentContext = link.Call(currentContext);
+            currentState = link.Call(currentState);
 
             // After each link
-            foreach (var middleware in _middlewares)
+            foreach (var hook in _hooks)
             {
-                currentContext = middleware.After(link, currentContext);
+                currentState = hook.After(link, currentState);
             }
         }
 
         // Final after hooks
-        foreach (var middleware in _middlewares)
+        foreach (var hook in _hooks)
         {
-            currentContext = middleware.After(null, currentContext);
+            currentState = hook.After(null, currentState);
         }
 
-        return currentContext;
+        return currentState;
     }
 }
 
@@ -86,43 +86,43 @@ public class SyncChain
 /// </summary>
 public class SyncAddLink : ISyncLink
 {
-    public Context Call(Context context)
+    public State Call(State state)
     {
-        var a = context.Get<int>("a");
-        var b = context.Get<int>("b");
-        return context.Insert("sum", a + b);
+        var a = state.Get<int>("a");
+        var b = state.Get<int>("b");
+        return state.Insert("sum", a + b);
     }
 }
 
 public class SyncMultiplyLink : ISyncLink
 {
-    public Context Call(Context context)
+    public State Call(State state)
     {
-        var sum = context.Get<int>("sum");
-        return context.Insert("result", sum * 2);
+        var sum = state.Get<int>("sum");
+        return state.Insert("result", sum * 2);
     }
 }
 
-public class SyncLoggingMiddleware : ISyncMiddleware
+public class SyncLoggingHook : ISyncHook
 {
-    public Context Before(ISyncLink? link, Context context)
+    public State Before(ISyncLink? link, State state)
     {
         var linkName = link?.GetType().Name ?? "Chain";
         Console.WriteLine($"Executing: {linkName}");
-        return context;
+        return state;
     }
 
-    public Context After(ISyncLink? link, Context context)
+    public State After(ISyncLink? link, State state)
     {
         var linkName = link?.GetType().Name ?? "Chain";
         Console.WriteLine($"Completed: {linkName}");
-        return context;
+        return state;
     }
 
-    public Context OnError(ISyncLink? link, Exception exception, Context context)
+    public State OnError(ISyncLink? link, Exception exception, State state)
     {
         var linkName = link?.GetType().Name ?? "Chain";
         Console.WriteLine($"Error in {linkName}: {exception.Message}");
-        return context;
+        return state;
     }
 }

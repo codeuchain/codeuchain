@@ -259,7 +259,7 @@ Each language represents a different approach to solving computational problems:
 - **Simplicity vs. Power**: Go vs. Scala
 - **Specialization vs. Generality**: R vs. Java
 
-**Context Determines Excellence**
+**State Determines Excellence**
 - **Embedded Systems**: C's minimalism and control
 - **Web Applications**: JavaScript's ubiquity and ecosystem
 - **Scientific Computing**: Julia's performance and expressiveness

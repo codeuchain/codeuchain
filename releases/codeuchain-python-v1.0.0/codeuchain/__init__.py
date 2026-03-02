@@ -1,7 +1,7 @@
 """
 CodeUChain: Agape-Optimized Python Implementation
 
-With selfless love, CodeUChain chains your code as links, observes with middleware, and flows through contexts.
+With selfless love, CodeUChain chains your code as links, observes with hook, and flows through states.
 Optimized for Python's prototyping soul—embracing dynamism, ecosystem, and academic warmth.
 
 Library Structure:
@@ -10,7 +10,7 @@ Library Structure:
 """
 
 # Core protocols and base classes
-from .core import Context, MutableContext, Link, Chain, Middleware
+from .core import State, MutableState, Link, Chain, Hook
 
 # Utility helpers
 from .utils import ErrorHandlingMixin, RetryLink
@@ -18,7 +18,7 @@ from .utils import ErrorHandlingMixin, RetryLink
 __version__ = "0.1.0"
 __all__ = [
     # Core
-    "Context", "MutableContext", "Link", "Chain", "Middleware",
+    "State", "MutableState", "Link", "Chain", "Hook",
     # Utils
     "ErrorHandlingMixin", "RetryLink"
 ]

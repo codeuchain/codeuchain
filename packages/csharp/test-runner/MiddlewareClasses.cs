@@ -1,52 +1,52 @@
 using System.Threading.Tasks;
 
 /// <summary>
-/// Logging Middleware: Logs chain execution
+/// Logging Hook: Logs chain execution
 /// </summary>
-public class LoggingMiddleware : IMiddleware
+public class LoggingHook : IHook
 {
-    public ValueTask<Context> BeforeAsync(ILink? link, Context context)
+    public ValueTask<State> BeforeAsync(ILink? link, State state)
     {
         Console.WriteLine($"[LOG] Starting: {link?.GetType().Name ?? "Chain"}");
-        return ValueTask.FromResult(context);
+        return ValueTask.FromResult(state);
     }
 
-    public ValueTask<Context> AfterAsync(ILink? link, Context context)
+    public ValueTask<State> AfterAsync(ILink? link, State state)
     {
         Console.WriteLine($"[LOG] Completed: {link?.GetType().Name ?? "Chain"}");
-        return ValueTask.FromResult(context);
+        return ValueTask.FromResult(state);
     }
 
-    public ValueTask<Context> OnErrorAsync(ILink? link, Exception exception, Context context)
+    public ValueTask<State> OnErrorAsync(ILink? link, Exception exception, State state)
     {
         Console.WriteLine($"[LOG] Error in {link?.GetType().Name ?? "Chain"}: {exception.Message}");
-        return ValueTask.FromResult(context);
+        return ValueTask.FromResult(state);
     }
 }
 
 /// <summary>
-/// Timing Middleware: Measures execution time
+/// Timing Hook: Measures execution time
 /// </summary>
-public class TimingMiddleware : IMiddleware
+public class TimingHook : IHook
 {
-    public ValueTask<Context> BeforeAsync(ILink? link, Context context)
+    public ValueTask<State> BeforeAsync(ILink? link, State state)
     {
-        return ValueTask.FromResult(context.Insert("start", DateTime.Now));
+        return ValueTask.FromResult(state.Insert("start", DateTime.Now));
     }
 
-    public ValueTask<Context> AfterAsync(ILink? link, Context context)
+    public ValueTask<State> AfterAsync(ILink? link, State state)
     {
-        var start = (DateTime?)context.Get("start");
+        var start = (DateTime?)state.Get("start");
         if (start.HasValue)
         {
             var duration = DateTime.Now - start.Value;
-            return ValueTask.FromResult(context.Insert("duration", duration.TotalMilliseconds));
+            return ValueTask.FromResult(state.Insert("duration", duration.TotalMilliseconds));
         }
-        return ValueTask.FromResult(context);
+        return ValueTask.FromResult(state);
     }
 
-    public ValueTask<Context> OnErrorAsync(ILink? link, Exception exception, Context context)
+    public ValueTask<State> OnErrorAsync(ILink? link, Exception exception, State state)
     {
-        return ValueTask.FromResult(context);
+        return ValueTask.FromResult(state);
     }
 }

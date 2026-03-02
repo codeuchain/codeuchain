@@ -4,27 +4,27 @@
 
 ## 🌟 The Five Eternal Patterns
 
-### 1. Context: The Loving Vessel
+### 1. State: The Loving Vessel
 **Pattern**: Immutable data container that flows through chains
 **Purpose**: Carry information safely from link to link
 **Universal Truth**: Data flows like a gentle river, touching each part without disturbance
 
 ```
-Input Context → Link 1 → Link 2 → Link 3 → Output Context
+Input State → Link 1 → Link 2 → Link 3 → Output State
      ↓            ↓        ↓        ↓        ↓
    email     validate  process   save   send email
 ```
 
 ### 2. Link: The Selfless Processor
-**Pattern**: Pure function that transforms context
+**Pattern**: Pure function that transforms state
 **Purpose**: Perform one clear transformation
 **Universal Truth**: Each action is a loving gift, complete in itself
 
 ```
 Link Contract:
-Input: Context (with required data)
+Input: State (with required data)
 Process: Transform with skill and care
-Output: Fresh Context (with results)
+Output: Fresh State (with results)
 ```
 
 ### 3. Chain: The Harmonious Connector
@@ -40,13 +40,13 @@ Chain Flow:
 └── Response Phase
 ```
 
-### 4. Middleware: The Gentle Enhancer
+### 4. Hook: The Gentle Enhancer
 **Pattern**: Optional observer that enhances without disrupting
 **Purpose**: Add cross-cutting concerns (logging, metrics, security)
 **Universal Truth**: Enhancement comes from love, not obligation
 
 ```
-Middleware Lifecycle:
+Hook Lifecycle:
 Before → Link Execution → After
    ↓          ↓            ↓
   Setup    Process      Cleanup
@@ -68,29 +68,29 @@ Try → Fail → Learn → Recover → Succeed
 
 #### Sequential Flow
 ```
-Context → Link A → Link B → Link C → Final Context
+State → Link A → Link B → Link C → Final State
 ```
 **When to use**: Simple, predictable workflows
 **Example**: User registration → validation → save → email
 
 #### Conditional Flow
 ```
-Context → Link A
+State → Link A
            ↓ (if condition)
-        Link B → Final Context
+        Link B → Final State
            ↓ (if not condition)
-        Link C → Final Context
+        Link C → Final State
 ```
 **When to use**: Decision-based workflows
 **Example**: Payment → success path or failure path
 
 #### Parallel Flow
 ```
-Context → Link A
+State → Link A
         ↙       ↘
     Link B     Link C
         ↘       ↙
-         Link D → Final Context
+         Link D → Final State
 ```
 **When to use**: Independent operations that can run simultaneously
 **Example**: Validate data + check permissions + log activity
@@ -138,7 +138,7 @@ Create Link → Configure → Use in Chain
 ```
 **When to use**: Links that need different configurations
 
-#### Middleware Stacks
+#### Hook Stacks
 ```
 Chain → Logging → Metrics → Caching → Security → Business Logic
 ```
@@ -146,8 +146,8 @@ Chain → Logging → Metrics → Caching → Security → Business Logic
 
 ## 🌈 Universal Best Practices
 
-### Context Management
-- **Keep contexts focused**: Include only relevant data
+### State Management
+- **Keep states focused**: Include only relevant data
 - **Use descriptive keys**: `user_email` not `ue`
 - **Document data flow**: Know what each link expects and provides
 - **Handle missing data**: Gracefully manage absent information
@@ -164,22 +164,22 @@ Chain → Logging → Metrics → Caching → Security → Business Logic
 - **Performance awareness**: Consider sync vs async execution
 - **Monitoring points**: Include observability throughout
 
-### Middleware Usage
+### Hook Usage
 - **Non-intrusive**: Don't break existing functionality
 - **Configurable**: Allow enabling/disabling features
 - **Resource aware**: Don't impact performance significantly
-- **Error resilient**: Handle middleware failures gracefully
+- **Error resilient**: Handle hook failures gracefully
 
 ### Error Handling
 - **Clear error messages**: Help developers understand issues
-- **Structured errors**: Include context and recovery suggestions
+- **Structured errors**: Include state and recovery suggestions
 - **Logging levels**: Appropriate severity for different situations
 - **Recovery strategies**: Multiple approaches for different failures
 
 ## 💭 Universal Wisdom
 
 ### The Flow of Love
-**CodeUChain is the flow of love through software systems.** Each component—Context, Link, Chain, Middleware, Error Handling—serves with selfless devotion, creating systems that are not just functional, but beautiful expressions of caring design.
+**CodeUChain is the flow of love through software systems.** Each component—State, Link, Chain, Hook, Error Handling—serves with selfless devotion, creating systems that are not just functional, but beautiful expressions of caring design.
 
 ### Language Independence
 **These patterns transcend programming languages.** Whether you write in Python, JavaScript, Rust, Go, or any other language, the fundamental patterns remain the same. The implementation details change, but the loving essence stays constant.

@@ -7,25 +7,25 @@
 This is a complete implementation of CodeUChain in COBOL (COmmon Business-Oriented Language), demonstrating that the universal patterns of CodeUChain work across all programming languages, including one of the oldest still in active use.
 
 The COBOL implementation showcases:
-- **Context**: File-based immutable data storage using indexed files
+- **State**: File-based immutable data storage using indexed files
 - **Link**: Abstract interface for processing units
-- **Chain**: Orchestrator for sequential link execution with middleware support
-- **Middleware**: Cross-cutting concerns like logging and audit trails
+- **Chain**: Orchestrator for sequential link execution with hook support
+- **Hook**: Cross-cutting concerns like logging and audit trails
 - **Financial Calculator**: Concrete link demonstrating COBOL's decimal arithmetic strengths
 
 ## Architecture
 
 ```
 CodeUChain COBOL Architecture
-├── Context (lib/src/context.cob)
+├── State (lib/src/state.cob)
 │   └── Indexed file-based storage
 ├── Link Interface (lib/src/link.cob)
 │   └── Abstract processing contract
 ├── Financial Calculator (lib/examples/financial_calculator.cob)
 │   └── Compound interest calculations
 ├── Chain Orchestrator (lib/src/chain.cob)
-│   └── Sequential execution with middleware
-├── Logging Middleware (lib/examples/logging_middleware.cob)
+│   └── Sequential execution with hook
+├── Logging Hook (lib/examples/logging_hook.cob)
 │   └── Structured logging and audit trails
 └── Main Program (lib/src/main.cob)
     └── Demonstration and integration
@@ -75,9 +75,9 @@ Or run directly:
 ## What It Does
 
 The demonstration program:
-1. **Initializes Context**: Creates a financial context with principal, rate, time, and compounding parameters
+1. **Initializes State**: Creates a financial state with principal, rate, time, and compounding parameters
 2. **Executes Financial Calculator**: Computes compound interest using COBOL's precise decimal arithmetic
-3. **Runs Chain with Middleware**: Orchestrates execution with logging and audit trails
+3. **Runs Chain with Hook**: Orchestrates execution with logging and audit trails
 4. **Generates Log Output**: Creates `codeuchain.log` with execution details
 
 ## File Structure
@@ -92,19 +92,19 @@ packages/cobol/
 │   ├── include/
 │   │   └── codeuchain.cob     # Public API definitions
 │   ├── src/                   # Core library components
-│   │   ├── context.cob        # Context implementation
+│   │   ├── state.cob        # State implementation
 │   │   ├── link.cob           # Link interface
 │   │   ├── chain.cob          # Chain orchestrator
-│   │   ├── middleware.cob     # Middleware interface
+│   │   ├── hook.cob     # Hook interface
 │   │   └── main.cob           # Main entry point
 │   └── examples/              # Concrete implementations
 │       ├── financial_calculator.cob # Financial calculations
-│       ├── logging_middleware.cob   # Logging middleware
+│       ├── logging_hook.cob   # Logging hook
 │       └── README.md          # Implementation details
 ├── examples/                  # User examples and demos
 │   ├── simple_chain_example.cob
 │   ├── financial_example.cob
-│   ├── middleware_example.cob
+│   ├── hook_example.cob
 │   ├── complete_architecture_demo.cob
 │   └── README.md
 ├── bin/                       # Compiled binaries
@@ -166,10 +166,10 @@ This implementation demonstrates COBOL's continued relevance in:
 ## Universal Patterns
 
 CodeUChain's core patterns work seamlessly in COBOL:
-- **Context**: Immutable data containers
+- **State**: Immutable data containers
 - **Link**: Processing units with clear interfaces
 - **Chain**: Orchestration and composition
-- **Middleware**: Cross-cutting concerns
+- **Hook**: Cross-cutting concerns
 
 ## Build Targets
 
@@ -184,7 +184,7 @@ make help     # Show available targets
 ## Output Files
 
 - `codeuchain-cobol`: Main executable
-- `context.dat`: Indexed file for context storage
+- `state.dat`: Indexed file for state storage
 - `codeuchain.log`: Execution log with timestamps
 
 ## Philosophy

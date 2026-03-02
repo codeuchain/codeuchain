@@ -185,7 +185,7 @@ But: "What business value does this chain deliver?"
 
 - **Functional composition**: `f ∘ g ∘ h`
 - **Type theory**: Generic constraints and evolution
-- **Category theory**: Morphisms between contexts
+- **Category theory**: Morphisms between states
 
 **Intellectual Pleasure**: It's the satisfaction of discovering that your code has mathematical beauty beneath the surface.
 
@@ -262,7 +262,7 @@ AI Agent: "I'll create a chain: ValidateInput → CheckCredentials → GenerateT
 AI Step 1: Create ValidateEmail link
 AI Step 2: Create SaveToDatabase link  
 AI Step 3: Compose them into UserRegistration chain
-AI Step 4: Add error handling middleware
+AI Step 4: Add error handling hook
 ```
 
 **AI Advantage**: Each step is small, testable, and reversible—perfect for AI's iterative approach.
@@ -362,9 +362,9 @@ Ready to experience the elegance of CodeUChain? Start with the [Core Concepts](.
 
 ## Quick Start
 
-1. Read [Core Concepts](./core/) to understand `Link`, `Context`, and `Chain` primitives.
+1. Read [Core Concepts](./core/) to understand `Link`, `State`, and `Chain` primitives.
 2. Create a simple `Link` that processes a single responsibility.
-3. Compose two links into a `Chain` and add error handling middleware.
+3. Compose two links into a `Chain` and add error handling hook.
 4. Run tests and iterate—keep links small and focused.
 
 ## Resources

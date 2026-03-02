@@ -1,6 +1,6 @@
 # CodeUChain C++ Optimization Decision Guide
 
-This guide helps decide **when** to apply advanced performance optimizations (StaticChain, mutability, slot caching, hybrid context) versus keeping standard dynamic chain usage.
+This guide helps decide **when** to apply advanced performance optimizations (StaticChain, mutability, slot caching, hybrid state) versus keeping standard dynamic chain usage.
 
 > Core Principle: Optimize only when the structural overhead is material to your latency or throughput goals.
 
@@ -15,7 +15,7 @@ Is this code path called > 1e6 times/sec per process?
                 └─ Yes → Consider StaticChain + instrumentation
                 └─ No  → Can you fuse logic into a direct function?
                         └─ Yes → Write direct fused function (hot path)
-                        └─ No  → Apply HybridContext + SlotHandle optimizations
+                        └─ No  → Apply HybridState + SlotHandle optimizations
 ```
 
 ---
@@ -24,10 +24,10 @@ Is this code path called > 1e6 times/sec per process?
 |------|------|-------------|------------------|------------|
 | 0 | Direct Function Pipeline | Ultra-hot arithmetic / kernels | ~baseline | No chaining features |
 | 1 | Dynamic Chain (Immutable) | Default orchestration | High micro overhead | Max flexibility, introspection |
-| 2 | StaticChain (Immutable) | Known compile-time sequence | Removes virtual dispatch | Still context/lookup cost |
+| 2 | StaticChain (Immutable) | Known compile-time sequence | Removes virtual dispatch | Still state/lookup cost |
 | 3 | StaticChain + Mutating Ops | Hot path, still structured | Cuts copy churn | Mutability risks debug clarity |
 | 4 | StaticChain + Slot Caching | Hot key repeated access | Eliminates repeated lookups | Manual caching logic |
-| 5 | StaticChain + HybridContext + SlotHandle (future) | Performance critical, memory churn sensitive | Near-direct cost target | Additional complexity, API expansion |
+| 5 | StaticChain + HybridState + SlotHandle (future) | Performance critical, memory churn sensitive | Near-direct cost target | Additional complexity, API expansion |
 
 ---
 ## 3. Cost Heuristic
@@ -62,7 +62,7 @@ Interpretation: Majority cost = repeated map/variant interactions, not dispatch.
 | Fixed linear pipeline, moderate invocations | StaticChain (Tier 2) |
 | Fixed linear, high-frequency micro ops | StaticChain + mut ops (Tier 3) |
 | Same key updated multiple times | Slot caching (Tier 4) |
-| Many small contexts, churn heavy | HybridContext (Tier 5) |
+| Many small states, churn heavy | HybridState (Tier 5) |
 | Extreme latency target (< 1 µs total) | Fused direct function (Tier 0) |
 
 ---
@@ -72,14 +72,14 @@ Interpretation: Majority cost = repeated map/variant interactions, not dispatch.
 3. If hot: switch to `StaticChain` version (mechanical transform).
 4. Replace repeated immutable inserts with mut ops where safe.
 5. Introduce slot caching for repeated key mutation.
-6. Adopt `HybridContext` / key interning (when available) for further gains.
+6. Adopt `HybridState` / key interning (when available) for further gains.
 7. If still not sufficient: fuse to a hand-written function.
 
 ---
 ## 7. Instrumentation Suggestions (Planned)
 Metrics to expose:
-- `context_lookups`
-- `context_mutations`
+- `state_lookups`
+- `state_mutations`
 - `allocations`
 - `variant_constructs`
 - `hash_ops`
@@ -88,9 +88,9 @@ Metrics to expose:
 Advisor heuristic example output:
 ```
 Chain Performance Advisor:
-  82% time in context lookups
+  82% time in state lookups
   11% time in variant construction
-  Suggested actions: enable SlotHandle, enable HybridContext.
+  Suggested actions: enable SlotHandle, enable HybridState.
 ```
 
 ---
@@ -113,7 +113,7 @@ Avoid spending engineering time if:
 **Q: Why so large a gap vs direct?**  
 A: Hash map + variant + copies dominate when useful work is trivial; abstraction overhead becomes the work.
 
-**Q: Will HybridContext really help?**  
+**Q: Will HybridState really help?**  
 A: Yes—cuts alloc/copy; combined with slot caching it removes main remaining structural costs.
 
 **Q: Can I mix tiers?**  

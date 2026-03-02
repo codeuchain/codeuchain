@@ -6,48 +6,48 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.HashMap;
 import java.util.Map;
 
-class MiddlewareTest {
+class HookTest {
 
     @Test
-    void testMiddlewareHooks() {
+    void testHookHooks() {
         Chain chain = new Chain();
 
         Link testLink = new Link() {
             @Override
-            public Context call(Context ctx) {
+            public State call(State ctx) {
                 return ctx.insert("linkExecuted", true);
             }
         };
 
         chain.addLink("test", testLink);
 
-        // Create a test middleware that tracks hook calls
+        // Create a test hook that tracks hook calls
         final boolean[] hooksCalled = new boolean[3]; // before, after, onError
 
-        Middleware testMiddleware = new Middleware() {
+        Hook testHook = new Hook() {
             @Override
-            public Context before(Link link, Context ctx) {
+            public State before(Link link, State ctx) {
                 hooksCalled[0] = true;
                 return ctx;
             }
 
             @Override
-            public Context after(Link link, Context ctx) {
+            public State after(Link link, State ctx) {
                 hooksCalled[1] = true;
                 return ctx;
             }
 
             @Override
-            public Context onError(Link link, Exception error, Context ctx) {
+            public State onError(Link link, Exception error, State ctx) {
                 hooksCalled[2] = true;
                 return ctx;
             }
         };
 
-        chain.useMiddleware(testMiddleware);
+        chain.useHook(testHook);
 
-        Context input = Context.create();
-        Context result = null;
+        State input = State.create();
+        State result = null;
         try {
             result = chain.run(input);
         } catch (Exception e) {
@@ -61,12 +61,12 @@ class MiddlewareTest {
     }
 
     @Test
-    void testMultipleMiddleware() {
+    void testMultipleHook() {
         Chain chain = new Chain();
 
         Link testLink = new Link() {
             @Override
-            public Context call(Context ctx) throws Exception {
+            public State call(State ctx) throws Exception {
                 return ctx.insert("executed", true);
             }
         };
@@ -75,36 +75,36 @@ class MiddlewareTest {
 
         final int[] callCount = {0};
 
-        Middleware middleware1 = new Middleware() {
+        Hook hook1 = new Hook() {
             @Override
-            public Context before(Link link, Context ctx) { callCount[0]++; return ctx; }
+            public State before(Link link, State ctx) { callCount[0]++; return ctx; }
             @Override
-            public Context after(Link link, Context ctx) { callCount[0]++; return ctx; }
+            public State after(Link link, State ctx) { callCount[0]++; return ctx; }
             @Override
-            public Context onError(Link link, Exception error, Context ctx) { return ctx; }
+            public State onError(Link link, Exception error, State ctx) { return ctx; }
         };
 
-        Middleware middleware2 = new Middleware() {
+        Hook hook2 = new Hook() {
             @Override
-            public Context before(Link link, Context ctx) { callCount[0]++; return ctx; }
+            public State before(Link link, State ctx) { callCount[0]++; return ctx; }
             @Override
-            public Context after(Link link, Context ctx) { callCount[0]++; return ctx; }
+            public State after(Link link, State ctx) { callCount[0]++; return ctx; }
             @Override
-            public Context onError(Link link, Exception error, Context ctx) { return ctx; }
+            public State onError(Link link, Exception error, State ctx) { return ctx; }
         };
 
-        chain.useMiddleware(middleware1);
-        chain.useMiddleware(middleware2);
+        chain.useHook(hook1);
+        chain.useHook(hook2);
 
-        Context input = Context.create();
+        State input = State.create();
         try {
             chain.run(input);
         } catch (Exception e) {
             fail("Chain execution should not throw exception: " + e.getMessage());
         }
 
-        // Each middleware should have its before and after hooks called
-        // For 2 middlewares and 1 link: initial before (2), per-link before (2), per-link after (2), final after (2) = 8 total
+        // Each hook should have its before and after hooks called
+        // For 2 hooks and 1 link: initial before (2), per-link before (2), per-link after (2), final after (2) = 8 total
         assertEquals(8, callCount[0]);
     }
 }

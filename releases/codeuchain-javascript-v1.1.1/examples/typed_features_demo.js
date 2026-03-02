@@ -6,14 +6,14 @@
  * JSDoc annotations and TypeScript definitions for enhanced developer experience.
  *
  * Key Features Demonstrated:
- * 1. Generic Context<T> with type evolution
+ * 1. Generic State<T> with type evolution
  * 2. Generic Link<TInput, TOutput> interfaces
  * 3. Generic Chain<TInput, TOutput> processing
  * 4. Type-safe insertAs() method for clean transformations
  * 5. Backward compatibility with existing untyped code
  */
 
-const { Context, Chain, Link, LoggingMiddleware } = require('../core');
+const { State, Chain, Link, LoggingHook } = require('../core');
 
 // =============================================================================
 // TYPE DEFINITIONS (Using JSDoc for TypeScript-like experience)
@@ -62,8 +62,8 @@ const { Context, Chain, Link, LoggingMiddleware } = require('../core');
  */
 class ValidateUserLink extends Link {
   /**
-   * @param {Context<UserInput>} ctx
-   * @returns {Promise<Context<UserValidated>>}
+   * @param {State<UserInput>} ctx
+   * @returns {Promise<State<UserValidated>>}
    */
   async call(ctx) {
     const name = ctx.get('name');
@@ -88,8 +88,8 @@ class ValidateUserLink extends Link {
  */
 class ProcessProfileLink extends Link {
   /**
-   * @param {Context<UserValidated>} ctx
-   * @returns {Promise<Context<UserWithProfile>>}
+   * @param {State<UserValidated>} ctx
+   * @returns {Promise<State<UserWithProfile>>}
    */
   async call(ctx) {
     const name = ctx.get('name');
@@ -129,8 +129,8 @@ class ProcessProfileLink extends Link {
  */
 class CreateUserAccountLink extends Link {
   /**
-   * @param {Context<UserWithProfile>} ctx
-   * @returns {Promise<Context<UserProcessed>>}
+   * @param {State<UserWithProfile>} ctx
+   * @returns {Promise<State<UserProcessed>>}
    */
   async call(ctx) {
     const name = ctx.get('name');
@@ -174,14 +174,14 @@ class UserRegistrationChain extends Chain {
     this.connect('ValidateUserLink', 'ProcessProfileLink');
     this.connect('ProcessProfileLink', 'CreateUserAccountLink');
 
-    // Add middleware
-    this.useMiddleware(new LoggingMiddleware());
+    // Add hook
+    this.useHook(new LoggingHook());
   }
 
   /**
    * Register a new user with full type safety
-   * @param {Context<UserInput>} initialCtx
-   * @returns {Promise<Context<UserProcessed>>}
+   * @param {State<UserInput>} initialCtx
+   * @returns {Promise<State<UserProcessed>>}
    */
   async registerUser(initialCtx) {
     return await this.run(initialCtx);
@@ -193,21 +193,21 @@ class UserRegistrationChain extends Chain {
 // =============================================================================
 
 /**
- * Demonstrate basic typed context operations
+ * Demonstrate basic typed state operations
  */
-function demonstrateTypedContext() {
+function demonstrateTypedState() {
   console.log('=== TYPED CONTEXT OPERATIONS ===\n');
 
-  // Create typed context
+  // Create typed state
   /** @type {UserInput} */
   const userData = {
     name: 'Alice Johnson',
     email: 'alice@example.com'
   };
 
-  const ctx = new Context(userData);
+  const ctx = new State(userData);
 
-  console.log('1. Initial context:');
+  console.log('1. Initial state:');
   console.log('   Type: UserInput');
   console.log('   Data:', ctx.toObject());
   console.log();
@@ -249,7 +249,7 @@ async function demonstrateTypedChain() {
     console.log(`\n📝 Processing user: ${user.name}`);
 
     try {
-      const initialCtx = new Context(user);
+      const initialCtx = new State(user);
       const resultCtx = await chain.registerUser(initialCtx);
 
       console.log('✅ Registration completed successfully!');
@@ -270,10 +270,10 @@ async function demonstrateBackwardCompatibility() {
   console.log('=== BACKWARD COMPATIBILITY ===\n');
 
   // Untyped usage still works
-  const untypedCtx = new Context({ name: 'Dave Wilson', email: 'dave@example.com' });
+  const untypedCtx = new State({ name: 'Dave Wilson', email: 'dave@example.com' });
   const evolvedCtx = untypedCtx.insert('customField', 'customValue');
 
-  console.log('1. Untyped context operations:');
+  console.log('1. Untyped state operations:');
   console.log('   Original:', untypedCtx.toObject());
   console.log('   Evolved:', evolvedCtx.toObject());
   console.log();
@@ -296,7 +296,7 @@ async function demonstrateBackwardCompatibility() {
   mixedChain.connect('ValidateUserLink', 'SimpleLoggerLink');
 
   try {
-    const result = await mixedChain.run(new Context({ name: 'Eve Davis', email: 'eve@example.com' }));
+    const result = await mixedChain.run(new State({ name: 'Eve Davis', email: 'eve@example.com' }));
     console.log('   Mixed chain result:', result.toObject());
   } catch (error) {
     console.log('   Mixed chain error:', error.message);
@@ -316,7 +316,7 @@ async function demonstrateErrorHandling() {
   // Add error handler
   chain.onError((error, ctx, linkName) => {
     console.error(`🚨 Error in ${linkName}: ${error.message}`);
-    console.error('   Context at error:', ctx.toObject());
+    console.error('   State at error:', ctx.toObject());
   });
 
   // Test with invalid data
@@ -330,7 +330,7 @@ async function demonstrateErrorHandling() {
   console.log('Input:', invalidUser);
 
   try {
-    const result = await chain.run(new Context(invalidUser));
+    const result = await chain.run(new State(invalidUser));
     console.log('Unexpected success:', result.toObject());
   } catch (error) {
     console.log('Expected error caught:', error.message);
@@ -349,7 +349,7 @@ async function main() {
   console.log();
 
   console.log('This example demonstrates opt-in typed features in JavaScript:');
-  console.log('• Generic Context<T> with type evolution');
+  console.log('• Generic State<T> with type evolution');
   console.log('• Generic Link<TInput, TOutput> interfaces');
   console.log('• Generic Chain<TInput, TOutput> processing');
   console.log('• Type-safe insertAs() method');
@@ -357,7 +357,7 @@ async function main() {
   console.log();
 
   try {
-    demonstrateTypedContext();
+    demonstrateTypedState();
     await demonstrateTypedChain();
     await demonstrateBackwardCompatibility();
     await demonstrateErrorHandling();

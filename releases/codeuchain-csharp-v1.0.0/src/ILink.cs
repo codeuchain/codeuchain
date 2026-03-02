@@ -5,12 +5,12 @@
 public interface ILink
 {
     /// <summary>
-    /// Processes the context and returns a new context.
+    /// Processes the state and returns a new state.
     /// Can be implemented as sync or async - the chain handles both automatically.
     /// </summary>
-    /// <param name="context">The input context</param>
-    /// <returns>The processed context</returns>
-    ValueTask<Context> ProcessAsync(Context context);
+    /// <param name="state">The input state</param>
+    /// <returns>The processed state</returns>
+    ValueTask<State> ProcessAsync(State state);
 }
 
 /// <summary>
@@ -23,10 +23,10 @@ public interface ILink<TInput, TOutput>
     where TOutput : class
 {
     /// <summary>
-    /// Processes the context with type safety.
+    /// Processes the state with type safety.
     /// Provides clean type evolution without explicit casting.
     /// </summary>
-    ValueTask<Context<TOutput>> ProcessAsync(Context<TInput> context);
+    ValueTask<State<TOutput>> ProcessAsync(State<TInput> state);
 }
 
 /// <summary>
@@ -37,27 +37,27 @@ public static class LinkExtensions
     /// <summary>
     /// Synchronous link implementation helper.
     /// </summary>
-    public static ValueTask<Context> ProcessAsync(this Func<Context, Context> processor, Context context)
+    public static ValueTask<State> ProcessAsync(this Func<State, State> processor, State state)
     {
-        return ValueTask.FromResult(processor(context));
+        return ValueTask.FromResult(processor(state));
     }
 
     /// <summary>
     /// Asynchronous link implementation helper.
     /// </summary>
-    public static ValueTask<Context> ProcessAsync(this Func<Context, Task<Context>> processor, Context context)
+    public static ValueTask<State> ProcessAsync(this Func<State, Task<State>> processor, State state)
     {
-        return new ValueTask<Context>(processor(context));
+        return new ValueTask<State>(processor(state));
     }
 }
 
 /// <summary>
-/// Generic Link interface for context-based processing.
+/// Generic Link interface for state-based processing.
 /// Follows the universal Link[Input, Output] pattern across all CodeUChain languages.
 /// </summary>
-public interface IContextLink<TInput, TOutput>
+public interface IStateLink<TInput, TOutput>
     where TInput : class
     where TOutput : class
 {
-    Task<Context<TOutput>> CallAsync(Context<TInput> context);
+    Task<State<TOutput>> CallAsync(State<TInput> state);
 }

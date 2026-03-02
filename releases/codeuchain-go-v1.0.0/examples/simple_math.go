@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context"
+	"state"
 	"fmt"
 
 	"codeuchain/examples"
@@ -12,23 +12,23 @@ func main() {
 	chain := examples.NewBasicChain()
 	chain.AddLink("sum", examples.NewMathLink("sum"))
 	chain.AddLink("mean", examples.NewMathLink("mean"))
-	chain.Connect("sum", "mean", func(ctx *codeuchain.Context) bool {
+	chain.Connect("sum", "mean", func(ctx *codeuchain.State) bool {
 		return ctx.Get("result") != nil
 	})
-	chain.UseMiddleware(examples.NewLoggingMiddleware())
+	chain.UseHook(examples.NewLoggingHook())
 
-	// Run with initial context
+	// Run with initial state
 	data := map[string]interface{}{
 		"numbers": []interface{}{1.0, 2.0, 3.0, 4.0, 5.0},
 	}
-	ctx := codeuchain.NewContext(data)
+	ctx := codeuchain.NewState(data)
 
-	result, err := chain.Run(context.Background(), ctx)
+	result, err := chain.Run(state.Background(), ctx)
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 		return
 	}
 
 	fmt.Printf("Final result: %v\n", result.Get("result"))
-	fmt.Printf("Full context: %v\n", result.ToMap())
+	fmt.Printf("Full state: %v\n", result.ToMap())
 }

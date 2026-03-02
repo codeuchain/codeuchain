@@ -1,6 +1,6 @@
 # CodeUChain C++ Typed Features Implementation
 
-This implementation provides opt-in generics for CodeUChain's C++ version, extending the existing `Context` class with type-safe operations while maintaining runtime flexibility.
+This implementation provides opt-in generics for CodeUChain's C++ version, extending the existing `State` class with type-safe operations while maintaining runtime flexibility.
 
 ## Overview
 
@@ -12,12 +12,12 @@ The typed features follow the universal CodeUChain guidelines:
 
 ## Key Components
 
-### 1. TypedContext<T>
-Generic context that maintains type information at compile time:
+### 1. TypedState<T>
+Generic state that maintains type information at compile time:
 
 ```cpp
-// Create typed context
-auto ctx = make_typed_context<std::string>({});
+// Create typed state
+auto ctx = make_typed_state<std::string>({});
 
 // Type-safe operations
 auto ctx2 = ctx.insert("name", std::string("Alice"));
@@ -33,7 +33,7 @@ Clean transformation between types using `insert_as()`:
 
 ```cpp
 // Type evolution
-auto ctx4 = ctx3.insert_as<double>("score", 95.5);  // Changes context type to double
+auto ctx4 = ctx3.insert_as<double>("score", 95.5);  // Changes state type to double
 ```
 
 ### 3. Link<Input, Output>
@@ -57,12 +57,12 @@ public:
 
 ### Basic Typed Operations
 ```cpp
-#include "typed_context.hpp"
+#include "typed_state.hpp"
 
 using namespace codeuchain;
 
-// Create and use typed context
-auto ctx = make_typed_context<std::string>({});
+// Create and use typed state
+auto ctx = make_typed_state<std::string>({});
 auto ctx2 = ctx.insert("name", std::string("Alice"));
 auto ctx3 = ctx2.insert("age", 30);
 
@@ -75,8 +75,8 @@ if (name) {
 
 ### Type Evolution
 ```cpp
-// Start with string context
-auto ctx = make_typed_context<std::string>({});
+// Start with string state
+auto ctx = make_typed_state<std::string>({});
 auto ctx2 = ctx.insert("data", std::string("hello"));
 
 // Evolve to different type
@@ -86,8 +86,8 @@ auto ctx4 = ctx3.insert_as<double>("score", 95.5);
 
 ### Runtime Flexibility
 ```cpp
-// Access underlying context for runtime operations
-auto base_ctx = ctx.to_context();
+// Access underlying state for runtime operations
+auto base_ctx = ctx.to_state();
 auto runtime_value = base_ctx.get("any_key");
 ```
 
@@ -95,8 +95,8 @@ auto runtime_value = base_ctx.get("any_key");
 
 - **Compile-time type checking**: Catch type errors at compile time
 - **Optional types**: Use `std::optional<T>` for safe retrieval
-- **Type evolution**: Clean transitions between context types
-- **Runtime fallback**: Access underlying `Context` for dynamic operations
+- **Type evolution**: Clean transitions between state types
+- **Runtime fallback**: Access underlying `State` for dynamic operations
 
 ## Building and Running
 
@@ -106,11 +106,11 @@ auto runtime_value = base_ctx.get("any_key");
 
 ### Build Examples
 ```bash
-# Build the typed context example
-g++ -std=c++17 -Iinclude examples/typed_context_example.cpp src/typed_context.cpp src/context.cpp -o typed_example
+# Build the typed state example
+g++ -std=c++17 -Iinclude examples/typed_state_example.cpp src/typed_state.cpp src/state.cpp -o typed_example
 
 # Build the typed link example
-g++ -std=c++17 -Iinclude examples/typed_link_example.cpp src/typed_context.cpp src/context.cpp -o link_example
+g++ -std=c++17 -Iinclude examples/typed_link_example.cpp src/typed_state.cpp src/state.cpp -o link_example
 ```
 
 ### Run Examples
@@ -121,15 +121,15 @@ g++ -std=c++17 -Iinclude examples/typed_link_example.cpp src/typed_context.cpp s
 
 ## Integration with Existing Code
 
-The typed features extend rather than replace the existing `Context` class:
+The typed features extend rather than replace the existing `State` class:
 
 ```cpp
 // Existing code continues to work
-Context ctx;
+State ctx;
 ctx = ctx.insert("key", DataValue("value"));
 
 // New typed features
-TypedContext<std::string> typed_ctx(ctx);
+TypedState<std::string> typed_ctx(ctx);
 auto typed_result = typed_ctx.insert("typed_key", std::string("typed_value"));
 ```
 
@@ -143,7 +143,7 @@ auto typed_result = typed_ctx.insert("typed_key", std::string("typed_value"));
 
 ### Type System
 - Uses C++ templates for compile-time type safety
-- Maintains runtime flexibility through base `Context` compatibility
+- Maintains runtime flexibility through base `State` compatibility
 - Provides type-safe wrappers around runtime data
 
 ### Memory Management
@@ -154,8 +154,8 @@ auto typed_result = typed_ctx.insert("typed_key", std::string("typed_value"));
 ## Future Enhancements
 
 - [ ] Additional type specializations
-- [ ] Chain integration with typed contexts
-- [ ] Middleware support for typed operations
+- [ ] Chain integration with typed states
+- [ ] Hook support for typed operations
 - [ ] Performance optimizations
 - [ ] Extended type evolution patterns
 
@@ -163,4 +163,4 @@ auto typed_result = typed_ctx.insert("typed_key", std::string("typed_value"));
 
 - [Universal Foundation](../MODULINK_UNIVERSAL_FOUNDATION.md)
 - [Type Progress Instructions](../../packages/cpp/include/codeuchain/type-progress.instructions.md)
-- [Context API](context.hpp)
+- [State API](state.hpp)

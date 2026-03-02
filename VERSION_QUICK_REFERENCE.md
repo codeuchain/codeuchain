@@ -82,7 +82,7 @@ Jan 19, 2026     → We discovered the problem during audit
 ```
 ├── VERSIONS.json              ← Central version tracking (with critical issue)
 ├── VERSION_AUDIT.md           ← Full investigation report
-├── VERSION_ISSUE_SUMMARY.md   ← Decision guide (this context)
+├── VERSION_ISSUE_SUMMARY.md   ← Decision guide (this state)
 ├── scripts/release.sh         ← Needs update to push tags
 ├── RELEASE.md                 ← Release workflow docs
 └── README.md                  ← User-facing docs (may need version updates)

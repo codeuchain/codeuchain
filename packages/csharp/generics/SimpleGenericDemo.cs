@@ -11,20 +11,20 @@ public class SimpleGenericDemo
     {
         Console.WriteLine("=== CodeUChain C# Generic Patterns ===\n");
 
-        // Pattern 1: Strongly-typed Context (using object for compatibility)
-        Console.WriteLine("1. Strongly-Typed Context:");
-        var context = Context<object>.Create(new Dictionary<string, object>
+        // Pattern 1: Strongly-typed State (using object for compatibility)
+        Console.WriteLine("1. Strongly-Typed State:");
+        var state = State<object>.Create(new Dictionary<string, object>
         {
             ["a"] = 3,
             ["b"] = 4
         });
 
-        var resultContext = context
-            .Insert("sum", (int)context.Get("a")! + (int)context.Get("b")!)
-            .Insert("product", (int)context.Get("a")! * (int)context.Get("b")!);
+        var resultState = state
+            .Insert("sum", (int)state.Get("a")! + (int)state.Get("b")!)
+            .Insert("product", (int)state.Get("a")! * (int)state.Get("b")!);
 
-        Console.WriteLine($"Context: {resultContext}");
-        Console.WriteLine($"Sum: {resultContext.Get("sum")}, Product: {resultContext.Get("product")}\n");
+        Console.WriteLine($"State: {resultState}");
+        Console.WriteLine($"Sum: {resultState.Get("sum")}, Product: {resultState.Get("product")}\n");
 
         // Pattern 2: Generic Pipeline
         Console.WriteLine("2. Generic Pipeline:");
@@ -41,7 +41,7 @@ public class SimpleGenericDemo
             .AddLink("process", new GenericProcessor())
             .AddLink("format", new GenericFormatter());
 
-        var chainInput = Context<object>.Create(new Dictionary<string, object>
+        var chainInput = State<object>.Create(new Dictionary<string, object>
         {
             ["data"] = "hello"
         });
@@ -106,20 +106,20 @@ public class IntFormatter : IPipelineStep<int, string>
 }
 
 // Generic Chain Links
-public class GenericProcessor : IContextLink<object, object>
+public class GenericProcessor : IStateLink<object, object>
 {
-    public Task<Context<object>> CallAsync(Context<object> context)
+    public Task<State<object>> CallAsync(State<object> state)
     {
-        var data = context.Get("data")?.ToString() ?? "";
-        return Task.FromResult(context.Insert("processed", data.ToUpper()));
+        var data = state.Get("data")?.ToString() ?? "";
+        return Task.FromResult(state.Insert("processed", data.ToUpper()));
     }
 }
 
-public class GenericFormatter : IContextLink<object, object>
+public class GenericFormatter : IStateLink<object, object>
 {
-    public Task<Context<object>> CallAsync(Context<object> context)
+    public Task<State<object>> CallAsync(State<object> state)
     {
-        var processed = context.Get("processed")?.ToString() ?? "";
-        return Task.FromResult(context.Insert("formatted", $"[{processed}]"));
+        var processed = state.Get("processed")?.ToString() ?? "";
+        return Task.FromResult(state.Insert("formatted", $"[{processed}]"));
     }
 }

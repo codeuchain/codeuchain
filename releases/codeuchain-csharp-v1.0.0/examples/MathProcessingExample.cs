@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 /// <summary>
-/// Example demonstrating a math processing chain with middleware.
+/// Example demonstrating a math processing chain with hook.
 /// </summary>
 public class MathProcessingExample
 {
@@ -22,9 +22,9 @@ public class MathProcessingExample
         chain = chain.AddLink("add", addLink);
         chain = chain.AddLink("multiply", multiplyLink);
 
-        // Add logging middleware
-        var loggingMiddleware = new LoggingMiddleware();
-        chain = chain.UseMiddleware(loggingMiddleware);
+        // Add logging hook
+        var loggingHook = new LoggingHook();
+        chain = chain.UseHook(loggingHook);
 
         // Prepare input data
         var data = new Dictionary<string, object>
@@ -33,7 +33,7 @@ public class MathProcessingExample
             ["b"] = 4
         };
 
-        var input = Context.Create(data);
+        var input = State.Create(data);
         Console.WriteLine($"Input: {input}");
 
         try
@@ -69,22 +69,22 @@ public class MathProcessingExample
 }
 
 /// <summary>
-/// Link that adds two numbers from the context.
+/// Link that adds two numbers from the state.
 /// </summary>
 public class AddLink : ILink
 {
-    public async Task<Context> CallAsync(Context context)
+    public async Task<State> CallAsync(State state)
     {
-        var a = context.Get<int>("a");
-        var b = context.Get<int>("b");
+        var a = state.Get<int>("a");
+        var b = state.Get<int>("b");
 
-        if (context.ContainsKey("a") && context.ContainsKey("b"))
+        if (state.ContainsKey("a") && state.ContainsKey("b"))
         {
             var sum = a + b;
-            return context.Insert("sum", sum);
+            return state.Insert("sum", sum);
         }
 
-        return context;
+        return state;
     }
 }
 
@@ -93,44 +93,44 @@ public class AddLink : ILink
 /// </summary>
 public class MultiplyLink : ILink
 {
-    public async Task<Context> CallAsync(Context context)
+    public async Task<State> CallAsync(State state)
     {
-        var sum = context.Get<int>("sum");
+        var sum = state.Get<int>("sum");
 
-        if (context.ContainsKey("sum"))
+        if (state.ContainsKey("sum"))
         {
             var result = sum * 2;
-            return context.Insert("result", result);
+            return state.Insert("result", result);
         }
 
-        return context;
+        return state;
     }
 }
 
 /// <summary>
-/// Middleware that logs execution flow.
+/// Hook that logs execution flow.
 /// </summary>
-public class LoggingMiddleware : IMiddleware
+public class LoggingHook : IHook
 {
-    public Task<Context> BeforeAsync(ILink? link, Context context)
+    public Task<State> BeforeAsync(ILink? link, State state)
     {
         var linkName = link?.GetType().Name ?? "Chain";
         Console.WriteLine($"Executing: {linkName}");
-        return Task.FromResult(context);
+        return Task.FromResult(state);
     }
 
-    public Task<Context> AfterAsync(ILink? link, Context context)
+    public Task<State> AfterAsync(ILink? link, State state)
     {
         var linkName = link?.GetType().Name ?? "Chain";
         Console.WriteLine($"Completed: {linkName}");
-        return Task.FromResult(context);
+        return Task.FromResult(state);
     }
 
-    public Task<Context> OnErrorAsync(ILink? link, Exception exception, Context context)
+    public Task<State> OnErrorAsync(ILink? link, Exception exception, State state)
     {
         var linkName = link?.GetType().Name ?? "Chain";
         Console.WriteLine($"Error in {linkName}: {exception.Message}");
-        return Task.FromResult(context);
+        return Task.FromResult(state);
     }
 }
 
@@ -154,9 +154,9 @@ public class MathProcessingExample
         chain = chain.AddLink("add", addLink);
         chain = chain.AddLink("multiply", multiplyLink);
 
-        // Add logging middleware
-        var loggingMiddleware = new LoggingMiddleware();
-        chain = chain.UseMiddleware(loggingMiddleware);
+        // Add logging hook
+        var loggingHook = new LoggingHook();
+        chain = chain.UseHook(loggingHook);
 
         // Prepare input data
         var data = new Dictionary<string, object>
@@ -165,7 +165,7 @@ public class MathProcessingExample
             ["b"] = 4
         };
 
-        var input = Context.Create(data);
+        var input = State.Create(data);
         Console.WriteLine($"Input: {input}");
 
         try
@@ -201,22 +201,22 @@ public class MathProcessingExample
 }
 
 /// <summary>
-/// Link that adds two numbers from the context.
+/// Link that adds two numbers from the state.
 /// </summary>
 public class AddLink : ILink
 {
-    public async Task<Context> CallAsync(Context context)
+    public async Task<State> CallAsync(State state)
     {
-        var a = context.Get<int>("a");
-        var b = context.Get<int>("b");
+        var a = state.Get<int>("a");
+        var b = state.Get<int>("b");
 
-        if (context.ContainsKey("a") && context.ContainsKey("b"))
+        if (state.ContainsKey("a") && state.ContainsKey("b"))
         {
             var sum = a + b;
-            return context.Insert("sum", sum);
+            return state.Insert("sum", sum);
         }
 
-        return context;
+        return state;
     }
 }
 
@@ -225,43 +225,43 @@ public class AddLink : ILink
 /// </summary>
 public class MultiplyLink : ILink
 {
-    public async Task<Context> CallAsync(Context context)
+    public async Task<State> CallAsync(State state)
     {
-        var sum = context.Get<int>("sum");
+        var sum = state.Get<int>("sum");
 
-        if (context.ContainsKey("sum"))
+        if (state.ContainsKey("sum"))
         {
             var result = sum * 2;
-            return context.Insert("result", result);
+            return state.Insert("result", result);
         }
 
-        return context;
+        return state;
     }
 }
 
 /// <summary>
-/// Middleware that logs execution flow.
+/// Hook that logs execution flow.
 /// </summary>
-public class LoggingMiddleware : IMiddleware
+public class LoggingHook : IHook
 {
-    public Task<Context> BeforeAsync(ILink? link, Context context)
+    public Task<State> BeforeAsync(ILink? link, State state)
     {
         var linkName = link?.GetType().Name ?? "Chain";
         Console.WriteLine($"Executing: {linkName}");
-        return Task.FromResult(context);
+        return Task.FromResult(state);
     }
 
-    public Task<Context> AfterAsync(ILink? link, Context context)
+    public Task<State> AfterAsync(ILink? link, State state)
     {
         var linkName = link?.GetType().Name ?? "Chain";
         Console.WriteLine($"Completed: {linkName}");
-        return Task.FromResult(context);
+        return Task.FromResult(state);
     }
 
-    public Task<Context> OnErrorAsync(ILink? link, Exception exception, Context context)
+    public Task<State> OnErrorAsync(ILink? link, Exception exception, State state)
     {
         var linkName = link?.GetType().Name ?? "Chain";
         Console.WriteLine($"Error in {linkName}: {exception.Message}");
-        return Task.FromResult(context);
+        return Task.FromResult(state);
     }
 }

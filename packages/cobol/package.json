@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "CodeUChain COBOL Implementation - Universal Software Patterns in COBOL",
   "main": "lib/src/main.cob",
-  "keywords": ["cobol", "codeuchain", "middleware", "chain", "link"],
+  "keywords": ["cobol", "codeuchain", "hook", "chain", "link"],
   "author": "CodeUChain Team",
   "license": "MIT",
   "repository": {

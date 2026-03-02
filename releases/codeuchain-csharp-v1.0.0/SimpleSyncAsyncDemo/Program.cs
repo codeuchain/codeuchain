@@ -17,9 +17,9 @@ public class SimpleSyncAsyncDemo
             .AddLink("sync-validate", new SyncValidator())     // Normal sync method
             .AddLink("async-process", new AsyncProcessor())    // Normal async method
             .AddLink("sync-format", new SyncFormatter())       // Normal sync method
-            .UseMiddleware(new SimpleLogger());                // Works with both
+            .UseHook(new SimpleLogger());                // Works with both
 
-        var input = Context.Create(new Dictionary<string, object>
+        var input = State.Create(new Dictionary<string, object>
         {
             ["data"] = "hello world",
             ["count"] = 42
@@ -44,63 +44,63 @@ public class SimpleSyncAsyncDemo
 // Just normal classes - no special interfaces or base classes needed!
 public class SyncValidator : ILink
 {
-    public ValueTask<Context> ProcessAsync(Context context)
+    public ValueTask<State> ProcessAsync(State state)
     {
         // Normal sync method - just return the result directly
         Console.WriteLine("🔍 Sync validation: Checking data...");
-        if (!context.ContainsKey("data"))
+        if (!state.ContainsKey("data"))
         {
             throw new InvalidOperationException("Missing data key");
         }
-        return ValueTask.FromResult(context.Insert("validated", true));
+        return ValueTask.FromResult(state.Insert("validated", true));
     }
 }
 
 public class AsyncProcessor : ILink
 {
-    public async ValueTask<Context> ProcessAsync(Context context)
+    public async ValueTask<State> ProcessAsync(State state)
     {
         // Normal async method - just use await
         Console.WriteLine("⚡ Async processing: Processing data...");
         await Task.Delay(100); // Simulate async work
-        var data = context.Get("data")?.ToString() ?? "";
+        var data = state.Get("data")?.ToString() ?? "";
         var processed = data.ToUpper();
-        return context.Insert("processed", processed);
+        return state.Insert("processed", processed);
     }
 }
 
 public class SyncFormatter : ILink
 {
-    public ValueTask<Context> ProcessAsync(Context context)
+    public ValueTask<State> ProcessAsync(State state)
     {
         // Normal sync method
         Console.WriteLine("📝 Sync formatting: Formatting result...");
-        var data = context.Get("data")?.ToString() ?? "";
+        var data = state.Get("data")?.ToString() ?? "";
         var formatted = $"[{data.ToUpper()}]";
-        return ValueTask.FromResult(context.Insert("formatted", formatted));
+        return ValueTask.FromResult(state.Insert("formatted", formatted));
     }
 }
 
-public class SimpleLogger : IMiddleware
+public class SimpleLogger : IHook
 {
-    public ValueTask<Context> BeforeAsync(ILink? link, Context context)
+    public ValueTask<State> BeforeAsync(ILink? link, State state)
     {
         var linkName = link?.GetType().Name ?? "Chain";
         Console.WriteLine($"▶️  Starting: {linkName}");
-        return ValueTask.FromResult(context);
+        return ValueTask.FromResult(state);
     }
 
-    public ValueTask<Context> AfterAsync(ILink? link, Context context)
+    public ValueTask<State> AfterAsync(ILink? link, State state)
     {
         var linkName = link?.GetType().Name ?? "Chain";
         Console.WriteLine($"✅ Completed: {linkName}");
-        return ValueTask.FromResult(context);
+        return ValueTask.FromResult(state);
     }
 
-    public ValueTask<Context> OnErrorAsync(ILink? link, Exception exception, Context context)
+    public ValueTask<State> OnErrorAsync(ILink? link, Exception exception, State state)
     {
         var linkName = link?.GetType().Name ?? "Chain";
         Console.WriteLine($"❌ Error in {linkName}: {exception.Message}");
-        return ValueTask.FromResult(context);
+        return ValueTask.FromResult(state);
     }
 }

@@ -12,7 +12,7 @@
        DATA DIVISION.
        WORKING-STORAGE SECTION.
 
-       01  WS-CONTEXT-DATA          PIC X(10000).
+       01  WS-STATE-DATA          PIC X(10000).
        01  WS-RESULT                PIC X(10000).
        01  WS-LINK-RESULT           PIC X(10).
        01  WS-CHAIN-RESULT          PIC X(10).
@@ -22,10 +22,10 @@
        01  WS-CHAIN-NAME.
            05  WS-CHAIN-NAME-LEN    PIC S9(4) COMP.
            05  WS-CHAIN-NAME-DATA   PIC X(30).
-       01  WS-MIDDLEWARE-NAME.
-           05  WS-MIDDLEWARE-NAME-LEN    PIC S9(4) COMP.
-           05  WS-MIDDLEWARE-NAME-DATA   PIC X(30).
-       01  WS-MIDDLEWARE-RESULT     PIC X(10).
+       01  WS-HOOK-NAME.
+           05  WS-HOOK-NAME-LEN    PIC S9(4) COMP.
+           05  WS-HOOK-NAME-DATA   PIC X(30).
+       01  WS-HOOK-RESULT     PIC X(10).
        01  WS-OPERATION.
            05  WS-OPERATION-LEN          PIC S9(4) COMP.
            05  WS-OPERATION-DATA         PIC X(20).
@@ -37,7 +37,7 @@
            DISPLAY "CodeUChain COBOL - Complete Architecture"
            DISPLAY "=========================================="
 
-           DISPLAY "Step 1: Initializing business context..."
+           DISPLAY "Step 1: Initializing business state..."
            STRING
                "Business Process: Loan Application, "
                "Applicant: John Doe, "
@@ -45,11 +45,11 @@
                "Term: 30 years, "
                "Rate: 6.5%"
                DELIMITED BY SIZE
-               INTO WS-CONTEXT-DATA
+               INTO WS-STATE-DATA
            END-STRING
 
-           DISPLAY "Business context initialized:"
-           DISPLAY WS-CONTEXT-DATA
+           DISPLAY "Business state initialized:"
+           DISPLAY WS-STATE-DATA
 
       *     Set up names for the demonstration
            MOVE 16 TO WS-LINK-NAME-LEN
@@ -57,29 +57,29 @@
            MOVE 19 TO WS-CHAIN-NAME-LEN
            MOVE "BUSINESS-PROCESS-CHAIN" TO WS-CHAIN-NAME-DATA
 
-           DISPLAY "Step 2: Executing middleware (before)..."
+           DISPLAY "Step 2: Executing hook (before)..."
            MOVE 6 TO WS-OPERATION-LEN
            MOVE "BEFORE" TO WS-OPERATION-DATA
-           CALL "LOGGING-MIDDLEWARE" USING
-               WS-MIDDLEWARE-NAME,
-               WS-CONTEXT-DATA,
+           CALL "LOGGING-HOOK" USING
+               WS-HOOK-NAME,
+               WS-STATE-DATA,
                WS-OPERATION,
-               WS-MIDDLEWARE-RESULT
+               WS-HOOK-RESULT
 
-           IF WS-MIDDLEWARE-RESULT = "SUCCESS"
-               DISPLAY "Middleware before-operation successful"
+           IF WS-HOOK-RESULT = "SUCCESS"
+               DISPLAY "Hook before-operation successful"
            END-IF
 
            DISPLAY "Step 3: Executing financial calculation link..."
            CALL "FINANCIAL-CALCULATOR" USING
                WS-LINK-NAME,
-               WS-CONTEXT-DATA,
+               WS-STATE-DATA,
                WS-RESULT,
                WS-LINK-RESULT
 
            IF WS-LINK-RESULT = "SUCCESS"
                DISPLAY "Financial calculation completed"
-               MOVE WS-RESULT TO WS-CONTEXT-DATA
+               MOVE WS-RESULT TO WS-STATE-DATA
            ELSE
                DISPLAY "Financial calculation failed"
            END-IF
@@ -89,19 +89,19 @@
            MOVE "BUSINESS-PROCESSING" TO WS-LINK-NAME-DATA
            CALL "LINK-INTERFACE" USING
                WS-LINK-NAME,
-               WS-CONTEXT-DATA,
+               WS-STATE-DATA,
                WS-RESULT,
                WS-LINK-RESULT
 
            IF WS-LINK-RESULT = "SUCCESS"
                DISPLAY "General link processing completed"
-               MOVE WS-RESULT TO WS-CONTEXT-DATA
+               MOVE WS-RESULT TO WS-STATE-DATA
            END-IF
 
            DISPLAY "Step 5: Executing chain orchestration..."
            CALL "CHAIN-ORCHESTRATOR" USING
                WS-CHAIN-NAME,
-               WS-CONTEXT-DATA,
+               WS-STATE-DATA,
                WS-RESULT,
                WS-CHAIN-RESULT
 
@@ -112,24 +112,24 @@
                DISPLAY "Chain orchestration failed"
            END-IF
 
-           DISPLAY "Step 6: Executing middleware (after)..."
+           DISPLAY "Step 6: Executing hook (after)..."
            MOVE 5 TO WS-OPERATION-LEN
            MOVE "AFTER" TO WS-OPERATION-DATA
-           CALL "LOGGING-MIDDLEWARE" USING
-               WS-MIDDLEWARE-NAME,
-               WS-CONTEXT-DATA,
+           CALL "LOGGING-HOOK" USING
+               WS-HOOK-NAME,
+               WS-STATE-DATA,
                WS-OPERATION,
-               WS-MIDDLEWARE-RESULT
+               WS-HOOK-RESULT
 
-           IF WS-MIDDLEWARE-RESULT = "SUCCESS"
-               DISPLAY "Middleware after-operation successful"
+           IF WS-HOOK-RESULT = "SUCCESS"
+               DISPLAY "Hook after-operation successful"
            END-IF
 
            DISPLAY "=========================================="
            DISPLAY "ARCHITECTURE DEMONSTRATION SUMMARY:"
-           DISPLAY "- Context Management: ✅ Initialized and passed"
+           DISPLAY "- State Management: ✅ Initialized and passed"
            DISPLAY "- Link Processing: ✅ Financial + General links"
-           DISPLAY "- Middleware: ✅ Before/After operations"
+           DISPLAY "- Hook: ✅ Before/After operations"
            DISPLAY "- Chain Orchestration: ✅ Complete workflow"
            DISPLAY "- Logging: ✅ Audit trail generated"
            DISPLAY "=========================================="

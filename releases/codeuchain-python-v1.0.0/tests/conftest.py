@@ -5,13 +5,13 @@ Pytest configuration and shared fixtures for CodeUChain Python tests.
 import pytest
 import asyncio
 from typing import Dict, Any, Optional, AsyncGenerator
-from codeuchain.core.context import Context, MutableContext
+from codeuchain.core.state import State, MutableState
 
 
 @pytest.fixture
-def sample_context() -> Context:
-    """Fixture providing a sample context with test data."""
-    return Context({
+def sample_state() -> State:
+    """Fixture providing a sample state with test data."""
+    return State({
         "user_id": 123,
         "name": "Alice",
         "email": "alice@example.com",
@@ -20,15 +20,15 @@ def sample_context() -> Context:
 
 
 @pytest.fixture
-def empty_context() -> Context:
-    """Fixture providing an empty context."""
-    return Context()
+def empty_state() -> State:
+    """Fixture providing an empty state."""
+    return State()
 
 
 @pytest.fixture
-def mutable_context() -> MutableContext:
-    """Fixture providing a mutable context with test data."""
-    return MutableContext({
+def mutable_state() -> MutableState:
+    """Fixture providing a mutable state with test data."""
+    return MutableState({
         "counter": 0,
         "status": "init"
     })
@@ -43,9 +43,9 @@ def event_loop():
 
 
 @pytest.fixture
-async def async_context() -> AsyncGenerator[Context, None]:
-    """Async fixture providing a context for async tests."""
-    ctx = Context({"async_test": True, "step": "setup"})
+async def async_state() -> AsyncGenerator[State, None]:
+    """Async fixture providing a state for async tests."""
+    ctx = State({"async_test": True, "step": "setup"})
     yield ctx
 
 
@@ -58,7 +58,7 @@ class MockLink:
         self.result_data = result_data or {"processed": True}
         self.call_count = 0
 
-    async def call(self, ctx: Context) -> Context:
+    async def call(self, ctx: State) -> State:
         self.call_count += 1
 
         if self.should_fail:
@@ -95,14 +95,14 @@ def run_async(coro):
     return asyncio.run(coro)
 
 
-def assert_context_contains(ctx: Context, expected_data: dict):
-    """Assert that context contains all expected key-value pairs."""
+def assert_state_contains(ctx: State, expected_data: dict):
+    """Assert that state contains all expected key-value pairs."""
     for key, expected_value in expected_data.items():
         actual_value = ctx.get(key)
         assert actual_value == expected_value, f"Expected {key}={expected_value}, got {actual_value}"
 
 
-def assert_context_immutable(original: Context, modified: Context):
-    """Assert that original context was not modified when creating modified version."""
+def assert_state_immutable(original: State, modified: State):
+    """Assert that original state was not modified when creating modified version."""
     # This is a basic check - in practice, you'd need deep comparison
-    assert original is not modified, "Contexts should be different objects"
+    assert original is not modified, "States should be different objects"

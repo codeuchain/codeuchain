@@ -4,34 +4,34 @@ import java.util.*;
 
 /**
  * Chain: The Harmonious Connector
- * Orchestrates link execution with middleware support.
+ * Orchestrates link execution with hook support.
  */
 public class Chain {
     private final Map<String, Link> links = new HashMap<>();
-    private final List<Middleware> middlewares = new ArrayList<>();
+    private final List<Hook> hooks = new ArrayList<>();
 
     public Chain addLink(String name, Link link) {
         links.put(name, link);
         return this;
     }
 
-    public Chain useMiddleware(Middleware middleware) {
-        middlewares.add(middleware);
+    public Chain useHook(Hook hook) {
+        hooks.add(hook);
         return this;
     }
 
-    public Context run(Context initialContext) throws Exception {
-        Context currentContext = initialContext;
+    public State run(State initialState) throws Exception {
+        State currentState = initialState;
 
         // Execute before hooks
-        for (Middleware mw : middlewares) {
+        for (Hook mw : hooks) {
             try {
-                currentContext = mw.before(null, currentContext);
+                currentState = mw.before(null, currentState);
             } catch (Exception e) {
-                // Handle middleware errors
-                for (Middleware errorMw : middlewares) {
+                // Handle hook errors
+                for (Hook errorMw : hooks) {
                     try {
-                        currentContext = errorMw.onError(null, e, currentContext);
+                        currentState = errorMw.onError(null, e, currentState);
                     } catch (Exception errorMwException) {
                         // Continue with other error handlers
                     }
@@ -45,14 +45,14 @@ public class Chain {
             Link link = entry.getValue();
 
             // Before each link
-            for (Middleware mw : middlewares) {
+            for (Hook mw : hooks) {
                 try {
-                    currentContext = mw.before(link, currentContext);
+                    currentState = mw.before(link, currentState);
                 } catch (Exception e) {
-                    // Handle middleware errors
-                    for (Middleware errorMw : middlewares) {
+                    // Handle hook errors
+                    for (Hook errorMw : hooks) {
                         try {
-                            currentContext = errorMw.onError(link, e, currentContext);
+                            currentState = errorMw.onError(link, e, currentState);
                         } catch (Exception errorMwException) {
                             // Continue with other error handlers
                         }
@@ -63,12 +63,12 @@ public class Chain {
 
             // Execute link
             try {
-                currentContext = link.call(currentContext);
+                currentState = link.call(currentState);
             } catch (Exception e) {
                 // Handle link errors
-                for (Middleware mw : middlewares) {
+                for (Hook mw : hooks) {
                     try {
-                        currentContext = mw.onError(link, e, currentContext);
+                        currentState = mw.onError(link, e, currentState);
                     } catch (Exception errorMwException) {
                         // Continue with other error handlers
                     }
@@ -77,14 +77,14 @@ public class Chain {
             }
 
             // After each link
-            for (Middleware mw : middlewares) {
+            for (Hook mw : hooks) {
                 try {
-                    currentContext = mw.after(link, currentContext);
+                    currentState = mw.after(link, currentState);
                 } catch (Exception e) {
-                    // Handle middleware errors
-                    for (Middleware errorMw : middlewares) {
+                    // Handle hook errors
+                    for (Hook errorMw : hooks) {
                         try {
-                            currentContext = errorMw.onError(link, e, currentContext);
+                            currentState = errorMw.onError(link, e, currentState);
                         } catch (Exception errorMwException) {
                             // Continue with other error handlers
                         }
@@ -95,14 +95,14 @@ public class Chain {
         }
 
         // Final after hooks
-        for (Middleware mw : middlewares) {
+        for (Hook mw : hooks) {
             try {
-                currentContext = mw.after(null, currentContext);
+                currentState = mw.after(null, currentState);
             } catch (Exception e) {
-                // Handle middleware errors
-                for (Middleware errorMw : middlewares) {
+                // Handle hook errors
+                for (Hook errorMw : hooks) {
                     try {
-                        currentContext = errorMw.onError(null, e, currentContext);
+                        currentState = errorMw.onError(null, e, currentState);
                     } catch (Exception errorMwException) {
                         // Continue with other error handlers
                     }
@@ -111,6 +111,6 @@ public class Chain {
             }
         }
 
-        return currentContext;
+        return currentState;
     }
 }

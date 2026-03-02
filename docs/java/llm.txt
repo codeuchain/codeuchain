@@ -8,20 +8,20 @@ Full reference: `docs/java/llm-full.txt`
 implementation "org.codeuchain:codeuchain:1.0.0"
 ```
 ```java
-var ctx = Context.of(Map.of("payload", "hi"));
+var ctx = State.of(Map.of("payload", "hi"));
 var res = chain.call(ctx).get();
 ```
 
 ## Primitives
-- Link: `CompletableFuture<Context<O>> call(Context<I> ctx)`
-- Context<T>: immutable; `insert`, `<U> insertAs`
+- Link: `CompletableFuture<State<O>> call(State<I> ctx)`
+- State<T>: immutable; `insert`, `<U> insertAs`
 - Chain: fluent + `.catchHandler()`
-- Middleware: pre/post/error wrappers
+- Hook: pre/post/error wrappers
 
 ## Minimal Link
 ```java
 final class Parse implements Link<Object, Object> {
-    public CompletableFuture<Context<Object>> call(Context<Object> ctx){
+    public CompletableFuture<State<Object>> call(State<Object> ctx){
         return completedFuture(ctx.insert("parsed", true));
     }
 }
@@ -38,7 +38,7 @@ var chain = Chain.builder()
 
 ## Type Evolution
 ```java
-Context<Parsed> evolved = ctx.insertAs("parsed", new Parsed(tokens));
+State<Parsed> evolved = ctx.insertAs("parsed", new Parsed(tokens));
 ```
 
 ## Error Classification
@@ -55,6 +55,6 @@ Retry transient (IO, 5xx); surface validation/security. Map using sealed hierarc
 ```
 
 ## TL;DR
-CompletableFuture links + immutable context + evolving typed payload.
+CompletableFuture links + immutable state + evolving typed payload.
 
 © 2025 Orchestrate LLC – Apache 2.0

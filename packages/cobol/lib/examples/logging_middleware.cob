@@ -1,11 +1,11 @@
       *================================================================*
-      * CodeUChain COBOL Implementation - Logging Middleware          *
+      * CodeUChain COBOL Implementation - Logging Hook          *
       *                                                                *
-      * Simple logging middleware for COBOL implementation.           *
+      * Simple logging hook for COBOL implementation.           *
       *================================================================*
 
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. LOGGING-MIDDLEWARE.
+       PROGRAM-ID. LOGGING-HOOK.
 
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
@@ -26,8 +26,8 @@
        WORKING-STORAGE SECTION.
        01  LOG-STATUS                PIC XX.
 
-       01  WS-MIDDLEWARE-NAME        PIC X(50).
-       01  WS-MIDDLEWARE-DESCRIPTION PIC X(200).
+       01  WS-HOOK-NAME        PIC X(50).
+       01  WS-HOOK-DESCRIPTION PIC X(200).
 
        01  WS-CURRENT-TIME           PIC X(20).
        01  WS-LOG-LEVEL              PIC X(10).
@@ -35,17 +35,17 @@
        01  WS-LOG-MESSAGE            PIC X(500).
 
        LINKAGE SECTION.
-       01  LS-MIDDLEWARE-NAME.
-           05  LS-MIDDLEWARE-NAME-LEN    PIC S9(4) COMP.
-           05  LS-MIDDLEWARE-NAME-DATA   PIC X(30).
-       01  LS-CONTEXT-DATA          PIC X(10000).
+       01  LS-HOOK-NAME.
+           05  LS-HOOK-NAME-LEN    PIC S9(4) COMP.
+           05  LS-HOOK-NAME-DATA   PIC X(30).
+       01  LS-STATE-DATA          PIC X(10000).
        01  LS-OPERATION.
            05  LS-OPERATION-LEN          PIC S9(4) COMP.
            05  LS-OPERATION-DATA         PIC X(20).
        01  LS-RESULT                PIC X(10).
 
-       PROCEDURE DIVISION USING LS-MIDDLEWARE-NAME,
-                               LS-CONTEXT-DATA,
+       PROCEDURE DIVISION USING LS-HOOK-NAME,
+                               LS-STATE-DATA,
                                LS-OPERATION,
                                LS-RESULT.
 
@@ -63,8 +63,8 @@
            GOBACK.
 
        GET-NAME-OPERATION.
-           MOVE 19 TO LS-MIDDLEWARE-NAME-LEN
-           MOVE "LOGGING-MIDDLEWARE" TO LS-MIDDLEWARE-NAME-DATA
+           MOVE 19 TO LS-HOOK-NAME-LEN
+           MOVE "LOGGING-HOOK" TO LS-HOOK-NAME-DATA
            MOVE "SUCCESS" TO LS-RESULT.
 
        BEFORE-OPERATION.
@@ -102,4 +102,4 @@
 
            CLOSE LOG-FILE.
 
-       END PROGRAM LOGGING-MIDDLEWARE.
+       END PROGRAM LOGGING-HOOK.

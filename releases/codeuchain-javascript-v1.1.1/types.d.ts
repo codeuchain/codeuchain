@@ -42,69 +42,69 @@ export type TInput = any;
 export type TOutput = any;
 
 /**
- * @deprecated Use IContext instead for type annotations. The runtime class remains available.
+ * @deprecated Use IState instead for type annotations. The runtime class remains available.
  */
-export declare class Context<T = Record<string, any>> {
+export declare class State<T = Record<string, any>> {
   /**
-   * Creates a new immutable Context with the provided data.
+   * Creates a new immutable State with the provided data.
    * Data is deep frozen to ensure immutability at all levels.
    * 
    * **Error Handling:**
    * Throws TypeError if data contains circular references when deep freezing.
    * 
-   * @param data Initial data object to store in the context (default: {})
+   * @param data Initial data object to store in the state (default: {})
    * @throws {TypeError} If data contains circular references
    * 
    * @example
    * ```typescript
    * // Basic construction
-   * const ctx = new Context({ name: 'Alice', age: 30 });
+   * const ctx = new State({ name: 'Alice', age: 30 });
    * 
    * // With type annotation
    * interface User { name: string; age: number; }
-   * const typedCtx = new Context<User>({ name: 'Alice', age: 30 });
+   * const typedCtx = new State<User>({ name: 'Alice', age: 30 });
    * 
-   * // Empty context
-   * const emptyCtx = new Context();
+   * // Empty state
+   * const emptyCtx = new State();
    * ```
    */
   constructor(data?: Record<string, any>);
 
   /**
-   * Creates an empty context with no initial data.
-   * Useful as a starting point for building contexts through chaining.
+   * Creates an empty state with no initial data.
+   * Useful as a starting point for building states through chaining.
    * 
-   * **Performance:** More efficient than `new Context({})` as it avoids object creation.
+   * **Performance:** More efficient than `new State({})` as it avoids object creation.
    * 
-   * @returns An empty Context instance
+   * @returns An empty State instance
    * 
    * @example
    * ```typescript
-   * const emptyCtx = Context.empty<User>();
+   * const emptyCtx = State.empty<User>();
    * const populatedCtx = emptyCtx
    *   .insert('name', 'Alice')
    *   .insert('age', 30);
    * ```
    */
-  static empty<T = any>(): Context<T>;
+  static empty<T = any>(): State<T>;
 
   /**
-   * Creates a context from existing data with type inference.
+   * Creates a state from existing data with type inference.
    * Provides better type inference than the constructor in many cases.
    * 
-   * @param data The data to create context from
-   * @returns A new Context with the provided data and inferred type
+   * @param data The data to create state from
+   * @returns A new State with the provided data and inferred type
    * 
    * @example
    * ```typescript
    * const userData = { name: 'Alice', age: 30 };
-   * const ctx = Context.from(userData); // Type inferred as Context<{name: string, age: number}>
+   * const ctx = State.from(userData); // Type inferred as State<{name: string, age: number}>
    * 
    * // Compare with constructor (requires explicit typing)
-   * const ctx2 = new Context<typeof userData>(userData);
+   * const ctx2 = new State<typeof userData>(userData);
    * ```
    */
-  static from<TData = any>(data: TData): Context<TData>;
+  static from<TData = any>(data: TData): State<TData>;
 
   /**
    * Retrieves a value by key with gentle care, returning undefined if not found.
@@ -113,12 +113,12 @@ export declare class Context<T = Record<string, any>> {
    * **Performance:** O(1) lookup, O(n) for deep copying complex objects.
    * **Type Safety:** Returns `any` for maximum flexibility across typed/untyped usage.
    * 
-   * @param key The key to retrieve from the context
+   * @param key The key to retrieve from the state
    * @returns The value associated with the key, or undefined if not found
    * 
    * @example
    * ```typescript
-   * const ctx = new Context({ 
+   * const ctx = new State({ 
    *   name: 'Alice', 
    *   data: { nested: 'value' },
    *   missing: undefined 
@@ -136,22 +136,22 @@ export declare class Context<T = Record<string, any>> {
   get(key: string): any;
 
   /**
-   * Creates a new Context with an additional key-value pair, preserving the current type.
-   * The original context remains unchanged (immutable operation).
+   * Creates a new State with an additional key-value pair, preserving the current type.
+   * The original state remains unchanged (immutable operation).
    * 
-   * **Type Preservation:** Maintains the same generic type `T` as the original context.
+   * **Type Preservation:** Maintains the same generic type `T` as the original state.
    * **Performance:** O(n) where n is the number of keys (creates new object).
    * 
-   * @param key The key to insert into the context
+   * @param key The key to insert into the state
    * @param value The value to associate with the key
-   * @returns A new Context with the inserted key-value pair (same type T)
+   * @returns A new State with the inserted key-value pair (same type T)
    * 
    * @example
    * ```typescript
    * interface User { name: string; age: number; }
-   * const userCtx = new Context<User>({ name: 'Alice', age: 30 });
+   * const userCtx = new State<User>({ name: 'Alice', age: 30 });
    * 
-   * // Type is preserved as Context<User>
+   * // Type is preserved as State<User>
    * const updatedCtx = userCtx.insert('age', 31);
    * 
    * // Chain multiple insertions
@@ -159,25 +159,25 @@ export declare class Context<T = Record<string, any>> {
    *   .insert('name', 'Bob')
    *   .insert('age', 25);
    * 
-   * // Original context unchanged
+   * // Original state unchanged
    * console.log(userCtx.get('age'));     // 30
    * console.log(updatedCtx.get('age'));  // 31
    * ```
    */
-  insert(key: string, value: any): Context<T>;
+  insert(key: string, value: any): State<T>;
 
   /**
-   * Creates a new Context with type evolution, enabling clean transformation between related types.
+   * Creates a new State with type evolution, enabling clean transformation between related types.
    * This is the key method for type-safe workflows with opt-in generics.
    * 
    * **Type Evolution:** Allows transitioning from one type to another without explicit casting.
    * **Runtime Behavior:** Identical to `insert()` - no performance difference.
    * **Design Philosophy:** Enables clean typed workflows while maintaining runtime flexibility.
    * 
-   * @template TNew The new type this context should represent after insertion
-   * @param key The key to insert into the context
+   * @template TNew The new type this state should represent after insertion
+   * @param key The key to insert into the state
    * @param value The value to associate with the key
-   * @returns A new Context with the evolved type TNew
+   * @returns A new State with the evolved type TNew
    * 
    * @example
    * ```typescript
@@ -186,7 +186,7 @@ export declare class Context<T = Record<string, any>> {
    * interface UserValidated extends UserInput { isValid: boolean; }
    * interface UserWithProfile extends UserValidated { age: number; profileComplete: boolean; }
    * 
-   * const inputCtx = new Context<UserInput>({ name: 'Alice', email: 'alice@example.com' });
+   * const inputCtx = new State<UserInput>({ name: 'Alice', email: 'alice@example.com' });
    * 
    * // Clean type evolution without casting
    * const validatedCtx = inputCtx.insertAs<UserValidated>('isValid', true);
@@ -201,21 +201,21 @@ export declare class Context<T = Record<string, any>> {
    * const flexibleCtx = completeCtx.insertAs('dynamicField', 'dynamicValue');
    * ```
    */
-  insertAs<TNew = any>(key: string, value: any): Context<TNew>;
+  insertAs<TNew = any>(key: string, value: any): State<TNew>;
 
   /**
-   * Creates a mutable version of this context for performance-critical sections.
+   * Creates a mutable version of this state for performance-critical sections.
    * Useful when many sequential modifications are needed.
    * 
    * **Performance:** Mutable operations are faster for bulk updates.
    * **Safety:** Use sparingly and convert back to immutable when done.
-   * **Pattern:** Mutable contexts should have limited scope and be converted back quickly.
+   * **Pattern:** Mutable states should have limited scope and be converted back quickly.
    * 
-   * @returns A mutable version of this context with the same type
+   * @returns A mutable version of this state with the same type
    * 
    * @example
    * ```typescript
-   * const immutableCtx = new Context({ counter: 0 });
+   * const immutableCtx = new State({ counter: 0 });
    * 
    * // Performance-critical section
    * const mutableCtx = immutableCtx.withMutation();
@@ -227,26 +227,26 @@ export declare class Context<T = Record<string, any>> {
    * const finalCtx = mutableCtx.toImmutable();
    * ```
    */
-  withMutation(): MutableContext<T>;
+  withMutation(): MutableState<T>;
 
   /**
-   * Combines this context with another, with the other context's values taking precedence.
-   * Creates a new context without modifying either original context.
+   * Combines this state with another, with the other state's values taking precedence.
+   * Creates a new state without modifying either original state.
    * 
    * **Merge Strategy:** Right-hand side wins for conflicting keys.
-   * **Type Safety:** Both contexts must have the same generic type T.
-   * **Performance:** O(n + m) where n and m are the number of keys in each context.
+   * **Type Safety:** Both states must have the same generic type T.
+   * **Performance:** O(n + m) where n and m are the number of keys in each state.
    * 
-   * @param other The other context to merge with this one
-   * @returns A new Context with merged data
-   * @throws {TypeError} If other is not a Context instance
+   * @param other The other state to merge with this one
+   * @returns A new State with merged data
+   * @throws {TypeError} If other is not a State instance
    * 
    * @example
    * ```typescript
    * interface User { name: string; age: number; city?: string; }
    * 
-   * const ctx1 = new Context<User>({ name: 'Alice', age: 25 });
-   * const ctx2 = new Context<User>({ age: 30, city: 'NYC' });
+   * const ctx1 = new State<User>({ name: 'Alice', age: 25 });
+   * const ctx2 = new State<User>({ age: 30, city: 'NYC' });
    * 
    * const merged = ctx1.merge(ctx2);
    * console.log(merged.get('name')); // 'Alice' (from ctx1)
@@ -255,27 +255,27 @@ export declare class Context<T = Record<string, any>> {
    * 
    * // Error handling
    * try {
-   *   ctx1.merge(null); // TypeError: Invalid context
+   *   ctx1.merge(null); // TypeError: Invalid state
    * } catch (error) {
    *   console.error('Merge failed:', error.message);
    * }
    * ```
    */
-  merge(other: Context<T>): Context<T>;
+  merge(other: State<T>): State<T>;
 
   /**
-   * Converts the context to a plain JavaScript object for ecosystem integration.
-   * Returns a deep copy to maintain immutability of the original context.
+   * Converts the state to a plain JavaScript object for ecosystem integration.
+   * Returns a deep copy to maintain immutability of the original state.
    * 
    * **Use Cases:** Serialization, logging, integration with non-CodeUChain libraries.
    * **Performance:** O(n) deep copy operation.
-   * **Safety:** Returned object is completely detached from the original context.
+   * **Safety:** Returned object is completely detached from the original state.
    * 
    * @returns A deep copy of the internal data as a plain JavaScript object
    * 
    * @example
    * ```typescript
-   * const ctx = new Context({ 
+   * const ctx = new State({ 
    *   user: { name: 'Alice', data: { score: 100 } },
    *   timestamp: Date.now()
    * });
@@ -293,18 +293,18 @@ export declare class Context<T = Record<string, any>> {
   toObject(): Record<string, any>;
 
   /**
-   * Checks if a key exists in the context, regardless of its value.
+   * Checks if a key exists in the state, regardless of its value.
    * Returns true even if the value is undefined, null, or falsy.
    * 
    * **Performance:** O(1) operation.
    * **Behavior:** Checks for key existence, not value truthiness.
    * 
    * @param key The key to check for existence
-   * @returns True if the key exists in the context, false otherwise
+   * @returns True if the key exists in the state, false otherwise
    * 
    * @example
    * ```typescript
-   * const ctx = new Context({ 
+   * const ctx = new State({ 
    *   name: 'Alice',
    *   age: 0,           // falsy but exists
    *   active: false,    // falsy but exists
@@ -323,17 +323,17 @@ export declare class Context<T = Record<string, any>> {
   has(key: string): boolean;
 
   /**
-   * Returns an array of all keys in the context.
+   * Returns an array of all keys in the state.
    * Order is not guaranteed and may vary between JavaScript engines.
    * 
    * **Performance:** O(n) where n is the number of keys.
    * **Use Cases:** Iteration, debugging, serialization control.
    * 
-   * @returns Array of all keys in the context
+   * @returns Array of all keys in the state
    * 
    * @example
    * ```typescript
-   * const ctx = new Context({ name: 'Alice', age: 30, city: 'NYC' });
+   * const ctx = new State({ name: 'Alice', age: 30, city: 'NYC' });
    * const allKeys = ctx.keys(); // ['name', 'age', 'city'] (order may vary)
    * 
    * // Iteration example
@@ -349,45 +349,45 @@ export declare class Context<T = Record<string, any>> {
 }
 
 /**
- * @deprecated Use IMutableContext instead for type annotations. The runtime class remains available.
+ * @deprecated Use IMutableState instead for type annotations. The runtime class remains available.
  */
-export declare class MutableContext<T = Record<string, any>> {
+export declare class MutableState<T = Record<string, any>> {
   /**
-   * Creates a new mutable context with the provided data.
-   * Unlike immutable Context, data is not frozen and can be modified directly.
+   * Creates a new mutable state with the provided data.
+   * Unlike immutable State, data is not frozen and can be modified directly.
    * 
-   * **Recommendation:** Prefer `Context.withMutation()` over direct construction.
+   * **Recommendation:** Prefer `State.withMutation()` over direct construction.
    * 
    * @param data Initial data object to store (default: {})
    * 
    * @example
    * ```typescript
    * // Direct construction (not recommended)
-   * const mutableCtx = new MutableContext({ count: 0 });
+   * const mutableCtx = new MutableState({ count: 0 });
    * 
    * // Preferred approach
-   * const immutableCtx = new Context({ count: 0 });
+   * const immutableCtx = new State({ count: 0 });
    * const mutableCtx = immutableCtx.withMutation();
    * ```
    */
   constructor(data?: Record<string, any>);
 
   /**
-   * Retrieves a value by key, identical to immutable Context.get().
+   * Retrieves a value by key, identical to immutable State.get().
    * No deep copying is performed since mutations are expected.
    * 
-   * **Performance:** O(1) operation, faster than immutable Context.get() for objects.
-   * **Warning:** Returned objects are mutable and changes will affect the context.
+   * **Performance:** O(1) operation, faster than immutable State.get() for objects.
+   * **Warning:** Returned objects are mutable and changes will affect the state.
    * 
-   * @param key The key to retrieve from the context
+   * @param key The key to retrieve from the state
    * @returns The value associated with the key, or undefined if not found
    * 
    * @example
    * ```typescript
-   * const mutableCtx = new MutableContext({ data: { count: 5 } });
+   * const mutableCtx = new MutableState({ data: { count: 5 } });
    * 
    * const data = mutableCtx.get('data'); 
-   * data.count = 10; // Warning: This mutates the context!
+   * data.count = 10; // Warning: This mutates the state!
    * 
    * console.log(mutableCtx.get('data')); // { count: 10 } - modified
    * ```
@@ -395,19 +395,19 @@ export declare class MutableContext<T = Record<string, any>> {
   get(key: string): any;
 
   /**
-   * Sets a key-value pair directly in this context (mutation operation).
-   * Modifies the existing context rather than creating a new one.
+   * Sets a key-value pair directly in this state (mutation operation).
+   * Modifies the existing state rather than creating a new one.
    * 
    * **Performance:** O(1) operation - very fast for bulk updates.
-   * **Mutation:** This method modifies the existing context.
-   * **Return:** Void - operation modifies this context directly.
+   * **Mutation:** This method modifies the existing state.
+   * **Return:** Void - operation modifies this state directly.
    * 
-   * @param key The key to set in the context
+   * @param key The key to set in the state
    * @param value The value to associate with the key
    * 
    * @example
    * ```typescript
-   * const mutableCtx = new MutableContext({ count: 0 });
+   * const mutableCtx = new MutableState({ count: 0 });
    * 
    * // Direct mutation
    * mutableCtx.set('count', 1);
@@ -428,19 +428,19 @@ export declare class MutableContext<T = Record<string, any>> {
   set(key: string, value: any): void;
 
   /**
-   * Converts this mutable context back to an immutable Context.
-   * Creates a deep-frozen copy, leaving the original mutable context unchanged.
+   * Converts this mutable state back to an immutable State.
+   * Creates a deep-frozen copy, leaving the original mutable state unchanged.
    * 
    * **Best Practice:** Always call this when done with mutations.
    * **Performance:** O(n) operation to create immutable copy.
-   * **Safety:** Returned context is completely immutable and safe to share.
+   * **Safety:** Returned state is completely immutable and safe to share.
    * 
-   * @returns A new immutable Context with the same data and type
+   * @returns A new immutable State with the same data and type
    * 
    * @example
    * ```typescript
-   * function processLargeDataset(items: any[]): Context<ProcessedData> {
-   *   const mutableCtx = Context.empty<ProcessedData>().withMutation();
+   * function processLargeDataset(items: any[]): State<ProcessedData> {
+   *   const mutableCtx = State.empty<ProcessedData>().withMutation();
    *   
    *   // Fast bulk processing
    *   items.forEach((item, index) => {
@@ -457,17 +457,17 @@ export declare class MutableContext<T = Record<string, any>> {
    * // result is now immutable and safe to use
    * ```
    */
-  toImmutable(): Context<T>;
+  toImmutable(): State<T>;
 
   /**
-   * Checks if a key exists in the context, identical to immutable Context.has().
+   * Checks if a key exists in the state, identical to immutable State.has().
    * 
    * @param key The key to check for existence
    * @returns True if the key exists, false otherwise
    * 
    * @example
    * ```typescript
-   * const mutableCtx = new MutableContext({ name: 'Alice' });
+   * const mutableCtx = new MutableState({ name: 'Alice' });
    * 
    * console.log(mutableCtx.has('name'));     // true
    * console.log(mutableCtx.has('missing'));  // false
@@ -479,13 +479,13 @@ export declare class MutableContext<T = Record<string, any>> {
   has(key: string): boolean;
 
   /**
-   * Returns an array of all keys in the context, identical to immutable Context.keys().
+   * Returns an array of all keys in the state, identical to immutable State.keys().
    * 
-   * @returns Array of all keys in the context
+   * @returns Array of all keys in the state
    * 
    * @example
    * ```typescript
-   * const mutableCtx = new MutableContext({ name: 'Alice', age: 30 });
+   * const mutableCtx = new MutableState({ name: 'Alice', age: 30 });
    * 
    * console.log(mutableCtx.keys()); // ['name', 'age'] (order may vary)
    * 
@@ -501,8 +501,8 @@ export declare class MutableContext<T = Record<string, any>> {
  * 
  * Link: The Selfless Processor
  * 
- * Base class for all context processors in CodeUChain. Implements the core pattern
- * of transforming input contexts to output contexts with agape selflessness.
+ * Base class for all state processors in CodeUChain. Implements the core pattern
+ * of transforming input states to output states with agape selflessness.
  * Enhanced with opt-in generic typing for type-safe workflows.
  * 
  * **Design Philosophy:**
@@ -512,17 +512,17 @@ export declare class MutableContext<T = Record<string, any>> {
  * - Error transparency: Clear error handling and reporting
  * 
  * **Generic Type Parameters:**
- * - `TInput`: The expected input context data shape
- * - `TOutput`: The resulting output context data shape
+ * - `TInput`: The expected input state data shape
+ * - `TOutput`: The resulting output state data shape
  * - Use `any` for maximum flexibility or specific interfaces for type safety
  * 
  * **Performance Characteristics:**
  * - Async by design for I/O operations and external services
  * - Zero runtime overhead for typing (same as untyped Links)
- * - Memory efficient through immutable context patterns
+ * - Memory efficient through immutable state patterns
  * 
- * @template TInput The input context type for this link
- * @template TOutput The output context type for this link
+ * @template TInput The input state type for this link
+ * @template TOutput The output state type for this link
  * @since 1.0.0
  * 
  * @example
@@ -532,7 +532,7 @@ export declare class MutableContext<T = Record<string, any>> {
  * interface UserValidated extends UserInput { isValid: boolean; emailConfirmed: boolean; }
  * 
  * class ValidateUserLink extends Link<UserInput, UserValidated> {
- *   async call(ctx: Context<UserInput>): Promise<Context<UserValidated>> {
+ *   async call(ctx: State<UserInput>): Promise<State<UserValidated>> {
  *     const name = ctx.get('name');
  *     const email = ctx.get('email');
  *     
@@ -554,49 +554,49 @@ export declare class MutableContext<T = Record<string, any>> {
  * 
  * // Flexible Link (works with any data)
  * class LoggingLink extends Link<any, any> {
- *   async call(ctx: Context<any>): Promise<Context<any>> {
- *     console.log('Processing context:', ctx.toObject());
+ *   async call(ctx: State<any>): Promise<State<any>> {
+ *     console.log('Processing state:', ctx.toObject());
  *     return ctx.insert('logged', true);
  *   }
  * }
  * 
  * // Mixed typed/untyped usage
- * const userCtx = new Context<UserInput>({ name: 'Alice', email: 'alice@example.com' });
+ * const userCtx = new State<UserInput>({ name: 'Alice', email: 'alice@example.com' });
  * const validatedCtx = await new ValidateUserLink().call(userCtx);
  * const loggedCtx = await new LoggingLink().call(validatedCtx); // Works seamlessly
  * ```
  */
 export declare class Link<TInput = any, TOutput = any> {
   /**
-   * Core processing method that transforms an input context to an output context.
+   * Core processing method that transforms an input state to an output state.
    * This method should be implemented by all concrete Link classes.
    * 
    * **Implementation Guidelines:**
    * - Should be a pure function with no side effects
-   * - Should not modify the input context (it's immutable anyway)
+   * - Should not modify the input state (it's immutable anyway)
    * - Should handle errors gracefully and throw descriptive errors
-   * - Should use context.insertAs() for type evolution when using generics
+   * - Should use state.insertAs() for type evolution when using generics
    * - Can perform async operations (I/O, external services, etc.)
    * 
    * **Error Handling:**
    * - Throw descriptive errors that will be caught by Chain error handlers
-   * - Include context about what went wrong and potential solutions
+   * - Include state about what went wrong and potential solutions
    * - Use specific Error types when appropriate (ValidationError, NetworkError, etc.)
    * 
    * **Type Safety:**
-   * - Input context is typed as Context<TInput>
-   * - Return type must be Context<TOutput> wrapped in Promise
+   * - Input state is typed as State<TInput>
+   * - Return type must be State<TOutput> wrapped in Promise
    * - Use insertAs<TOutput>() for clean type evolution
    * 
-   * @param ctx The input context to process
-   * @returns A promise that resolves to the transformed context
+   * @param ctx The input state to process
+   * @returns A promise that resolves to the transformed state
    * @throws {Error} When processing fails - should include descriptive error messages
    * 
    * @example
    * ```typescript
    * // Basic implementation
    * class UppercaseLink extends Link<{text: string}, {text: string, uppercased: string}> {
-   *   async call(ctx: Context<{text: string}>): Promise<Context<{text: string, uppercased: string}>> {
+   *   async call(ctx: State<{text: string}>): Promise<State<{text: string, uppercased: string}>> {
    *     const text = ctx.get('text');
    *     
    *     if (typeof text !== 'string') {
@@ -609,7 +609,7 @@ export declare class Link<TInput = any, TOutput = any> {
    * 
    * // Async operations
    * class FetchUserLink extends Link<{userId: string}, {userId: string, user: User}> {
-   *   async call(ctx: Context<{userId: string}>): Promise<Context<{userId: string, user: User}>> {
+   *   async call(ctx: State<{userId: string}>): Promise<State<{userId: string, user: User}>> {
    *     const userId = ctx.get('userId');
    *     
    *     try {
@@ -627,8 +627,8 @@ export declare class Link<TInput = any, TOutput = any> {
    * 
    * // Error handling
    * class ValidatedProcessingLink extends Link<InputData, ValidatedData> {
-   *   async call(ctx: Context<InputData>): Promise<Context<ValidatedData>> {
-   *     this.validateContext(ctx, ['requiredField', 'anotherField']);
+   *   async call(ctx: State<InputData>): Promise<State<ValidatedData>> {
+   *     this.validateState(ctx, ['requiredField', 'anotherField']);
    *     
    *     // Processing logic here
    *     return ctx.insertAs('validated', true);
@@ -636,7 +636,7 @@ export declare class Link<TInput = any, TOutput = any> {
    * }
    * ```
    */
-  call(ctx: Context<TInput>): Promise<Context<TOutput>>;
+  call(ctx: State<TInput>): Promise<State<TOutput>>;
 
   /**
    * Returns a human-readable name for this link, useful for debugging and logging.
@@ -657,7 +657,7 @@ export declare class Link<TInput = any, TOutput = any> {
    *     return 'User Email Validation';
    *   }
    *   
-   *   async call(ctx: Context<UserInput>): Promise<Context<UserValidated>> {
+   *   async call(ctx: State<UserInput>): Promise<State<UserValidated>> {
    *     // Implementation
    *   }
    * }
@@ -677,11 +677,11 @@ export declare class Link<TInput = any, TOutput = any> {
   getName(): string;
 
   /**
-   * Validates that the input context contains all required fields.
+   * Validates that the input state contains all required fields.
    * Throws descriptive errors if validation fails.
    * 
    * **Validation Behavior:**
-   * - Checks that all required fields exist (using context.has())
+   * - Checks that all required fields exist (using state.has())
    * - Does not validate field types or values (only existence)
    * - Throws Error with details about missing fields
    * 
@@ -690,16 +690,16 @@ export declare class Link<TInput = any, TOutput = any> {
    * - Include all fields your link actually uses
    * - Consider creating custom validation for type/value checking
    * 
-   * @param ctx The context to validate
-   * @param requiredFields Array of field names that must exist in the context
+   * @param ctx The state to validate
+   * @param requiredFields Array of field names that must exist in the state
    * @throws {Error} If any required fields are missing
    * 
    * @example
    * ```typescript
    * class ProcessUserDataLink extends Link<UserInput, UserProcessed> {
-   *   async call(ctx: Context<UserInput>): Promise<Context<UserProcessed>> {
+   *   async call(ctx: State<UserInput>): Promise<State<UserProcessed>> {
    *     // Validate required fields exist
-   *     this.validateContext(ctx, ['name', 'email', 'age']);
+   *     this.validateState(ctx, ['name', 'email', 'age']);
    *     
    *     // Now safe to access these fields
    *     const name = ctx.get('name');
@@ -718,14 +718,14 @@ export declare class Link<TInput = any, TOutput = any> {
    * 
    * // Error handling example
    * try {
-   *   const incompleteCtx = new Context({ name: 'Alice' }); // missing email and age
+   *   const incompleteCtx = new State({ name: 'Alice' }); // missing email and age
    *   await new ProcessUserDataLink().call(incompleteCtx);
    * } catch (error) {
    *   console.error(error.message); // "Missing required fields: email, age"
    * }
    * ```
    */
-  validateContext(ctx: Context<TInput>, requiredFields?: string[]): void;
+  validateState(ctx: State<TInput>, requiredFields?: string[]): void;
 }
 
 /**
@@ -734,7 +734,7 @@ export declare class Link<TInput = any, TOutput = any> {
  * Chain: The Orchestrating Conductor
  * 
  * Manages the execution flow of multiple Links in sequence or conditionally.
- * Provides error handling, middleware support, and conditional branching.
+ * Provides error handling, hook support, and conditional branching.
  * Enhanced with opt-in generic typing for end-to-end type safety.
  * 
  * **Execution Models:**
@@ -743,24 +743,24 @@ export declare class Link<TInput = any, TOutput = any> {
  * - Parallel: Links can be composed for parallel execution patterns
  * 
  * **Generic Type Parameters:**
- * - `TInput`: The initial input context type for the chain
- * - `TOutput`: The final output context type after all processing
+ * - `TInput`: The initial input state type for the chain
+ * - `TOutput`: The final output state type after all processing
  * - Intermediate types are handled automatically through Link type evolution
  * 
  * **Error Handling:**
  * - Global error handlers can be registered
- * - Errors include context about which Link failed
- * - Middleware can intercept and handle errors
+ * - Errors include state about which Link failed
+ * - Hook can intercept and handle errors
  * - Chain execution stops on first unhandled error
  * 
  * **Performance Characteristics:**
  * - Async execution with proper error propagation
- * - Middleware overhead is minimal (function call + await)
- * - Context passing is efficient through immutable references
+ * - Hook overhead is minimal (function call + await)
+ * - State passing is efficient through immutable references
  * - Memory usage scales linearly with chain length
  * 
- * @template TInput The initial input context type for the chain
- * @template TOutput The final output context type after all processing
+ * @template TInput The initial input state type for the chain
+ * @template TOutput The final output state type after all processing
  * @since 1.0.0
  * 
  * @example
@@ -776,11 +776,11 @@ export declare class Link<TInput = any, TOutput = any> {
  *   .addLink(new SendWelcomeEmailLink(), 'welcome')
  *   .onError((error, ctx, linkName) => {
  *     console.error(`Failed at ${linkName}:`, error.message);
- *     // Could return recovery context or re-throw
+ *     // Could return recovery state or re-throw
  *   });
  * 
  * // Usage
- * const inputCtx = new Context<UserInput>({ name: 'Alice', email: 'alice@example.com' });
+ * const inputCtx = new State<UserInput>({ name: 'Alice', email: 'alice@example.com' });
  * const resultCtx = await userProcessingChain.run(inputCtx);
  * 
  * // Mixed typed/untyped usage
@@ -859,7 +859,7 @@ export declare class Chain<TInput = any, TOutput = any> {
 
   /**
    * Creates a conditional connection between two named links in the chain.
-   * Allows for branching execution based on runtime context values.
+   * Allows for branching execution based on runtime state values.
    * 
    * **Execution Flow:**
    * - After source link executes, condition function is evaluated
@@ -868,10 +868,10 @@ export declare class Chain<TInput = any, TOutput = any> {
    * - Multiple conditions can be connected from the same source
    * 
    * **Condition Function:**
-   * - Receives the current context after source link execution
+   * - Receives the current state after source link execution
    * - Should return boolean to determine if target should execute
    * - Should be pure function with no side effects
-   * - Can access any data in the context for decision making
+   * - Can access any data in the state for decision making
    * 
    * @param source Name of the source link (must be already added)
    * @param target Name of the target link (must be already added)
@@ -910,14 +910,14 @@ export declare class Chain<TInput = any, TOutput = any> {
    *   });
    * ```
    */
-  connect(source: string, target: string, condition?: (ctx: Context<TInput>) => boolean): Chain<TInput, TOutput>;
+  connect(source: string, target: string, condition?: (ctx: State<TInput>) => boolean): Chain<TInput, TOutput>;
 
   /**
-   * Adds middleware to the chain that will be applied to all link executions.
-   * Middleware can intercept before/after link execution and handle errors.
+   * Adds hook to the chain that will be applied to all link executions.
+   * Hook can intercept before/after link execution and handle errors.
    * 
-   * **Middleware Execution Order:**
-   * - Multiple middleware execute in the order they are added
+   * **Hook Execution Order:**
+   * - Multiple hook execute in the order they are added
    * - before() methods execute before each link
    * - after() methods execute after successful link execution
    * - onError() methods execute if a link throws an error
@@ -929,23 +929,23 @@ export declare class Chain<TInput = any, TOutput = any> {
    * - Caching and memoization
    * - Error transformation and recovery
    * 
-   * @param middleware The middleware instance to add
+   * @param hook The hook instance to add
    * @returns This chain instance for method chaining
    * 
    * @example
    * ```typescript
-   * // Adding built-in middleware
+   * // Adding built-in hook
    * const chain = new Chain<UserInput, UserOutput>()
-   *   .useMiddleware(new LoggingMiddleware())
-   *   .useMiddleware(new TimingMiddleware())
-   *   .useMiddleware(new ValidationMiddleware())
+   *   .useHook(new LoggingHook())
+   *   .useHook(new TimingHook())
+   *   .useHook(new ValidationHook())
    *   .addLink(new ProcessUserLink());
    * 
-   * // Custom middleware
-   * class CachingMiddleware extends Middleware {
+   * // Custom hook
+   * class CachingHook extends Hook {
    *   private cache = new Map();
    * 
-   *   async before(link: Link, ctx: Context, linkName: string): Promise<void> {
+   *   async before(link: Link, ctx: State, linkName: string): Promise<void> {
    *     const cacheKey = this.generateCacheKey(ctx, linkName);
    *     const cached = this.cache.get(cacheKey);
    *     if (cached) {
@@ -954,32 +954,32 @@ export declare class Chain<TInput = any, TOutput = any> {
    *     }
    *   }
    * 
-   *   async after(link: Link, ctx: Context, linkName: string): Promise<void> {
+   *   async after(link: Link, ctx: State, linkName: string): Promise<void> {
    *     const cacheKey = this.generateCacheKey(ctx, linkName);
    *     this.cache.set(cacheKey, ctx.toObject());
    *   }
    * }
    * 
-   * const cachedChain = chain.useMiddleware(new CachingMiddleware());
+   * const cachedChain = chain.useHook(new CachingHook());
    * ```
    */
-  useMiddleware(middleware: Middleware): Chain<TInput, TOutput>;
+  useHook(hook: Hook): Chain<TInput, TOutput>;
 
   /**
    * Registers a global error handler for the chain.
    * Called when any link in the chain throws an unhandled error.
    * 
    * **Error Handler Capabilities:**
-   * - Receive the error, context, and link name that failed
+   * - Receive the error, state, and link name that failed
    * - Can log errors, send notifications, or perform cleanup
-   * - Can return a recovery context to continue execution
+   * - Can return a recovery state to continue execution
    * - Can re-throw the error to stop chain execution
    * - Can transform errors for better error reporting
    * 
    * **Error Handler Behavior:**
-   * - If handler returns a Context, chain continues with that context
+   * - If handler returns a State, chain continues with that state
    * - If handler throws or returns nothing, chain execution stops
-   * - Handler receives context state at the time of the error
+   * - Handler receives state state at the time of the error
    * - Multiple error handlers can be registered (execute in order)
    * 
    * @param handler Function to handle errors during chain execution
@@ -992,7 +992,7 @@ export declare class Chain<TInput = any, TOutput = any> {
    *   .addLink(new RiskyProcessingLink())
    *   .onError((error, ctx, linkName) => {
    *     console.error(`Error in ${linkName}:`, error.message);
-   *     console.error('Context at error:', ctx.toObject());
+   *     console.error('State at error:', ctx.toObject());
    *     // Re-throw to stop execution
    *     throw error;
    *   });
@@ -1017,7 +1017,7 @@ export declare class Chain<TInput = any, TOutput = any> {
    *     errorMonitoringService.recordError({
    *       error: error.message,
    *       linkName,
-   *       context: ctx.toObject(),
+   *       state: ctx.toObject(),
    *       timestamp: new Date()
    *     });
    * 
@@ -1030,32 +1030,32 @@ export declare class Chain<TInput = any, TOutput = any> {
    *   });
    * ```
    */
-  onError(handler: (err: Error, ctx: Context<TInput>, linkName: string) => any): Chain<TInput, TOutput>;
+  onError(handler: (err: Error, ctx: State<TInput>, linkName: string) => any): Chain<TInput, TOutput>;
 
   /**
-   * Executes the chain with the provided initial context.
+   * Executes the chain with the provided initial state.
    * Links execute in sequence (or according to conditional connections).
    * 
    * **Execution Flow:**
-   * 1. Middleware before() methods execute
+   * 1. Hook before() methods execute
    * 2. Link.call() executes
-   * 3. Middleware after() methods execute
+   * 3. Hook after() methods execute
    * 4. Process moves to next link or conditional target
-   * 5. On error: middleware onError() and chain error handlers execute
+   * 5. On error: hook onError() and chain error handlers execute
    * 
    * **Type Safety:**
-   * - Input context must match TInput type
-   * - Returns Promise<Context<TOutput>> matching chain's output type
+   * - Input state must match TInput type
+   * - Returns Promise<State<TOutput>> matching chain's output type
    * - Type checking ensures input/output compatibility
    * 
    * **Error Handling:**
    * - First unhandled error stops chain execution
-   * - Error handlers can provide recovery contexts
-   * - All errors include context about failed link
+   * - Error handlers can provide recovery states
+   * - All errors include state about failed link
    * - Original stack traces are preserved
    * 
-   * @param initialCtx The initial context to process through the chain
-   * @returns Promise resolving to the final processed context
+   * @param initialCtx The initial state to process through the chain
+   * @returns Promise resolving to the final processed state
    * @throws {Error} If any link fails and no error handler provides recovery
    * 
    * @example
@@ -1065,7 +1065,7 @@ export declare class Chain<TInput = any, TOutput = any> {
    *   .addLink(new ValidateUserLink())
    *   .addLink(new ProcessUserLink());
    * 
-   * const inputCtx = new Context<UserInput>({ name: 'Alice', email: 'alice@example.com' });
+   * const inputCtx = new State<UserInput>({ name: 'Alice', email: 'alice@example.com' });
    * 
    * try {
    *   const resultCtx = await chain.run(inputCtx);
@@ -1082,18 +1082,18 @@ export declare class Chain<TInput = any, TOutput = any> {
    *   .connect('analyze', 'fast', (ctx) => ctx.get('size') < 1000)
    *   .connect('analyze', 'slow', (ctx) => ctx.get('size') >= 1000);
    * 
-   * const dataCtx = new Context<DataInput>({ data: largeDataset });
+   * const dataCtx = new State<DataInput>({ data: largeDataset });
    * const processedCtx = await conditionalChain.run(dataCtx);
    * 
    * // Performance monitoring
-   * const timedChain = chain.useMiddleware(new TimingMiddleware());
+   * const timedChain = chain.useHook(new TimingHook());
    * const start = performance.now();
    * const result = await timedChain.run(inputCtx);
    * const duration = performance.now() - start;
    * console.log(`Chain executed in ${duration}ms`);
    * ```
    */
-  run(initialCtx: Context<TInput>): Promise<Context<TOutput>>;
+  run(initialCtx: State<TInput>): Promise<State<TOutput>>;
 
   /**
    * Creates a linear chain from a sequence of Links.
@@ -1108,7 +1108,7 @@ export declare class Chain<TInput = any, TOutput = any> {
    * **Limitations:**
    * - No conditional connections
    * - No custom error handling (uses default behavior)
-   * - No middleware (must be added separately)
+   * - No hook (must be added separately)
    * - All links execute in strict sequence
    * 
    * @param links Array of Link instances to execute in sequence
@@ -1137,11 +1137,11 @@ export declare class Chain<TInput = any, TOutput = any> {
    *   new SaveDataLink()
    * );
    * 
-   * const result = await pipeline.run(inputContext);
+   * const result = await pipeline.run(inputState);
    * 
-   * // Adding middleware to static chain
+   * // Adding hook to static chain
    * const enhancedPipeline = pipeline
-   *   .useMiddleware(new LoggingMiddleware())
+   *   .useHook(new LoggingHook())
    *   .onError((error, ctx, linkName) => {
    *     console.error(`Pipeline failed at ${linkName}:`, error.message);
    *     throw error;
@@ -1152,15 +1152,15 @@ export declare class Chain<TInput = any, TOutput = any> {
 }
 
 /**
- * @deprecated Use IMiddleware instead for type annotations. The runtime class remains available.
+ * @deprecated Use IHook instead for type annotations. The runtime class remains available.
  * 
- * Middleware: The Compassionate Interceptor
+ * Hook: The Compassionate Interceptor
  * 
- * Base class for implementing middleware that can intercept and enhance
+ * Base class for implementing hook that can intercept and enhance
  * Link execution within Chains. Provides hooks for before/after processing
  * and error handling with agape compassion.
  * 
- * **Middleware Lifecycle:**
+ * **Hook Lifecycle:**
  * 1. before() - Called before each Link execution
  * 2. Link.call() - The actual link processing
  * 3. after() - Called after successful Link execution
@@ -1176,9 +1176,9 @@ export declare class Chain<TInput = any, TOutput = any> {
  * - Rate limiting and throttling
  * 
  * **Implementation Guidelines:**
- * - Keep middleware lightweight and focused
+ * - Keep hook lightweight and focused
  * - Avoid side effects that could break chain execution
- * - Handle errors gracefully in middleware methods
+ * - Handle errors gracefully in hook methods
  * - Document any performance impact
  * - Consider async operations carefully
  * 
@@ -1186,16 +1186,16 @@ export declare class Chain<TInput = any, TOutput = any> {
  * 
  * @example
  * ```typescript
- * // Custom monitoring middleware
- * class MonitoringMiddleware extends Middleware {
+ * // Custom monitoring hook
+ * class MonitoringHook extends Hook {
  *   private metrics = new Map<string, number>();
  * 
- *   async before(link: Link, ctx: Context, linkName: string): Promise<void> {
- *     console.log(`Starting ${linkName} with context:`, ctx.keys());
+ *   async before(link: Link, ctx: State, linkName: string): Promise<void> {
+ *     console.log(`Starting ${linkName} with state:`, ctx.keys());
  *     this.metrics.set(`${linkName}_start`, Date.now());
  *   }
  * 
- *   async after(link: Link, ctx: Context, linkName: string): Promise<void> {
+ *   async after(link: Link, ctx: State, linkName: string): Promise<void> {
  *     const startTime = this.metrics.get(`${linkName}_start`);
  *     const duration = Date.now() - startTime;
  *     console.log(`Completed ${linkName} in ${duration}ms`);
@@ -1204,35 +1204,35 @@ export declare class Chain<TInput = any, TOutput = any> {
  *     await this.sendMetrics(linkName, duration, ctx.keys().length);
  *   }
  * 
- *   async onError(link: Link, error: Error, ctx: Context, linkName: string): Promise<void> {
+ *   async onError(link: Link, error: Error, ctx: State, linkName: string): Promise<void> {
  *     console.error(`Error in ${linkName}:`, error.message);
  *     await this.sendErrorMetrics(linkName, error.name, ctx.keys().length);
  *   }
  * 
- *   private async sendMetrics(linkName: string, duration: number, contextSize: number) {
+ *   private async sendMetrics(linkName: string, duration: number, stateSize: number) {
  *     // Send to external monitoring service
  *   }
  * 
- *   private async sendErrorMetrics(linkName: string, errorType: string, contextSize: number) {
+ *   private async sendErrorMetrics(linkName: string, errorType: string, stateSize: number) {
  *     // Send error metrics to monitoring service
  *   }
  * }
  * 
  * // Usage in chain
  * const monitoredChain = new Chain<UserInput, UserOutput>()
- *   .useMiddleware(new MonitoringMiddleware())
- *   .useMiddleware(new LoggingMiddleware())
+ *   .useHook(new MonitoringHook())
+ *   .useHook(new LoggingHook())
  *   .addLink(new ProcessUserLink());
  * ```
  */
-export declare class Middleware {
+export declare class Hook {
   /**
    * Called before each Link execution in the chain.
    * Can be used for setup, validation, logging, or preprocessing.
    * 
-   * **Execution Context:**
-   * - Called with the context that will be passed to the Link
-   * - Cannot modify the context (it's immutable)
+   * **Execution State:**
+   * - Called with the state that will be passed to the Link
+   * - Cannot modify the state (it's immutable)
    * - Can perform side effects like logging or metrics collection
    * - Should not throw errors unless you want to stop chain execution
    * 
@@ -1242,21 +1242,21 @@ export declare class Middleware {
    * - Consider using async sparingly to avoid blocking
    * 
    * @param link The Link instance that is about to execute
-   * @param ctx The context that will be passed to the Link
+   * @param ctx The state that will be passed to the Link
    * @param linkName The name of the Link (for identification)
    * @returns Promise<void> or void
    * 
    * @example
    * ```typescript
-   * class PreprocessingMiddleware extends Middleware {
-   *   async before(link: Link, ctx: Context, linkName: string): Promise<void> {
+   * class PreprocessingHook extends Hook {
+   *   async before(link: Link, ctx: State, linkName: string): Promise<void> {
    *     // Log the incoming request
    *     console.log(`Processing ${linkName}:`, {
-   *       contextKeys: ctx.keys(),
+   *       stateKeys: ctx.keys(),
    *       timestamp: new Date().toISOString()
    *     });
    * 
-   *     // Validate context before processing
+   *     // Validate state before processing
    *     if (linkName === 'critical-process' && !ctx.has('requiredField')) {
    *       throw new Error('Critical process requires requiredField');
    *     }
@@ -1271,16 +1271,16 @@ export declare class Middleware {
    * }
    * ```
    */
-  before?(link: Link, ctx: Context, linkName: string): Promise<void> | void;
+  before?(link: Link, ctx: State, linkName: string): Promise<void> | void;
 
   /**
    * Called after successful Link execution.
    * Can be used for cleanup, logging, postprocessing, or metrics collection.
    * 
-   * **Execution Context:**
-   * - Called with the context returned by the Link
+   * **Execution State:**
+   * - Called with the state returned by the Link
    * - Link has successfully completed without throwing errors
-   * - Cannot modify the context (it's immutable)
+   * - Cannot modify the state (it's immutable)
    * - Can perform side effects like logging or cleanup
    * 
    * **Use Cases:**
@@ -1291,16 +1291,16 @@ export declare class Middleware {
    * - Triggering downstream notifications
    * 
    * @param link The Link instance that just executed successfully
-   * @param ctx The context returned by the Link
+   * @param ctx The state returned by the Link
    * @param linkName The name of the Link (for identification)
    * @returns Promise<void> or void
    * 
    * @example
    * ```typescript
-   * class CachingMiddleware extends Middleware {
+   * class CachingHook extends Hook {
    *   private cache = new Map<string, any>();
    * 
-   *   async after(link: Link, ctx: Context, linkName: string): Promise<void> {
+   *   async after(link: Link, ctx: State, linkName: string): Promise<void> {
    *     // Cache successful results
    *     const cacheKey = this.generateCacheKey(linkName, ctx);
    *     this.cache.set(cacheKey, ctx.toObject());
@@ -1314,7 +1314,7 @@ export declare class Middleware {
    *     }
    *   }
    * 
-   *   private generateCacheKey(linkName: string, ctx: Context): string {
+   *   private generateCacheKey(linkName: string, ctx: State): string {
    *     return `${linkName}_${JSON.stringify(ctx.toObject())}`;
    *   }
    * 
@@ -1324,7 +1324,7 @@ export declare class Middleware {
    * }
    * ```
    */
-  after?(link: Link, ctx: Context, linkName: string): Promise<void> | void;
+  after?(link: Link, ctx: State, linkName: string): Promise<void> | void;
 
   /**
    * Called when a Link throws an error during execution.
@@ -1332,8 +1332,8 @@ export declare class Middleware {
    * 
    * **Error Handling:**
    * - Receives the original error thrown by the Link
-   * - Gets the context that was passed to the Link (before error)
-   * - Cannot modify the context or error (for transparency)
+   * - Gets the state that was passed to the Link (before error)
+   * - Cannot modify the state or error (for transparency)
    * - Should not throw unless you want to replace the original error
    * 
    * **Recovery Options:**
@@ -1344,19 +1344,19 @@ export declare class Middleware {
    * 
    * @param link The Link instance that threw the error
    * @param error The error that was thrown
-   * @param ctx The context that was passed to the Link
+   * @param ctx The state that was passed to the Link
    * @param linkName The name of the Link (for identification)
    * @returns Promise<void> or void
    * 
    * @example
    * ```typescript
-   * class ErrorHandlingMiddleware extends Middleware {
-   *   async onError(link: Link, error: Error, ctx: Context, linkName: string): Promise<void> {
+   * class ErrorHandlingHook extends Hook {
+   *   async onError(link: Link, error: Error, ctx: State, linkName: string): Promise<void> {
    *     // Log detailed error information
    *     console.error(`Error in ${linkName}:`, {
    *       error: error.message,
    *       stack: error.stack,
-   *       context: ctx.toObject(),
+   *       state: ctx.toObject(),
    *       timestamp: new Date().toISOString()
    *     });
    * 
@@ -1364,7 +1364,7 @@ export declare class Middleware {
    *     await this.sendErrorToTracking({
    *       linkName,
    *       error: error.message,
-   *       contextKeys: ctx.keys(),
+   *       stateKeys: ctx.keys(),
    *       userAgent: ctx.get('userAgent'),
    *       userId: ctx.get('userId')
    *     });
@@ -1391,36 +1391,36 @@ export declare class Middleware {
    * }
    * ```
    */
-  onError?(link: Link, error: Error, ctx: Context, linkName: string): Promise<void> | void;
+  onError?(link: Link, error: Error, ctx: State, linkName: string): Promise<void> | void;
 }
 
 /**
- * @deprecated Use ILoggingMiddleware instead for type annotations. The runtime export remains available.
+ * @deprecated Use ILoggingHook instead for type annotations. The runtime export remains available.
  */
-export declare const LoggingMiddleware: typeof Middleware;
+export declare const LoggingHook: typeof Hook;
 
 /**
- * @deprecated Use ITimingMiddleware instead for type annotations. The runtime export remains available.
+ * @deprecated Use ITimingHook instead for type annotations. The runtime export remains available.
  */
-export declare const TimingMiddleware: typeof Middleware;
+export declare const TimingHook: typeof Hook;
 
 /**
- * @deprecated Use IValidationMiddleware instead for type annotations. The runtime export remains available.
+ * @deprecated Use IValidationHook instead for type annotations. The runtime export remains available.
  * 
- * ValidationMiddleware: The Protective Guardian
+ * ValidationHook: The Protective Guardian
  * 
- * Built-in middleware that validates contexts before and after Link execution.
+ * Built-in hook that validates states before and after Link execution.
  * Ensures data integrity and catches common issues early in the chain.
  * 
  * **Validation Features:**
- * - Pre-execution context validation
+ * - Pre-execution state validation
  * - Post-execution result validation
  * - Required field checking
  * - Type validation (basic)
  * - Custom validation rules
  * 
  * **Validation Rules:**
- * - Context must not be null/undefined
+ * - State must not be null/undefined
  * - Required fields must exist
  * - Data types match expectations
  * - Custom business rules
@@ -1437,18 +1437,18 @@ export declare const TimingMiddleware: typeof Middleware;
  * ```typescript
  * // Basic validation
  * const chain = new Chain<UserInput, UserOutput>()
- *   .useMiddleware(new ValidationMiddleware())
+ *   .useHook(new ValidationHook())
  *   .addLink(new ProcessUserLink());
  * 
  * // Will validate:
- * // - Context is not null/undefined
- * // - Context has required methods
- * // - Link returns valid Context
+ * // - State is not null/undefined
+ * // - State has required methods
+ * // - Link returns valid State
  * 
  * // Custom validation with required fields
  * class CustomValidationLink extends Link<UserInput, UserValidated> {
- *   async call(ctx: Context<UserInput>): Promise<Context<UserValidated>> {
- *     this.validateContext(ctx, ['name', 'email']); // Built-in validation
+ *   async call(ctx: State<UserInput>): Promise<State<UserValidated>> {
+ *     this.validateState(ctx, ['name', 'email']); // Built-in validation
  *     // Additional custom validation here
  *     return ctx.insertAs('validated', true);
  *   }
@@ -1456,11 +1456,11 @@ export declare const TimingMiddleware: typeof Middleware;
  * 
  * // Validation errors provide clear messages:
  * // ValidationError: Missing required fields: email
- * // ValidationError: Context must be a valid Context instance
- * // ValidationError: Link must return a Context instance
+ * // ValidationError: State must be a valid State instance
+ * // ValidationError: Link must return a State instance
  * ```
  */
-export declare const ValidationMiddleware: typeof Middleware;
+export declare const ValidationHook: typeof Hook;
 
 /**
  * Package version string.
@@ -1481,37 +1481,37 @@ export declare const version: string;
  * **Usage Patterns:**
  * - CommonJS: `const CodeUChain = require('codeuchain');`
  * - ES Modules: `import CodeUChain from 'codeuchain';`
- * - Named imports: `import { Context, Chain, Link } from 'codeuchain';`
- * - Mixed: `import CodeUChain, { Context } from 'codeuchain';`
+ * - Named imports: `import { State, Chain, Link } from 'codeuchain';`
+ * - Mixed: `import CodeUChain, { State } from 'codeuchain';`
  * 
  * @example
  * ```typescript
  * // CommonJS usage
  * const CodeUChain = require('codeuchain');
- * const ctx = new CodeUChain.Context({ data: 'value' });
+ * const ctx = new CodeUChain.State({ data: 'value' });
  * const chain = new CodeUChain.Chain();
  * 
  * // ES Module default import
  * import CodeUChain from 'codeuchain';
- * const ctx = new CodeUChain.Context({ data: 'value' });
+ * const ctx = new CodeUChain.State({ data: 'value' });
  * 
  * // ES Module named imports (preferred)
- * import { Context, Chain, Link, LoggingMiddleware } from 'codeuchain';
- * const ctx = new Context({ data: 'value' });
+ * import { State, Chain, Link, LoggingHook } from 'codeuchain';
+ * const ctx = new State({ data: 'value' });
  * const chain = new Chain();
  * 
  * // Mixed usage
- * import CodeUChain, { Context } from 'codeuchain';
+ * import CodeUChain, { State } from 'codeuchain';
  * console.log(`CodeUChain v${CodeUChain.version}`);
- * const ctx = new Context({ data: 'value' });
+ * const ctx = new State({ data: 'value' });
  * ```
  */
 export type DefaultExport = {
-  Context: typeof Context;
-  MutableContext: typeof MutableContext;
+  State: typeof State;
+  MutableState: typeof MutableState;
   Link: typeof Link;
   Chain: typeof Chain;
-  Middleware: typeof Middleware;
+  Hook: typeof Hook;
   version: string;
 };
 
@@ -1523,11 +1523,11 @@ export type DefaultExport = {
  * ```typescript
  * // TypeScript with default import
  * import CodeUChain from 'codeuchain';
- * const ctx = new CodeUChain.Context<MyDataType>({ id: 1, name: 'Alice' });
+ * const ctx = new CodeUChain.State<MyDataType>({ id: 1, name: 'Alice' });
  * 
  * // JavaScript with require
  * const CodeUChain = require('codeuchain');
- * const ctx = new CodeUChain.Context({ id: 1, name: 'Alice' });
+ * const ctx = new CodeUChain.State({ id: 1, name: 'Alice' });
  * ```
  */
 declare const _default: DefaultExport;
@@ -1535,24 +1535,24 @@ export default _default;
 
 // ---------------------------------------------------------------------------
 // Convenience I-prefixed type aliases
-// Many teams prefer interface-style names like `IContext`/`ILink` for type-only
+// Many teams prefer interface-style names like `IState`/`ILink` for type-only
 // imports — expose simple aliases so consumers can adopt that convention
 // without changing runtime exports.
 // ---------------------------------------------------------------------------
 
-export type IContext<T = Record<string, any>> = Context<T>;
-export type IMutableContext<T = Record<string, any>> = MutableContext<T>;
+export type IState<T = Record<string, any>> = State<T>;
+export type IMutableState<T = Record<string, any>> = MutableState<T>;
 export type ILink<TInput = any, TOutput = any> = Link<TInput, TOutput>;
 export type IChain<TInput = any, TOutput = any> = Chain<TInput, TOutput>;
-export type IMiddleware = Middleware;
-export type ILoggingMiddleware = typeof Middleware;
-export type ITimingMiddleware = typeof Middleware;
-export type IValidationMiddleware = typeof Middleware;
+export type IHook = Hook;
+export type ILoggingHook = typeof Hook;
+export type ITimingHook = typeof Hook;
+export type IValidationHook = typeof Hook;
 
-// Utilities layer export: built-in middleware and utility classes
+// Utilities layer export: built-in hook and utility classes
 export declare const utilities: {
-  LoggingMiddleware: ILoggingMiddleware;
-  TimingMiddleware: ITimingMiddleware;
-  ValidationMiddleware: IValidationMiddleware;
+  LoggingHook: ILoggingHook;
+  TimingHook: ITimingHook;
+  ValidationHook: IValidationHook;
 };
 

@@ -1,41 +1,41 @@
-#include "codeuchain/context.hpp"
+#include "codeuchain/state.hpp"
 #include <algorithm>
 
 namespace codeuchain {
 
-Context::Context()
+State::State()
     : data_(std::make_shared<std::unordered_map<std::string, DataValue>>()) {}
 
-Context::Context(std::unordered_map<std::string, DataValue> data)
+State::State(std::unordered_map<std::string, DataValue> data)
     : data_(std::make_shared<std::unordered_map<std::string, DataValue>>(std::move(data))) {}
 
-Context::Context(const Context& other)
+State::State(const State& other)
     : data_(other.data_) {}
 
-Context::Context(Context&& other) noexcept
+State::State(State&& other) noexcept
     : data_(std::move(other.data_)) {}
 
-Context& Context::operator=(const Context& other) {
+State& State::operator=(const State& other) {
     if (this != &other) {
         data_ = other.data_;
     }
     return *this;
 }
 
-Context& Context::operator=(Context&& other) noexcept {
+State& State::operator=(State&& other) noexcept {
     if (this != &other) {
         data_ = std::move(other.data_);
     }
     return *this;
 }
 
-Context Context::insert(std::string key, DataValue value) const {
+State State::insert(std::string key, DataValue value) const {
     auto new_data = std::make_shared<std::unordered_map<std::string, DataValue>>(*data_);
     new_data->insert_or_assign(std::move(key), std::move(value));
-    return Context(std::move(*new_data));
+    return State(std::move(*new_data));
 }
 
-std::optional<DataValue> Context::get(const std::string& key) const {
+std::optional<DataValue> State::get(const std::string& key) const {
     auto it = data_->find(key);
     if (it != data_->end()) {
         return it->second;
@@ -43,17 +43,17 @@ std::optional<DataValue> Context::get(const std::string& key) const {
     return std::nullopt;
 }
 
-Context Context::update(std::string key, DataValue value) const {
+State State::update(std::string key, DataValue value) const {
     auto new_data = std::make_shared<std::unordered_map<std::string, DataValue>>(*data_);
     new_data->insert_or_assign(std::move(key), std::move(value));
-    return Context(std::move(*new_data));
+    return State(std::move(*new_data));
 }
 
-bool Context::has(const std::string& key) const {
+bool State::has(const std::string& key) const {
     return data_->find(key) != data_->end();
 }
 
-std::vector<std::string> Context::keys() const {
+std::vector<std::string> State::keys() const {
     std::vector<std::string> result;
     result.reserve(data_->size());
     for (const auto& [key, _] : *data_) {
@@ -62,28 +62,28 @@ std::vector<std::string> Context::keys() const {
     return result;
 }
 
-Context Context::remove(const std::string& key) const {
+State State::remove(const std::string& key) const {
     auto new_data = std::make_shared<std::unordered_map<std::string, DataValue>>(*data_);
     new_data->erase(key);
-    return Context(std::move(*new_data));
+    return State(std::move(*new_data));
 }
 
-Context Context::clear() const {
-    return Context();
+State State::clear() const {
+    return State();
 }
 
-size_t Context::size() const {
+size_t State::size() const {
     return data_->size();
 }
 
-bool Context::empty() const {
+bool State::empty() const {
     return data_->empty();
 }
 
 // ===== PERFORMANCE OPTIMIZATION METHODS =====
 // For high-frequency mutations within a single link
 
-void Context::insert_mut(std::string key, DataValue value) {
+void State::insert_mut(std::string key, DataValue value) {
     // Ensure we have exclusive ownership before mutation
     if (data_.use_count() > 1) {
         data_ = std::make_shared<std::unordered_map<std::string, DataValue>>(*data_);
@@ -91,7 +91,7 @@ void Context::insert_mut(std::string key, DataValue value) {
     data_->insert_or_assign(std::move(key), std::move(value));
 }
 
-void Context::update_mut(std::string key, DataValue value) {
+void State::update_mut(std::string key, DataValue value) {
     // Ensure we have exclusive ownership before mutation
     if (data_.use_count() > 1) {
         data_ = std::make_shared<std::unordered_map<std::string, DataValue>>(*data_);
@@ -99,7 +99,7 @@ void Context::update_mut(std::string key, DataValue value) {
     data_->insert_or_assign(std::move(key), std::move(value));
 }
 
-void Context::remove_mut(const std::string& key) {
+void State::remove_mut(const std::string& key) {
     // Ensure we have exclusive ownership before mutation
     if (data_.use_count() > 1) {
         data_ = std::make_shared<std::unordered_map<std::string, DataValue>>(*data_);
@@ -107,7 +107,7 @@ void Context::remove_mut(const std::string& key) {
     data_->erase(key);
 }
 
-void Context::clear_mut() {
+void State::clear_mut() {
     // Ensure we have exclusive ownership before mutation
     if (data_.use_count() > 1) {
         data_ = std::make_shared<std::unordered_map<std::string, DataValue>>(*data_);

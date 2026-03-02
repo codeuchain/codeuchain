@@ -1,4 +1,4 @@
-const { LoggingMiddleware, TimingMiddleware, ValidationMiddleware, Link, Context } = require('../core');
+const { LoggingHook, TimingHook, ValidationHook, Link, State } = require('../core');
 
 class TestLink extends Link {
   constructor(name, processor = async (ctx) => ctx) {
@@ -16,20 +16,20 @@ class TestLink extends Link {
   }
 }
 
-describe('Middleware', () => {
-  describe('LoggingMiddleware', () => {
-    let loggingMiddleware;
+describe('Hook', () => {
+  describe('LoggingHook', () => {
+    let loggingHook;
     let mockLink;
     let mockCtx;
 
     beforeEach(() => {
-      loggingMiddleware = new LoggingMiddleware();
+      loggingHook = new LoggingHook();
       mockLink = new TestLink('test');
-      mockCtx = new Context({ test: 'data' });
+      mockCtx = new State({ test: 'data' });
     });
 
     test('should log before link execution', async () => {
-      await loggingMiddleware.before(mockLink, mockCtx, 'test');
+      await loggingHook.before(mockLink, mockCtx, 'test');
 
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining('Starting test')
@@ -37,8 +37,8 @@ describe('Middleware', () => {
     });
 
     test('should log after link execution', async () => {
-      const resultCtx = new Context({ result: 'success' });
-      await loggingMiddleware.after(mockLink, resultCtx, 'test');
+      const resultCtx = new State({ result: 'success' });
+      await loggingHook.after(mockLink, resultCtx, 'test');
 
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining('Completed test')
@@ -47,7 +47,7 @@ describe('Middleware', () => {
 
     test('should log errors', async () => {
       const error = new Error('Test error');
-      await loggingMiddleware.onError(mockLink, error, mockCtx, 'test');
+      await loggingHook.onError(mockLink, error, mockCtx, 'test');
 
       expect(console.error).toHaveBeenCalledWith(
         expect.stringContaining('Error in test: Test error')
@@ -55,8 +55,8 @@ describe('Middleware', () => {
     });
 
     test('should handle missing result in after logging', async () => {
-      const resultCtx = new Context({}); // No result field
-      await loggingMiddleware.after(mockLink, resultCtx, 'test');
+      const resultCtx = new State({}); // No result field
+      await loggingHook.after(mockLink, resultCtx, 'test');
 
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining('Completed test')
@@ -64,24 +64,24 @@ describe('Middleware', () => {
     });
   });
 
-  describe('TimingMiddleware', () => {
-    let timingMiddleware;
+  describe('TimingHook', () => {
+    let timingHook;
     let mockLink;
     let mockCtx;
 
     beforeEach(() => {
-      timingMiddleware = new TimingMiddleware();
+      timingHook = new TimingHook();
       mockLink = new TestLink('test');
-      mockCtx = new Context({ test: 'data' });
+      mockCtx = new State({ test: 'data' });
     });
 
     test('should measure execution time', async () => {
-      await timingMiddleware.before(mockLink, mockCtx, 'test');
+      await timingHook.before(mockLink, mockCtx, 'test');
 
       // Simulate some processing time
       await new Promise(resolve => setTimeout(resolve, 10));
 
-      await timingMiddleware.after(mockLink, mockCtx, 'test');
+      await timingHook.after(mockLink, mockCtx, 'test');
 
       expect(console.log).toHaveBeenCalledWith(
         expect.stringMatching(/test executed in \d+ms/)
@@ -92,11 +92,11 @@ describe('Middleware', () => {
       const link1 = new TestLink('link1');
       const link2 = new TestLink('link2');
 
-      await timingMiddleware.before(link1, mockCtx, 'link1');
-      await timingMiddleware.before(link2, mockCtx, 'link2');
+      await timingHook.before(link1, mockCtx, 'link1');
+      await timingHook.before(link2, mockCtx, 'link2');
 
-      await timingMiddleware.after(link1, mockCtx, 'link1');
-      await timingMiddleware.after(link2, mockCtx, 'link2');
+      await timingHook.after(link1, mockCtx, 'link1');
+      await timingHook.after(link2, mockCtx, 'link2');
 
       expect(console.log).toHaveBeenCalledWith(
         expect.stringMatching(/link1 executed in \d+ms/)
@@ -108,39 +108,39 @@ describe('Middleware', () => {
 
     test('should handle missing start time', async () => {
       // Call after without before - should not log
-      await timingMiddleware.after(mockLink, mockCtx, 'test');
+      await timingHook.after(mockLink, mockCtx, 'test');
 
       expect(console.log).not.toHaveBeenCalled();
     });
   });
 
-  describe('ValidationMiddleware', () => {
+  describe('ValidationHook', () => {
     let mockLink;
     let mockCtx;
 
     beforeEach(() => {
       mockLink = new TestLink('test');
-      mockCtx = new Context({ name: 'Alice', email: 'alice@test.com' });
+      mockCtx = new State({ name: 'Alice', email: 'alice@test.com' });
     });
 
     test('should validate before execution', async () => {
       const beforeValidator = jest.fn();
-      const validationMiddleware = new ValidationMiddleware({
+      const validationHook = new ValidationHook({
         beforeValidator
       });
 
-      await validationMiddleware.before(mockLink, mockCtx, 'test');
+      await validationHook.before(mockLink, mockCtx, 'test');
 
       expect(beforeValidator).toHaveBeenCalledWith(mockCtx, 'test');
     });
 
     test('should validate after execution', async () => {
       const afterValidator = jest.fn();
-      const validationMiddleware = new ValidationMiddleware({
+      const validationHook = new ValidationHook({
         afterValidator
       });
 
-      await validationMiddleware.after(mockLink, mockCtx, 'test');
+      await validationHook.after(mockLink, mockCtx, 'test');
 
       expect(afterValidator).toHaveBeenCalledWith(mockCtx, 'test');
     });
@@ -149,12 +149,12 @@ describe('Middleware', () => {
       const beforeValidator = jest.fn(() => {
         throw new Error('Validation failed');
       });
-      const validationMiddleware = new ValidationMiddleware({
+      const validationHook = new ValidationHook({
         beforeValidator
       });
 
       await expect(
-        validationMiddleware.before(mockLink, mockCtx, 'test')
+        validationHook.before(mockLink, mockCtx, 'test')
       ).rejects.toThrow('Pre-validation failed for test: Validation failed');
     });
 
@@ -162,12 +162,12 @@ describe('Middleware', () => {
       const afterValidator = jest.fn(() => {
         throw new Error('Post-validation failed');
       });
-      const validationMiddleware = new ValidationMiddleware({
+      const validationHook = new ValidationHook({
         afterValidator
       });
 
       await expect(
-        validationMiddleware.after(mockLink, mockCtx, 'test')
+        validationHook.after(mockLink, mockCtx, 'test')
       ).rejects.toThrow('Post-validation failed for test: Post-validation failed');
     });
 
@@ -177,50 +177,50 @@ describe('Middleware', () => {
         return true;
       });
 
-      const validationMiddleware = new ValidationMiddleware({
+      const validationHook = new ValidationHook({
         beforeValidator
       });
 
-      await validationMiddleware.before(mockLink, mockCtx, 'test');
+      await validationHook.before(mockLink, mockCtx, 'test');
 
       expect(beforeValidator).toHaveBeenCalledWith(mockCtx, 'test');
     });
 
     test('should work without validators', async () => {
-      const validationMiddleware = new ValidationMiddleware();
+      const validationHook = new ValidationHook();
 
       await expect(
-        validationMiddleware.before(mockLink, mockCtx, 'test')
+        validationHook.before(mockLink, mockCtx, 'test')
       ).resolves.toBeUndefined();
 
       await expect(
-        validationMiddleware.after(mockLink, mockCtx, 'test')
+        validationHook.after(mockLink, mockCtx, 'test')
       ).resolves.toBeUndefined();
     });
   });
 
-  describe('Middleware Integration', () => {
-    test('should combine multiple middleware', async () => {
+  describe('Hook Integration', () => {
+    test('should combine multiple hook', async () => {
       const { Chain } = require('../core');
       const chain = new Chain();
 
       const link = new TestLink('test', async (ctx) => ctx.insert('processed', true));
       chain.addLink(link, 'test');
 
-      // Add multiple middleware
-      chain.useMiddleware(new LoggingMiddleware());
-      chain.useMiddleware(new TimingMiddleware());
+      // Add multiple hook
+      chain.useHook(new LoggingHook());
+      chain.useHook(new TimingHook());
 
-      const ctx = new Context({ input: 'test' });
+      const ctx = new State({ input: 'test' });
       const result = await chain.run(ctx);
 
       expect(result.get('processed')).toBe(true);
 
-      // Both middleware should have been called
+      // Both hook should have been called
       expect(console.log).toHaveBeenCalledTimes(3); // before, after, timing
     });
 
-    test('should handle middleware order', async () => {
+    test('should handle hook order', async () => {
       const { Chain } = require('../core');
       const chain = new Chain();
 
@@ -229,46 +229,46 @@ describe('Middleware', () => {
 
       const callOrder = [];
 
-      const middleware1 = {
+      const hook1 = {
         before: async () => callOrder.push('before1'),
         after: async () => callOrder.push('after1')
       };
 
-      const middleware2 = {
+      const hook2 = {
         before: async () => callOrder.push('before2'),
         after: async () => callOrder.push('after2')
       };
 
-      chain.useMiddleware(middleware1);
-      chain.useMiddleware(middleware2);
+      chain.useHook(hook1);
+      chain.useHook(hook2);
 
-      const ctx = new Context();
+      const ctx = new State();
       await chain.run(ctx);
 
       expect(callOrder).toEqual(['before1', 'before2', 'after1', 'after2']);
     });
 
-    test('should handle middleware errors gracefully', async () => {
+    test('should handle hook errors gracefully', async () => {
       const { Chain } = require('../core');
       const chain = new Chain();
 
       const link = new TestLink('test', async (ctx) => ctx);
       chain.addLink(link, 'test');
 
-      const errorMiddleware = {
+      const errorHook = {
         before: async () => {
-          throw new Error('Middleware error');
+          throw new Error('Hook error');
         }
       };
 
-      chain.useMiddleware(errorMiddleware);
+      chain.useHook(errorHook);
 
-      const ctx = new Context();
-      await expect(chain.run(ctx)).rejects.toThrow('Middleware error');
+      const ctx = new State();
+      await expect(chain.run(ctx)).rejects.toThrow('Hook error');
     });
   });
 
-  describe('Middleware Error Handling', () => {
+  describe('Hook Error Handling', () => {
     test('should call onError when link fails', async () => {
       const { Chain } = require('../core');
       const chain = new Chain();
@@ -279,11 +279,11 @@ describe('Middleware', () => {
       chain.addLink(failingLink, 'failing');
 
       const errorSpy = jest.fn();
-      chain.useMiddleware({
+      chain.useHook({
         onError: errorSpy
       });
 
-      const ctx = new Context();
+      const ctx = new State();
       await expect(chain.run(ctx)).rejects.toThrow('Link failed');
 
       expect(errorSpy).toHaveBeenCalledWith(
@@ -294,7 +294,7 @@ describe('Middleware', () => {
       );
     });
 
-    test('should continue with other middleware on error', async () => {
+    test('should continue with other hook on error', async () => {
       const { Chain } = require('../core');
       const chain = new Chain();
 
@@ -307,13 +307,13 @@ describe('Middleware', () => {
       const errorSpy = jest.fn();
       const afterSpy = jest.fn();
 
-      chain.useMiddleware({
+      chain.useHook({
         before: beforeSpy,
         onError: errorSpy,
         after: afterSpy
       });
 
-      const ctx = new Context();
+      const ctx = new State();
       await expect(chain.run(ctx)).rejects.toThrow('Link failed');
 
       expect(beforeSpy).toHaveBeenCalled();
@@ -322,31 +322,31 @@ describe('Middleware', () => {
     });
   });
 
-  describe('Middleware Context Access', () => {
-    test('should provide context to middleware', async () => {
+  describe('Hook State Access', () => {
+    test('should provide state to hook', async () => {
       const { Chain } = require('../core');
       const chain = new Chain();
 
       const link = new TestLink('test', async (ctx) => ctx.insert('result', 'success'));
       chain.addLink(link, 'test');
 
-      const middleware = {
+      const hook = {
         before: jest.fn(),
         after: jest.fn()
       };
 
-      chain.useMiddleware(middleware);
+      chain.useHook(hook);
 
-      const initialCtx = new Context({ input: 'test' });
+      const initialCtx = new State({ input: 'test' });
       await chain.run(initialCtx);
 
-      expect(middleware.before).toHaveBeenCalledWith(
+      expect(hook.before).toHaveBeenCalledWith(
         link,
         initialCtx,
         'test'
       );
 
-      expect(middleware.after).toHaveBeenCalledWith(
+      expect(hook.after).toHaveBeenCalledWith(
         link,
         expect.objectContaining({
           _data: expect.objectContaining({
@@ -358,27 +358,27 @@ describe('Middleware', () => {
       );
     });
 
-    test('should handle context modifications in middleware', async () => {
+    test('should handle state modifications in hook', async () => {
       const { Chain } = require('../core');
       const chain = new Chain();
 
       const link = new TestLink('test', async (ctx) => ctx);
       chain.addLink(link, 'test');
 
-      const middleware = {
+      const hook = {
         before: async (link, ctx, linkName) => {
-          // Middleware can modify context before link execution
-          return ctx.insert('middleware', 'modified');
+          // Hook can modify state before link execution
+          return ctx.insert('hook', 'modified');
         }
       };
 
-      chain.useMiddleware(middleware);
+      chain.useHook(hook);
 
-      const ctx = new Context({ original: 'value' });
+      const ctx = new State({ original: 'value' });
       const result = await chain.run(ctx);
 
       expect(result.get('original')).toBe('value');
-      expect(result.get('middleware')).toBe('modified'); // Middleware modifications now persist
+      expect(result.get('hook')).toBe('modified'); // Hook modifications now persist
     });
   });
 });

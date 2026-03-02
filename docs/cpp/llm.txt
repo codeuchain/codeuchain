@@ -6,15 +6,15 @@ Full reference: `docs/cpp/llm-full.txt`
 (Add library to your build system – header-only pattern suggested.)
 
 ## Primitives
-- Link: `Context<Out> call(const Context<In>&)` (or async via coroutines)
-- Context<T>: copy-on-write style; `insert`, `insert_as<U>`
+- Link: `State<Out> call(const State<In>&)` (or async via coroutines)
+- State<T>: copy-on-write style; `insert`, `insert_as<U>`
 - Chain: fluent composition; `catch_handler`
-- Middleware: wrappers around `call`
+- Hook: wrappers around `call`
 
 ## Minimal Link
 ```cpp
 struct Parse : ILink<any_t, any_t> {
-    Context<any_t> call(const Context<any_t>& c) override {
+    State<any_t> call(const State<any_t>& c) override {
         return c.insert("parsed", true);
     }
 };
@@ -49,6 +49,6 @@ Transient (retry) vs Permanent (validation/security). Distinguish via custom exc
 ```
 
 ## TL;DR
-Template links + move-aware immutable contexts + layered middleware.
+Template links + move-aware immutable states + layered hook.
 
 © 2025 Orchestrate LLC – Apache 2.0

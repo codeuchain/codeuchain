@@ -12,17 +12,17 @@ public class MathExample {
         Chain chain = new Chain()
             .addLink("sum", new MathLink("sum"))
             .addLink("mean", new MathLink("mean"))
-            .useMiddleware(new LoggingMiddleware());
+            .useHook(new LoggingHook());
 
-        // Create context
+        // Create state
         Map<String, Object> data = new HashMap<>();
         data.put("numbers", Arrays.asList(1.0, 2.0, 3.0, 4.0, 5.0));
-        Context context = Context.create(data);
+        State state = State.create(data);
 
         try {
-            Context result = chain.run(context);
+            State result = chain.run(state);
             System.out.println("Result: " + result.get("result"));
-            System.out.println("Full context: " + result.toMap());
+            System.out.println("Full state: " + result.toMap());
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
         }

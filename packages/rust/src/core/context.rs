@@ -1,7 +1,7 @@
 /*!
-Context: The Data Container
+State: The Data Container
 
-The Context holds data carefully, immutable by default for safety, mutable for flexibility.
+The State holds data carefully, immutable by default for safety, mutable for flexibility.
 Optimized for Rust's ownership model—embracing HashMap with serde integration.
 */
 
@@ -9,16 +9,16 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 
-/// Immutable context with selfless love—holds data without judgment, returns fresh copies for changes.
+/// Immutable state with selfless love—holds data without judgment, returns fresh copies for changes.
 /// Generic type parameter T represents the current data shape, defaulting to serde_json::Value for flexibility.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Context<T = Value> {
+pub struct State<T = Value> {
     data: HashMap<String, Value>,
     _phantom: std::marker::PhantomData<T>,
 }
 
-impl<T> Context<T> {
-    /// Create a new context with optional initial data
+impl<T> State<T> {
+    /// Create a new state with optional initial data
     pub fn new(data: HashMap<String, Value>) -> Self {
         Self {
             data,
@@ -26,7 +26,7 @@ impl<T> Context<T> {
         }
     }
 
-    /// Create an empty context
+    /// Create an empty state
     pub fn empty() -> Self {
         Self {
             data: HashMap::new(),
@@ -39,35 +39,35 @@ impl<T> Context<T> {
         self.data.get(key)
     }
 
-    /// With selfless safety, return a fresh context with the addition (preserves type).
-    pub fn insert(self, key: String, value: Value) -> Context<T> {
+    /// With selfless safety, return a fresh state with the addition (preserves type).
+    pub fn insert(self, key: String, value: Value) -> State<T> {
         let mut new_data = self.data;
         new_data.insert(key, value);
-        Context {
+        State {
             data: new_data,
             _phantom: std::marker::PhantomData,
         }
     }
 
     /// Type evolution: Transform to a new type while preserving data.
-    pub fn insert_as<U>(self, key: String, value: Value) -> Context<U> {
+    pub fn insert_as<U>(self, key: String, value: Value) -> State<U> {
         let mut new_data = self.data;
         new_data.insert(key, value);
-        Context {
+        State {
             data: new_data,
             _phantom: std::marker::PhantomData,
         }
     }
 
     /// For those needing change, provide a mutable sibling.
-    pub fn with_mutation(&self) -> MutableContext {
-        MutableContext {
+    pub fn with_mutation(&self) -> MutableState {
+        MutableState {
             data: self.data.clone(),
         }
     }
 
-    /// Lovingly combine contexts, favoring the other with compassion.
-    pub fn merge(mut self, other: &Context<T>) -> Context<T> {
+    /// Lovingly combine states, favoring the other with compassion.
+    pub fn merge(mut self, other: &State<T>) -> State<T> {
         for (key, value) in &other.data {
             self.data.insert(key.clone(), value.clone());
         }
@@ -85,27 +85,27 @@ impl<T> Context<T> {
     }
 }
 
-impl Context<Value> {
-    /// Create context from HashMap (for backward compatibility)
+impl State<Value> {
+    /// Create state from HashMap (for backward compatibility)
     pub fn from_hashmap(data: HashMap<String, Value>) -> Self {
         Self::new(data)
     }
 }
 
-impl<T> Default for Context<T> {
+impl<T> Default for State<T> {
     fn default() -> Self {
         Self::empty()
     }
 }
 
-/// Mutable context for performance-critical sections—use with care, but forgiven.
+/// Mutable state for performance-critical sections—use with care, but forgiven.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MutableContext {
+pub struct MutableState {
     data: HashMap<String, Value>,
 }
 
-impl MutableContext {
-    /// Create a new mutable context
+impl MutableState {
+    /// Create a new mutable state
     pub fn new() -> Self {
         Self {
             data: HashMap::new(),
@@ -123,8 +123,8 @@ impl MutableContext {
     }
 
     /// Return to safety with a fresh immutable copy.
-    pub fn to_immutable<T>(self) -> Context<T> {
-        Context {
+    pub fn to_immutable<T>(self) -> State<T> {
+        State {
             data: self.data,
             _phantom: std::marker::PhantomData,
         }
@@ -136,7 +136,7 @@ impl MutableContext {
     }
 }
 
-impl Default for MutableContext {
+impl Default for MutableState {
     fn default() -> Self {
         Self::new()
     }

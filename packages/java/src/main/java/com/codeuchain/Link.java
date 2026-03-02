@@ -2,12 +2,12 @@ package com.codeuchain;
 
 /**
  * Link: The Selfless Processor
- * Pure interface for context processors.
+ * Pure interface for state processors.
  */
 @FunctionalInterface
 public interface Link {
     /**
-     * Process the context and return transformed context
+     * Process the state and return transformed state
      */
-    Context call(Context context) throws Exception;
+    State call(State state) throws Exception;
 }

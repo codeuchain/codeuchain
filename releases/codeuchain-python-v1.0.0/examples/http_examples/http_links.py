@@ -12,7 +12,7 @@ import asyncio
 import json
 from urllib.request import urlopen, Request
 from urllib.error import URLError
-from codeuchain.core.context import Context
+from codeuchain.core.state import State
 from codeuchain.core.link import Link
 
 
@@ -22,7 +22,7 @@ class SimpleHttpLink(Link):
 
     Usage:
         link = SimpleHttpLink("https://api.example.com/data")
-        result = await link.call(context)
+        result = await link.call(state)
         data = result.get("response")
     """
 
@@ -30,7 +30,7 @@ class SimpleHttpLink(Link):
         self.url = url
         self.headers = headers or {}
 
-    async def call(self, ctx: Context) -> Context:
+    async def call(self, ctx: State) -> State:
         def sync_request():
             try:
                 req = Request(self.url, headers=self.headers)
@@ -54,7 +54,7 @@ class AioHttpLink(Link):
 
     Usage:
         link = AioHttpLink("https://api.example.com/data", method="POST")
-        result = await link.call(context)
+        result = await link.call(state)
         data = result.get("response")
     """
 
@@ -63,7 +63,7 @@ class AioHttpLink(Link):
         self.method = method
         self.headers = headers or {}
 
-    async def call(self, ctx: Context) -> Context:
+    async def call(self, ctx: State) -> State:
         try:
             import aiohttp  # type: ignore
         except ImportError:
@@ -90,15 +90,15 @@ async def example_usage():
     """Example of using HTTP links in a chain."""
 
     from components.chains import BasicChain
-    from components.middleware import LoggingMiddleware
+    from components.hook import LoggingHook
 
     # Create a chain with HTTP functionality
     chain = BasicChain()
     chain.add_link("api", SimpleHttpLink("https://jsonplaceholder.typicode.com/todos/1"))
-    chain.use_middleware(LoggingMiddleware())
+    chain.use_hook(LoggingHook())
 
     # Run the chain
-    ctx = Context({})
+    ctx = State({})
     result = await chain.run(ctx)
 
     print(f"Response: {result.get('response')}")

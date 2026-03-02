@@ -1,4 +1,4 @@
-#include "codeuchain/typed_context.hpp"
+#include "codeuchain/typed_state.hpp"
 #include <iostream>
 #include <string>
 #include <memory>
@@ -6,7 +6,7 @@
 using namespace codeuchain;
 
 /*!
- * @brief Example Link implementation using typed contexts
+ * @brief Example Link implementation using typed states
  */
 
 // Example Link: String to Uppercase

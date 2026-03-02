@@ -1,4 +1,4 @@
-#include "codeuchain/typed_context.hpp"
+#include "codeuchain/typed_state.hpp"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -6,17 +6,17 @@
 using namespace codeuchain;
 
 /*!
- * @brief Simple example demonstrating typed context usage
+ * @brief Simple example demonstrating typed state usage
  */
 
 int main() {
-    std::cout << "CodeUChain Typed Context Example" << std::endl;
+    std::cout << "CodeUChain Typed State Example" << std::endl;
     std::cout << "=================================" << std::endl;
 
-    // 1. Create typed context
-    std::cout << "\n1. Creating typed context..." << std::endl;
+    // 1. Create typed state
+    std::cout << "\n1. Creating typed state..." << std::endl;
     std::unordered_map<std::string, DataValue> empty_data;
-    auto ctx = make_typed_context<std::string>(empty_data);
+    auto ctx = make_typed_state<std::string>(empty_data);
 
     // 2. Type-safe operations
     std::cout << "2. Type-safe insert operations..." << std::endl;
@@ -43,7 +43,7 @@ int main() {
 
     // 5. Runtime flexibility
     std::cout << "5. Runtime flexibility..." << std::endl;
-    auto base_ctx = ctx5.to_context();
+    auto base_ctx = ctx5.to_state();
     auto runtime_name = base_ctx.get("name");
 
     if (runtime_name && std::holds_alternative<std::string>(*runtime_name)) {

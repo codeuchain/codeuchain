@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 /// </summary>
 public class LegacyProcessor : ILink
 {
-    public ValueTask<Context> ProcessAsync(Context context)
+    public ValueTask<State> ProcessAsync(State state)
     {
-        var input = context.Get("input")?.ToString() ?? "";
-        return ValueTask.FromResult(context.Insert("output", input.ToUpper()));
+        var input = state.Get("input")?.ToString() ?? "";
+        return ValueTask.FromResult(state.Insert("output", input.ToUpper()));
     }
 }
 
@@ -17,10 +17,10 @@ public class LegacyProcessor : ILink
 /// </summary>
 public class ModernProcessor : ILink
 {
-    public ValueTask<Context> ProcessAsync(Context context)
+    public ValueTask<State> ProcessAsync(State state)
     {
-        var input = context.Get("input")?.ToString() ?? "";
-        var output = context.Get("output")?.ToString() ?? "";
-        return ValueTask.FromResult(context.Insert("output", input.ToUpper()).Insert("final", $"{output}-MODERN"));
+        var input = state.Get("input")?.ToString() ?? "";
+        var output = state.Get("output")?.ToString() ?? "";
+        return ValueTask.FromResult(state.Insert("output", input.ToUpper()).Insert("final", $"{output}-MODERN"));
     }
 }

@@ -11,26 +11,26 @@
 
 ---
 ## 1. Purpose & Description
-This pseudocode package is the conceptual source of truth. It defines the neutral, language-agnostic mental model that every concrete implementation (Go, Python, JS/TS, C#, Rust, etc.) must honor: Links transform, Context carries immutable state with type evolution semantics, Chains compose, Middleware observes.
+This pseudocode package is the conceptual source of truth. It defines the neutral, language-agnostic mental model that every concrete implementation (Go, Python, JS/TS, C#, Rust, etc.) must honor: Links transform, State carries immutable state with type evolution semantics, Chains compose, Hook observes.
 
 | Pillar | Why It Exists | Invariance Across Languages |
 |--------|---------------|-----------------------------|
-| Link | Unit of transformation | Always exposes `call(context)` async/sync |
-| Context | Immutable data holder | Key-value + evolution method |
+| Link | Unit of transformation | Always exposes `call(state)` async/sync |
+| State | Immutable data holder | Key-value + evolution method |
 | Chain | Ordered composition | Deterministic sequencing + error routing |
-| Middleware | Cross-cutting concern | before/after/error hooks |
+| Hook | Cross-cutting concern | before/after/error hooks |
 | Type Evolution | Gradual modeling | Widen without unsafe casts |
 
 ---
 ## 2. Core Primitives (Canonical Forms)
 ```
 Link<Input, Output> {
-    call(ctx: Context<Input>) -> Context<Output>
+    call(ctx: State<Input>) -> State<Output>
 }
 
-Context<T> {
-    insert(key: string, value: any) -> Context<T>
-    insertAs<U>(key: string, value: any) -> Context<U>  // type evolution
+State<T> {
+    insert(key: string, value: any) -> State<T>
+    insertAs<U>(key: string, value: any) -> State<U>  // type evolution
     get(key: string) -> any
     has(key: string) -> boolean
     keys() -> string[]
@@ -38,12 +38,12 @@ Context<T> {
 
 Chain {
     then(link: Link) -> Chain
-    use(middleware: Middleware) -> Chain
+    use(hook: Hook) -> Chain
     catch(handler: ErrorHandler) -> Chain
-    call(ctx: Context<any>) -> Context<any>
+    call(ctx: State<any>) -> State<any>
 }
 
-Middleware {
+Hook {
     before?(linkName, ctx)
     after?(linkName, ctx)
     onError?(linkName, ctx, error)
@@ -53,15 +53,15 @@ Middleware {
 ---
 ## 3. Expanded Concept Definitions
 ### Link
-Single responsibility, deterministic given identical context slice. Should avoid external side effects unless explicitly designated (I/O, logging, metrics).
+Single responsibility, deterministic given identical state slice. Should avoid external side effects unless explicitly designated (I/O, logging, metrics).
 
-### Context
-Immutable facade over internal associative store. Insert returns a new context preserving prior keys (copy-on-write or structural sharing). `insertAs` both inserts and semantically widens the type description.
+### State
+Immutable facade over internal associative store. Insert returns a new state preserving prior keys (copy-on-write or structural sharing). `insertAs` both inserts and semantically widens the type description.
 
 ### Chain
-Declarative linear (optionally branching) assembly. Owns error routing and middleware invocation ordering: `before` (outer→inner), link call, `after` (inner→outer), `onError` if thrown.
+Declarative linear (optionally branching) assembly. Owns error routing and hook invocation ordering: `before` (outer→inner), link call, `after` (inner→outer), `onError` if thrown.
 
-### Middleware
+### Hook
 Observer + conditional mutator. Must never invisibly swallow critical errors unless chain-level policy states otherwise.
 
 ---
@@ -72,19 +72,19 @@ Patterns in nature (cell→tissue→organ→system) map to (link→subchain→mo
 
 Error lifecycle:
 ```
-Raise → Classify → Tag in Context → (Retry | Compensate | Escalate)
+Raise → Classify → Tag in State → (Retry | Compensate | Escalate)
 ```
 
 ---
 ## 5. Implementation Guidance (New Language Port)
 1. Model primitives EXACTLY (names may localize but semantics fixed)  
 2. Leverage language generics (or parametric polymorphism) for `Link<Input, Output>`  
-3. Provide an untyped escape hatch (raw/dynamic context)  
+3. Provide an untyped escape hatch (raw/dynamic state)  
 4. Ensure zero runtime overhead for typed vs untyped usage  
-5. Guarantee context immutability contract (defensive copy or persistent structure)  
+5. Guarantee state immutability contract (defensive copy or persistent structure)  
 6. Provide ergonomic test utilities / builders  
 7. Document type evolution via examples  
-8. Supply middleware registration API symmetrical across languages
+8. Supply hook registration API symmetrical across languages
 
 ---
 ## 6. Language Family Nuances
@@ -92,7 +92,7 @@ Raise → Classify → Tag in Context → (Retry | Compensate | Escalate)
 |--------|------------------|-------|
 | Statically Typed (Go, C#, Java, Rust) | Compile-time contracts | Use generics / traits / interfaces |
 | Dynamically Typed (Python, JS) | Gradual typing | Provide optional static hints (PEP 484, TS) |
-| Systems (Rust, C++) | Zero-cost + safety | Avoid alloc churn in Context evolution |
+| Systems (Rust, C++) | Zero-cost + safety | Avoid alloc churn in State evolution |
 | Enterprise (Java, C#) | Tooling & integration | Annotations, DI friendliness |
 | Scripting (Bash, Lua) | Minimal wrappers | May inline chain logic for brevity |
 
@@ -118,9 +118,9 @@ chain UserPipeline = Chain.start(ValidateEmail)
 finalCtx = UserPipeline.call(initialCtx)
 ```
 
-### Middleware Skeleton
+### Hook Skeleton
 ```
-middleware Metrics {
+hook Metrics {
     before(name, ctx): ctx.insert("_t0", now())
     after(name, ctx): log(name, now() - ctx.get("_t0"))
     onError(name, ctx, err): logError(name, err)
@@ -133,7 +133,7 @@ middleware Metrics {
 2. Write failing unit test for first link  
 3. Implement link until green  
 4. Compose link in chain; add integration test  
-5. Introduce middleware (metrics/logging)  
+5. Introduce hook (metrics/logging)  
 6. Add error classification & retries  
 7. Optimize allocations / hot paths  
 8. Document evolution narrative (raw→enriched→classified)  
@@ -153,14 +153,14 @@ middleware Metrics {
 Core categories:
 - Unit (per-link deterministic behavior)
 - Chain integration (ordering, propagation, branching)
-- Middleware (hook invocation order, error paths)
-- Property / fuzz (context key resilience, key collisions)
-- Performance micro-bench (context insert & chain call overhead)
+- Hook (hook invocation order, error paths)
+- Property / fuzz (state key resilience, key collisions)
+- Performance micro-bench (state insert & chain call overhead)
 
 Pseudo test example:
 ```
 test "email validation error":
-    ctx = Context.start({ user: { email: "bad" } })
+    ctx = State.start({ user: { email: "bad" } })
     expect(ValidateEmail.call(ctx)) throws "invalid_email"
 ```
 
@@ -168,11 +168,11 @@ test "email validation error":
 ## 11. Performance Guidance
 | Concern | Strategy | Rationale |
 |---------|----------|-----------|
-| Context Copy Overhead | Structural sharing | Minimize allocations |
+| State Copy Overhead | Structural sharing | Minimize allocations |
 | Deep Object Cloning | Shallow + reference reuse | Avoid quadratic cost |
 | Logging Hot Path | Sampling / deferred formatting | Reduce I/O stalls |
 | Retry Backoff | Exponential jitter | Prevent thundering herd |
-| Middleware Stack Depth | Flatten common composites | Avoid nested call overhead |
+| Hook Stack Depth | Flatten common composites | Avoid nested call overhead |
 
 Micro-benchmark shape:
 ```
@@ -182,35 +182,35 @@ for N in [10,100,1000]: run chain(links=N) measure avg latency
 ---
 ## 12. Advanced Patterns
 - Conditional Link Inclusion (feature flag / predicate guarded)
-- Fan-Out / Fan-In (parallel subchains then merge contexts)
+- Fan-Out / Fan-In (parallel subchains then merge states)
 - Saga Compensation (attach compensating links in error routes)
-- Streaming Adaptation (wrap chunk events into ephemeral contexts)
+- Streaming Adaptation (wrap chunk events into ephemeral states)
 - Progressive Type Evolution (Raw → Normalized → Enriched → Scored)
 - Retry with Classification (only retry on transient classification)
-- Observability Envelope (middleware that batches and flushes metrics)
+- Observability Envelope (hook that batches and flushes metrics)
 
 ---
 ## 13. Migration & Evolution Strategy
 Phase adoption:
-1. Start untyped context for speed  
+1. Start untyped state for speed  
 2. Introduce interfaces / structs for stable shapes  
 3. Replace transitional `insert` with `insertAs<StableShape>`  
 4. Extract shared chain fragments to libraries  
-5. Introduce richer middleware (tracing, metrics)  
+5. Introduce richer hook (tracing, metrics)  
 6. Optimize hotspots (allocation + serialization)  
 
-Backward compatibility rule: *No breaking changes to public Link/Chain/Context signatures without major version.*
+Backward compatibility rule: *No breaking changes to public Link/Chain/State signatures without major version.*
 
 ---
 ## 14. Anti-Patterns
 | Anti-Pattern | Cost | Better |
 |--------------|------|--------|
 | Monolithic God Link | Un-testable | Split by responsibility |
-| Mutable Global Context | Hidden coupling | Pass explicit context | 
+| Mutable Global State | Hidden coupling | Pass explicit state | 
 | Silent Error Swallow | Debug pain | Tag & rethrow / classify |
 | Over-Logging Each Link | Noise & perf hit | Structured sampled logs |
-| Embedding Secrets in Context | Leakage risk | Reference secret manager |
-| Deep Cloning Entire Context | Performance drag | Persistent structure |
+| Embedding Secrets in State | Leakage risk | Reference secret manager |
+| Deep Cloning Entire State | Performance drag | Persistent structure |
 
 ---
 ## 15. FAQ
@@ -221,30 +221,30 @@ Backward compatibility rule: *No breaking changes to public Link/Chain/Context s
 **A:** Build two subchains; select at runtime; or implement predicate-based inclusion inside builder.  
 
 **Q:** Where do retries belong?  
-**A:** Decorate links (retry wrapper) or specialized middleware with classification filter.  
+**A:** Decorate links (retry wrapper) or specialized hook with classification filter.  
 
-**Q:** Should middleware mutate data?  
+**Q:** Should hook mutate data?  
 **A:** Only for tagging / metadata; business transformations stay in links.  
 
 **Q:** How to handle partial failures?  
-**A:** Tag partial state in context; continue chain; final aggregation decides degrade vs abort.  
+**A:** Tag partial state in state; continue chain; final aggregation decides degrade vs abort.  
 
 ---
 ## 16. Glossary
-- **Evolution**: Transition of context type to a superset or refined shape.
+- **Evolution**: Transition of state type to a superset or refined shape.
 - **Classification**: Assigning semantic label to an error (retryable, permanent, security, validation).
 - **Compensation**: Reverse action executed in response to failure after partial success.
-- **Observer Middleware**: Middleware performing only observation (no mutation).
+- **Observer Hook**: Hook performing only observation (no mutation).
 - **Fractal Composition**: Reapplying the chain pattern at multiple abstraction levels.
 
 ---
 ## 17. TL;DR
 ```text
-Primitives: Link + Chain + Context + Middleware + Type Evolution
+Primitives: Link + Chain + State + Hook + Type Evolution
 Philosophy: Explicit steps, immutable data, composition > inheritance
 Adoption: Start untyped → add evolution → optimize
 Performance: Structural sharing, sampling logs, classify retries
-Testing: Unit per link; integration per chain; fuzz context keys
+Testing: Unit per link; integration per chain; fuzz state keys
 Avoid: God links, silent catches, deep cloning, secret embedding
 Outcome: Predictable, observable, evolvable pipelines
 ```

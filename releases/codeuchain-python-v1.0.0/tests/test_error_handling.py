@@ -6,7 +6,7 @@ Testing ErrorHandlingMixin and RetryLink utilities.
 
 import pytest
 from typing import Dict, List, Callable, Tuple
-from codeuchain.core.context import Context
+from codeuchain.core.state import State
 from codeuchain.utils.error_handling import ErrorHandlingMixin, RetryLink
 from .conftest import MockLink
 
@@ -58,7 +58,7 @@ class TestErrorHandlingMixin:
         mixin.on_error("failing_link", "error_handler", value_error_condition)
 
         async def run_test():
-            ctx = Context({"input": "test"})
+            ctx = State({"input": "test"})
             error = ValueError("Test error")
 
             result_ctx = await mixin._handle_error("failing_link", error, ctx)
@@ -81,7 +81,7 @@ class TestErrorHandlingMixin:
         mixin.on_error("failing_link", "error_handler", type_error_condition)
 
         async def run_test():
-            ctx = Context({"input": "test"})
+            ctx = State({"input": "test"})
             error = ValueError("Test error")  # Different type than condition expects
 
             result_ctx = await mixin._handle_error("failing_link", error, ctx)
@@ -103,7 +103,7 @@ class TestErrorHandlingMixin:
         mixin.on_error("failing_link", "nonexistent_handler", error_condition)
 
         async def run_test():
-            ctx = Context({"input": "test"})
+            ctx = State({"input": "test"})
             error = ValueError("Test error")
 
             result_ctx = await mixin._handle_error("failing_link", error, ctx)
@@ -125,7 +125,7 @@ class TestRetryLink:
         retry_link = RetryLink(inner_link, max_retries=3)
 
         async def run_test():
-            ctx = Context({"input": "test"})
+            ctx = State({"input": "test"})
             result = await retry_link.call(ctx)
 
             assert result.get("result") == "success"
@@ -141,7 +141,7 @@ class TestRetryLink:
         call_count = 0
 
         class FailingThenSuccessLink:
-            async def call(self, ctx: Context) -> Context:
+            async def call(self, ctx: State) -> State:
                 nonlocal call_count
                 call_count += 1
                 if call_count < 3:
@@ -152,7 +152,7 @@ class TestRetryLink:
         retry_link = RetryLink(inner_link, max_retries=5)
 
         async def run_test():
-            ctx = Context({"input": "test"})
+            ctx = State({"input": "test"})
             result = await retry_link.call(ctx)
 
             assert call_count == 3
@@ -168,7 +168,7 @@ class TestRetryLink:
         call_count = 0
 
         class AlwaysFailingLink:
-            async def call(self, ctx: Context) -> Context:
+            async def call(self, ctx: State) -> State:
                 nonlocal call_count
                 call_count += 1
                 raise ValueError(f"Attempt {call_count} failed")
@@ -177,7 +177,7 @@ class TestRetryLink:
         retry_link = RetryLink(inner_link, max_retries=2)
 
         async def run_test():
-            ctx = Context({"input": "test"})
+            ctx = State({"input": "test"})
             result = await retry_link.call(ctx)
 
             assert call_count == 2  # Should try max_retries times
@@ -194,7 +194,7 @@ class TestRetryLink:
         call_count = 0
 
         class FailingLink:
-            async def call(self, ctx: Context) -> Context:
+            async def call(self, ctx: State) -> State:
                 nonlocal call_count
                 call_count += 1
                 raise ValueError("Failed")
@@ -203,7 +203,7 @@ class TestRetryLink:
         retry_link = RetryLink(inner_link, max_retries=0)
 
         async def run_test():
-            ctx = Context({"input": "test"})
+            ctx = State({"input": "test"})
             result = await retry_link.call(ctx)
 
             assert call_count == 1  # Should try once even with max_retries=0
@@ -230,7 +230,7 @@ class TestErrorHandlingIntegration:
             def add_link(self, name: str, link):
                 self.links[name] = link
 
-            async def run_with_error_handling(self, link_name: str, ctx: Context) -> Context:
+            async def run_with_error_handling(self, link_name: str, ctx: State) -> State:
                 link = self.links.get(link_name)
                 if not link:
                     raise ValueError(f"Link {link_name} not found")
@@ -249,7 +249,7 @@ class TestErrorHandlingIntegration:
         # Add a retry link that will eventually succeed
         call_count = 0
         class IntermittentFailingLink:
-            async def call(self, ctx: Context) -> Context:
+            async def call(self, ctx: State) -> State:
                 nonlocal call_count
                 call_count += 1
                 if call_count < 2:
@@ -261,7 +261,7 @@ class TestErrorHandlingIntegration:
 
         # Add error handler
         class ErrorHandlerLink:
-            async def call(self, ctx: Context) -> Context:
+            async def call(self, ctx: State) -> State:
                 return ctx.insert("error_handled", True).insert("fallback_result", "default")
 
         chain.add_link("error_handler", ErrorHandlerLink())
@@ -273,7 +273,7 @@ class TestErrorHandlingIntegration:
         chain.on_error("unreliable_service", "error_handler", connection_error_condition)
 
         async def run_test():
-            ctx = Context({"input": "test"})
+            ctx = State({"input": "test"})
             result = await chain.run_with_error_handling("unreliable_service", ctx)
 
             # Should have succeeded on retry
@@ -312,7 +312,7 @@ class TestErrorHandlingIntegration:
         mixin.on_error("processor", "generic_handler", generic_error_condition)
 
         async def run_test():
-            ctx = Context({"input": "test"})
+            ctx = State({"input": "test"})
 
             # Test validation error
             validation_error = ValueError("Validation failed: invalid input")

@@ -17,13 +17,13 @@
  * @example
  * ```typescript
  * // Named imports (recommended)
- * import { Context, Chain, Link, LoggingMiddleware } from 'codeuchain';
+ * import { State, Chain, Link, LoggingHook } from 'codeuchain';
  * 
  * // Default import
  * import CodeUChain from 'codeuchain';
  * 
  * // Mixed usage
- * import CodeUChain, { Context, Chain } from 'codeuchain';
+ * import CodeUChain, { State, Chain } from 'codeuchain';
  * ```
  */
 
@@ -38,9 +38,9 @@ export * from './types';
  * ```typescript
  * import CodeUChain from 'codeuchain';
  * 
- * const ctx = new CodeUChain.Context({ user: 'Alice' });
+ * const ctx = new CodeUChain.State({ user: 'Alice' });
  * const chain = new CodeUChain.Chain()
- *   .useMiddleware(new CodeUChain.LoggingMiddleware())
+ *   .useHook(new CodeUChain.LoggingHook())
  *   .addLink(new MyProcessingLink());
  * ```
  */

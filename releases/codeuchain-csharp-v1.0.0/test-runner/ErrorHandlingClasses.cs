@@ -3,13 +3,13 @@ using System.Threading.Tasks;
 /// <summary>
 /// Error Link: Throws errors for testing
 /// </summary>
-public class ErrorLink : IContextLink<string, string>
+public class ErrorLink : IStateLink<string, string>
 {
-    public async Task<Context<string>> CallAsync(Context<string> context)
+    public async Task<State<string>> CallAsync(State<string> state)
     {
-        if (context.GetAny("trigger")?.ToString() == "error")
+        if (state.GetAny("trigger")?.ToString() == "error")
             throw new InvalidOperationException("Test error");
-        return context;
+        return state;
     }
 }
 
@@ -18,25 +18,25 @@ public class ErrorLink : IContextLink<string, string>
 /// </summary>
 public class SafeLink : ILink
 {
-    public ValueTask<Context> ProcessAsync(Context context)
+    public ValueTask<State> ProcessAsync(State state)
     {
-        if (context.Get("trigger")?.ToString() == "error")
+        if (state.Get("trigger")?.ToString() == "error")
             throw new InvalidOperationException("Test error");
-        return ValueTask.FromResult(context.Insert("safe", "processed"));
+        return ValueTask.FromResult(state.Insert("safe", "processed"));
     }
 }
 
 /// <summary>
-/// Error Handling Middleware: Handles errors gracefully
+/// Error Handling Hook: Handles errors gracefully
 /// </summary>
-public class ErrorHandlingMiddleware : IMiddleware
+public class ErrorHandlingHook : IHook
 {
-    public ValueTask<Context> BeforeAsync(ILink? link, Context context) => ValueTask.FromResult(context);
+    public ValueTask<State> BeforeAsync(ILink? link, State state) => ValueTask.FromResult(state);
 
-    public ValueTask<Context> AfterAsync(ILink? link, Context context) => ValueTask.FromResult(context);
+    public ValueTask<State> AfterAsync(ILink? link, State state) => ValueTask.FromResult(state);
 
-    public ValueTask<Context> OnErrorAsync(ILink? link, Exception exception, Context context)
+    public ValueTask<State> OnErrorAsync(ILink? link, Exception exception, State state)
     {
-        return ValueTask.FromResult(context.Insert("handled", true).Insert("error", exception.Message));
+        return ValueTask.FromResult(state.Insert("handled", true).Insert("error", exception.Message));
     }
 }

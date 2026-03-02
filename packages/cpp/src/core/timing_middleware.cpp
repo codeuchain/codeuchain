@@ -1,16 +1,16 @@
-#include "codeuchain/timing_middleware.hpp"
+#include "codeuchain/timing_hook.hpp"
 #include <iostream>
 #include <algorithm>
 
 namespace codeuchain {
 
-TimingMiddleware::TimingMiddleware(bool per_invocation, bool auto_print)
+TimingHook::TimingHook(bool per_invocation, bool auto_print)
     : per_invocation_(per_invocation), auto_print_(auto_print) {}
 
-TimingMiddleware::TimingMiddleware(const FormatConfig& config, bool per_invocation, bool auto_print)
+TimingHook::TimingHook(const FormatConfig& config, bool per_invocation, bool auto_print)
     : per_invocation_(per_invocation), auto_print_(auto_print), config_(config) {}
 
-std::string TimingMiddleware::human_time(double ns_val) const {
+std::string TimingHook::human_time(double ns_val) const {
     std::ostringstream oss;
     double display_val = ns_val;
     std::string unit;
@@ -53,7 +53,7 @@ std::string TimingMiddleware::human_time(double ns_val) const {
     return oss.str();
 }
 
-std::coroutine_handle<> TimingMiddleware::before(std::shared_ptr<ILink> link, const Context&) {
+std::coroutine_handle<> TimingHook::before(std::shared_ptr<ILink> link, const State&) {
     auto now = Clock::now();
     std::scoped_lock lock(mutex_);
     if (!link) {
@@ -64,7 +64,7 @@ std::coroutine_handle<> TimingMiddleware::before(std::shared_ptr<ILink> link, co
     return std::coroutine_handle<>();
 }
 
-std::coroutine_handle<> TimingMiddleware::after(std::shared_ptr<ILink> link, const Context&) {
+std::coroutine_handle<> TimingHook::after(std::shared_ptr<ILink> link, const State&) {
     auto now = Clock::now();
     std::scoped_lock lock(mutex_);
     if (!link) {
@@ -89,7 +89,7 @@ std::coroutine_handle<> TimingMiddleware::after(std::shared_ptr<ILink> link, con
     return std::coroutine_handle<>();
 }
 
-void TimingMiddleware::report(std::ostream& os) const {
+void TimingHook::report(std::ostream& os) const {
     std::scoped_lock lock(mutex_);
 
     if (config_.format == OutputFormat::CSV) {
@@ -125,7 +125,7 @@ void TimingMiddleware::report(std::ostream& os) const {
         os << "\n";
     } else {
         // Tabular format
-        os << "\n== TimingMiddleware Report ==\n";
+        os << "\n== TimingHook Report ==\n";
 
         // Calculate column widths
         int link_width = 24;

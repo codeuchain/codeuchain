@@ -24,12 +24,12 @@ JavaScript brings **universal reach** to CodeUChain:
 
 ## 💝 Simple JavaScript Chain
 
-### The Loving Context
+### The Loving State
 ```javascript
-const { Context, MutableContext } = require('@codeuchain/javascript');
+const { State, MutableState } = require('@codeuchain/javascript');
 
-// Immutable context with selfless love
-const ctx = new Context({
+// Immutable state with selfless love
+const ctx = new State({
   user: 'alice',
   email: 'alice@example.com'
 });
@@ -40,7 +40,7 @@ const user = ctx.get('user'); // 'alice'
 // Add data with selfless safety
 const newCtx = ctx.insert('verified', true);
 
-// Mutable context for performance-critical sections
+// Mutable state for performance-critical sections
 const mutable = ctx.withMutation();
 mutable.set('temp', 'value');
 const finalCtx = mutable.toImmutable();
@@ -58,7 +58,7 @@ class EmailValidationLink extends Link {
       throw new Error('Invalid email format');
     }
 
-    // Return transformed context
+    // Return transformed state
     return ctx.insert('emailValid', true);
   }
 }
@@ -98,7 +98,7 @@ async function createUserRegistrationChain() {
 // Usage
 const registrationChain = await createUserRegistrationChain();
 
-const initialCtx = new Context({
+const initialCtx = new State({
   user: 'alice',
   email: 'alice@example.com'
 });
@@ -107,15 +107,15 @@ const resultCtx = await registrationChain.run(initialCtx);
 console.log('User ID:', resultCtx.get('userId'));
 ```
 
-### The Gentle Middleware
+### The Gentle Hook
 ```javascript
-const { LoggingMiddleware, TimingMiddleware } = require('@codeuchain/javascript');
+const { LoggingHook, TimingHook } = require('@codeuchain/javascript');
 
 const chain = new Chain();
 
-// Add middleware
-chain.useMiddleware(new LoggingMiddleware());
-chain.useMiddleware(new TimingMiddleware());
+// Add hook
+chain.useHook(new LoggingHook());
+chain.useHook(new TimingHook());
 
 // Add error handling
 chain.onError((error, ctx, linkName) => {
@@ -128,10 +128,10 @@ chain.onError((error, ctx, linkName) => {
 
 **JavaScript CodeUChain now supports opt-in generic typing** for enhanced developer experience and type safety. These features are completely optional and maintain 100% backward compatibility.
 
-### Generic Context with Type Evolution
+### Generic State with Type Evolution
 
 ```javascript
-const { Context } = require('@codeuchain/javascript');
+const { State } = require('@codeuchain/javascript');
 
 /**
  * @typedef {Object} UserInput
@@ -146,13 +146,13 @@ const { Context } = require('@codeuchain/javascript');
  * @property {boolean} isValid - Validation status
  */
 
-// Create typed context
+// Create typed state
 /** @type {UserInput} */
 const userData = { name: 'Alice', email: 'alice@example.com' };
-const ctx = new Context(userData);
+const ctx = new State(userData);
 
 // Type evolution with insertAs() - clean transformation
-/** @type {Context<UserValidated>} */
+/** @type {State<UserValidated>} */
 const validatedCtx = ctx.insertAs('isValid', true);
 
 // Original data preserved, new field added
@@ -171,8 +171,8 @@ const { Link } = require('@codeuchain/javascript');
  */
 class ValidationLink extends Link {
   /**
-   * @param {Context<UserInput>} ctx
-   * @returns {Promise<Context<UserValidated>>}
+   * @param {State<UserInput>} ctx
+   * @returns {Promise<State<UserValidated>>}
    */
   async call(ctx) {
     const email = ctx.get('email');
@@ -192,8 +192,8 @@ class ValidationLink extends Link {
  */
 class ProcessingLink extends Link {
   /**
-   * @param {Context<UserValidated>} ctx
-   * @returns {Promise<Context<UserProcessed>>}
+   * @param {State<UserValidated>} ctx
+   * @returns {Promise<State<UserProcessed>>}
    */
   async call(ctx) {
     const isValid = ctx.get('isValid');
@@ -229,8 +229,8 @@ class UserRegistrationChain extends Chain {
 
   /**
    * Register user with full type safety
-   * @param {Context<UserInput>} initialCtx
-   * @returns {Promise<Context<UserProcessed>>}
+   * @param {State<UserInput>} initialCtx
+   * @returns {Promise<State<UserProcessed>>}
    */
   async registerUser(initialCtx) {
     return await this.run(initialCtx);
@@ -239,7 +239,7 @@ class UserRegistrationChain extends Chain {
 
 // Usage with type safety
 const chain = new UserRegistrationChain();
-const inputCtx = new Context({ name: 'Alice', email: 'alice@example.com' });
+const inputCtx = new State({ name: 'Alice', email: 'alice@example.com' });
 const resultCtx = await chain.registerUser(inputCtx);
 
 console.log(resultCtx.get('userId')); // TypeScript knows this exists
@@ -251,7 +251,7 @@ console.log(resultCtx.get('status')); // TypeScript knows this exists
 For full TypeScript support, use the included type definitions:
 
 ```typescript
-import { Context, Link, Chain } from '@codeuchain/javascript';
+import { State, Link, Chain } from '@codeuchain/javascript';
 
 // Full TypeScript generic support
 interface UserInput {
@@ -266,8 +266,8 @@ interface UserProcessed extends UserInput {
 }
 
 // Type-safe operations
-const ctx: Context<UserInput> = new Context({ name: 'Alice', email: 'alice@example.com' });
-const result: Context<UserProcessed> = ctx.insertAs('isValid', true)
+const ctx: State<UserInput> = new State({ name: 'Alice', email: 'alice@example.com' });
+const result: State<UserProcessed> = ctx.insertAs('isValid', true)
   .insertAs('userId', 'user_123')
   .insertAs('status', 'active');
 
@@ -301,7 +301,7 @@ const result: Context<UserProcessed> = ctx.insertAs('isValid', true)
 
 ### Real-Time Event Processing Chain
 ```javascript
-const { Context, Chain, Link, LoggingMiddleware } = require('@codeuchain/javascript');
+const { State, Chain, Link, LoggingHook } = require('@codeuchain/javascript');
 
 class EventValidationLink extends Link {
   async call(ctx) {
@@ -351,11 +351,11 @@ eventChain.addLink('log', new EventLoggingLink());
 eventChain.connect('validate', 'process');
 eventChain.connect('process', 'log');
 
-eventChain.useMiddleware(new LoggingMiddleware());
+eventChain.useHook(new LoggingHook());
 
 // Process events in real-time
 async function processEvent(event) {
-  const ctx = new Context({ event });
+  const ctx = new State({ event });
   return await eventChain.run(ctx);
 }
 
@@ -382,9 +382,9 @@ asyncChain.run(initialCtx)
   .catch(error => console.error('Chain failed:', error));
 ```
 
-### Event-Driven Middleware
+### Event-Driven Hook
 ```javascript
-class EventEmitterMiddleware extends Middleware {
+class EventEmitterHook extends Hook {
   constructor(emitter) {
     super();
     this.emitter = emitter;
@@ -463,7 +463,7 @@ npm install @codeuchain/javascript
 ## 🚀 Quick Start
 
 ```javascript
-const { Context, Chain, Link } = require('@codeuchain/javascript');
+const { State, Chain, Link } = require('@codeuchain/javascript');
 
 class HelloLink extends Link {
   async call(ctx) {
@@ -475,17 +475,17 @@ class HelloLink extends Link {
 const chain = new Chain();
 chain.addLink('hello', new HelloLink());
 
-const result = await chain.run(new Context({ name: 'CodeUChain' }));
+const result = await chain.run(new State({ name: 'CodeUChain' }));
 console.log(result.get('message')); // "Hello, CodeUChain!"
 ```
 
 ## 📚 API Reference
 
-- **Context**: Immutable data container with loving care
-- **MutableContext**: Mutable sibling for performance-critical sections
-- **Link**: Base class for context processors
+- **State**: Immutable data container with loving care
+- **MutableState**: Mutable sibling for performance-critical sections
+- **Link**: Base class for state processors
 - **Chain**: Orchestrator for link execution
-- **Middleware**: Enhancement hooks with gentle defaults
+- **Hook**: Enhancement hooks with gentle defaults
 
 ## 🤝 Contributing
 

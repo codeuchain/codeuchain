@@ -6,7 +6,7 @@ Optimized for Python—exceptions, retries, ecosystem integrations.
 """
 
 from typing import Callable, Optional, List, Tuple
-from codeuchain.core.context import Context
+from codeuchain.core.state import State
 from codeuchain.core.link import Link
 
 __all__ = ["ErrorHandlingMixin", "RetryLink"]
@@ -24,7 +24,7 @@ class ErrorHandlingMixin:
         """With gentle care, add error routing."""
         self.error_connections.append((source, handler, condition))
 
-    async def _handle_error(self, link_name: str, error: Exception, ctx: Context) -> Optional[Context]:
+    async def _handle_error(self, link_name: str, error: Exception, ctx: State) -> Optional[State]:
         """Compassionately find and call error handler."""
         for src, hdl, cond in self.error_connections:
             if src == link_name and cond(error):
@@ -41,7 +41,7 @@ class RetryLink(Link):
         self.inner = inner_link
         self.max_retries = max_retries
 
-    async def call(self, ctx: Context) -> Context:
+    async def call(self, ctx: State) -> State:
         if self.max_retries == 0:
             # If no retries allowed, try once and handle failure
             try:

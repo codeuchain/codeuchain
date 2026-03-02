@@ -14,11 +14,11 @@ public class MathLink implements Link {
     }
 
     @Override
-    public Context call(Context context) throws Exception {
+    public State call(State state) throws Exception {
         @SuppressWarnings("unchecked")
-        List<Double> numbers = (List<Double>) context.get("numbers");
+        List<Double> numbers = (List<Double>) state.get("numbers");
         if (numbers == null || numbers.isEmpty()) {
-            return context.insert("error", "Invalid numbers");
+            return state.insert("error", "Invalid numbers");
         }
 
         double result;
@@ -33,6 +33,6 @@ public class MathLink implements Link {
                 result = 0.0;
         }
 
-        return context.insert("result", result);
+        return state.insert("result", result);
     }
 }

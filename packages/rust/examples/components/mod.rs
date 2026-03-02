@@ -7,9 +7,9 @@ These are examples that can be used as-is or as templates.
 
 pub mod links;
 pub mod chains;
-pub mod middleware;
+pub mod hook;
 
 // Re-export for convenience
 pub use links::MathLink;
 pub use chains::BasicChain;
-pub use middleware::LoggingMiddleware;
+pub use hook::LoggingHook;

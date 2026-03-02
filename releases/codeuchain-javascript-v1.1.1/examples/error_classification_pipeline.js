@@ -13,7 +13,7 @@
  * classification and recovery paths.
  */
 
-const { Context, Chain, Link, LoggingMiddleware } = require('../core');
+const { State, Chain, Link, LoggingHook } = require('../core');
 
 class DataProcessorLink extends Link {
   async call(ctx) {
@@ -186,8 +186,8 @@ async function main() {
     }
   });
 
-  // Add middleware
-  chain.useMiddleware(new LoggingMiddleware());
+  // Add hook
+  chain.useHook(new LoggingHook());
 
   // Test data with different error scenarios
   const testInputs = [
@@ -205,7 +205,7 @@ async function main() {
     console.log('─'.repeat(50));
 
     try {
-      const initialCtx = new Context(testCase);
+      const initialCtx = new State(testCase);
       const resultCtx = await chain.run(initialCtx);
 
       const finalStatus = resultCtx.get('finalStatus');

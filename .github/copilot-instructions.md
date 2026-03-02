@@ -35,7 +35,7 @@ CodeUChain is a polyglot monorepo providing a universal framework for composable
 ### Key Facts
 - **Type**: Polyglot Monorepo
 - **Languages**: Go, Python, JavaScript/TypeScript, C#, Rust, Java, C++, COBOL (meme), Pseudocode
-- **Architecture**: Context-Link-Chain pattern
+- **Architecture**: State-Link-Chain pattern
 - **License**: Apache 2.0
 - **Status**: Production-ready in core languages
 
@@ -85,7 +85,7 @@ Before diving into maintenance, understand the core concepts that define CodeUCh
 
 ```pseudocode
 // 1. Setup Data
-ctx = new Context({ id: 123, raw_text: "  hello  " })
+ctx = new State({ id: 123, raw_text: "  hello  " })
 
 // 2. Build Workflow
 chain = new Chain()
@@ -105,7 +105,7 @@ else:
 
 ### Core Concepts
 
-#### **Context**
+#### **State**
 The "box" moving down the conveyor belt:
 - Immutable key-value data structure
 - Carries state through the chain
@@ -115,21 +115,21 @@ The "box" moving down the conveyor belt:
 #### **Link**
 A "station" on the belt:
 - Individual processing unit with single responsibility
-- Accepts Context → Returns modified Context
+- Accepts State → Returns modified State
 - One well-defined purpose
 - Sync or async (framework handles both)
 
 #### **Chain**
 The "conveyor belt" itself:
 - Ordered sequence of Links
-- Manages Context flow between Links
+- Manages State flow between Links
 - Handles error propagation automatically
 - Provides orchestration capabilities
 
-#### **Middleware**
+#### **Hook**
 Observes and reacts to execution:
-- Operates outside main flow in parallel observation context
-- Monitors execution without modifying business logic context
+- Operates outside main flow in parallel observation state
+- Monitors execution without modifying business logic state
 - Handles cross-cutting concerns (logging, metrics, caching, validation)
 - Pure observation layer - cannot interfere with Link logic
 - Clean separation preserves business logic integrity
@@ -139,7 +139,7 @@ Observes and reacts to execution:
 ```
 Problem → Analysis → Solution → Verification → Refinement
     ↓         ↓          ↓            ↓              ↓
- Context → Link 1 → Link 2 →    Link 3   →     Link 4
+ State → Link 1 → Link 2 →    Link 3   →     Link 4
 ```
 
 This sequential, composable nature matches how humans think and how AI agents reason.
@@ -250,7 +250,7 @@ git checkout -b feature/your-feature-name
 ```typescript
 // example: tests/validate_email.test.ts
 test('ValidateEmail should reject invalid emails', () => {
-  const ctx = new Context({ email: 'invalid' });
+  const ctx = new State({ email: 'invalid' });
   expect(() => validateEmail.call(ctx)).toThrow();
 });
 ```
@@ -380,7 +380,7 @@ src/
 ```python
 class ValidateEmailLink(Link):
     """Validates email format using regex."""
-    async def call(self, ctx: Context) -> Context:
+    async def call(self, ctx: State) -> State:
         email = ctx.get("email")
         if not EMAIL_REGEX.match(email):
             raise ValueError("Invalid email format")
@@ -391,7 +391,7 @@ class ValidateEmailLink(Link):
 ```python
 class ProcessUserLink(Link):
     """Does validation, hashing, and saving."""  # Too much!
-    async def call(self, ctx: Context) -> Context:
+    async def call(self, ctx: State) -> State:
         # validation code
         # hashing code
         # database code
@@ -428,13 +428,13 @@ We implement a three-tier testing strategy:
 // Example: Unit test for ValidateEmail link
 describe('ValidateEmail', () => {
   it('should accept valid email', () => {
-    const ctx = new Context({ email: 'test@example.com' });
+    const ctx = new State({ email: 'test@example.com' });
     const result = validateEmail.call(ctx);
     expect(result.get('email')).toBe('test@example.com');
   });
 
   it('should reject invalid email', () => {
-    const ctx = new Context({ email: 'invalid' });
+    const ctx = new State({ email: 'invalid' });
     expect(() => validateEmail.call(ctx)).toThrow('Invalid email');
   });
 });
@@ -456,7 +456,7 @@ describe('UserRegistration Chain', () => {
       .add(hashPassword)
       .add(saveToDatabase(mockDb));
 
-    const ctx = new Context({ 
+    const ctx = new State({ 
       email: 'test@example.com', 
       password: 'secure123' 
     });
@@ -493,7 +493,7 @@ describe('GitHub Integration E2E', () => {
       .add(configureSettings)
       .add(addCollaborators);
 
-    const ctx = new Context({ 
+    const ctx = new State({ 
       name: testRepoName, 
       org: 'test-org' 
     });
@@ -546,10 +546,10 @@ tests/
 ├── unit/                      # Isolated component tests
 │   ├── links/
 │   ├── chains/
-│   └── context/
+│   └── state/
 ├── integration/               # Component interaction tests
 │   ├── chains/
-│   └── middleware/
+│   └── hook/
 └── e2e/                       # Full system tests
     ├── github_integration/
     └── real_world_scenarios/
@@ -685,7 +685,7 @@ Located in `scripts/`:
 **Example**:
 - `v1.0.0`: Initial stable release
 - `v1.1.0`: Added typed features (backward compatible)
-- `v1.1.1`: Fixed bug in Context.get() (patch)
+- `v1.1.1`: Fixed bug in State.get() (patch)
 - `v2.0.0`: Changed Link interface (breaking change)
 
 ### Changelog Management
@@ -695,7 +695,7 @@ Located in `scripts/`:
 
 Follow conventional commit format:
 ```
-feat: add typed context evolution
+feat: add typed state evolution
 fix: resolve memory leak in chain execution
 docs: update installation instructions
 test: add comprehensive e2e tests
@@ -712,17 +712,17 @@ CodeUChain provides **opt-in generics** for static type safety while maintaining
 #### Generic Link Interface
 ```pseudocode
 Link[Input, Output]
-  - call(ctx: Context[Input]) -> Context[Output]
+  - call(ctx: State[Input]) -> State[Output]
   - Transforms data from Input shape to Output shape
   - Compile-time type checking
   - Runtime flexibility maintained
 ```
 
-#### Generic Context
+#### Generic State
 ```pseudocode
-Context[T]
-  - insert(key, value) -> Context[T]      // Preserve type
-  - insert_as(key, value) -> Context[U]   // Evolve type
+State[T]
+  - insert(key, value) -> State[T]      // Preserve type
+  - insert_as(key, value) -> State[U]   // Evolve type
   - get(key) -> value
   - Runtime storage: Dict[str, Any]
 ```
@@ -764,7 +764,7 @@ type RegisteredUser = {
 
 // Typed link
 class RegisterUserLink implements Link[UserInput, RegisteredUser]:
-  call(ctx: Context[UserInput]) -> Context[RegisteredUser]:
+  call(ctx: State[UserInput]) -> State[RegisteredUser]:
     email = ctx.get("email")
     userId = database.insert(email)
     
@@ -792,10 +792,10 @@ See [TYPED_FEATURES_IMPLEMENTATION_PLAN.md](TYPED_FEATURES_IMPLEMENTATION_PLAN.m
 /**
  * ValidateEmail - Validates email format using regex pattern
  * 
- * Input Context:
+ * Input State:
  * - email: string - Email address to validate
  * 
- * Output Context:
+ * Output State:
  * - email: string - Validated email (unchanged)
  * 
  * Errors:
@@ -803,12 +803,12 @@ See [TYPED_FEATURES_IMPLEMENTATION_PLAN.md](TYPED_FEATURES_IMPLEMENTATION_PLAN.m
  * 
  * Example:
  * ```
- * const ctx = new Context({ email: 'test@example.com' });
+ * const ctx = new State({ email: 'test@example.com' });
  * const result = await validateEmail.call(ctx);
  * ```
  */
 export class ValidateEmail extends Link<EmailInput, EmailInput> {
-  async call(ctx: Context<EmailInput>): Promise<Context<EmailInput>> {
+  async call(ctx: State<EmailInput>): Promise<State<EmailInput>> {
     // Implementation
   }
 }
@@ -836,7 +836,7 @@ export class ValidateEmail extends Link<EmailInput, EmailInput> {
  * Example:
  * ```
  * const result = await UserRegistrationChain.execute(
- *   new Context({ email: 'test@example.com', password: 'secure123' })
+ *   new State({ email: 'test@example.com', password: 'secure123' })
  * );
  * const userId = result.get('userId');
  * ```
@@ -855,7 +855,7 @@ Each language implementation must have:
 
 1. **Quick Start**: 5-minute getting started example
 2. **Installation**: Package manager instructions
-3. **Core Concepts**: Link, Context, Chain, Middleware
+3. **Core Concepts**: Link, State, Chain, Hook
 4. **Examples**: At least 3 working examples
 5. **API Reference**: Complete public API documentation
 6. **Testing**: How to run tests
@@ -1189,7 +1189,7 @@ CodeUChain is a polyglot monorepo providing a universal framework for composable
 ### Key Facts
 - **Type**: Polyglot Monorepo
 - **Languages**: Go, Python, JavaScript/TypeScript, C#, Rust, Java, C++, COBOL (meme), Pseudocode
-- **Architecture**: Context-Link-Chain pattern
+- **Architecture**: State-Link-Chain pattern
 - **License**: Apache 2.0
 - **Status**: Production-ready in core languages
 
@@ -1232,7 +1232,7 @@ Start simple, add features when needed. Typing, advanced orchestration, and tool
 ---
 
 ## Refresher — CodeUChain Types
-Context - The box of data flowing through Links
+State - The box of data flowing through Links
 Link - Individual stations (pure business logic)
 Chain - Orchestration of Link sequence
-Middleware - Parallel observation layer (logging, metrics, caching, validation)
+Hook - Parallel observation layer (logging, metrics, caching, validation)

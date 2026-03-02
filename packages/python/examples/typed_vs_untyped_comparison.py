@@ -12,7 +12,7 @@ Both approaches accomplish the same work but with different trade-offs.
 import asyncio
 from typing import List, TypedDict
 
-from codeuchain.core import Chain, Context, Link
+from codeuchain.core import Chain, State, Link
 
 # =============================================================================
 # SHARED BUSINESS LOGIC: Math processing functions
@@ -39,13 +39,13 @@ class UntypedSumLink(Link):
     """
     Untyped link using default CodeUChain approach.
 
-    - No type annotations on Context
+    - No type annotations on State
     - Runtime Dict[str, Any] behavior
     - Flexible but no static type checking
     - Uses ctx.get() with runtime type checking
     """
 
-    async def call(self, ctx: Context) -> Context:
+    async def call(self, ctx: State) -> State:
         # Runtime validation - no static guarantees
         data = ctx.to_dict()
         if not validate_numbers(data):
@@ -65,7 +65,7 @@ class UntypedAverageLink(Link):
     - No static guarantees about data shape
     """
 
-    async def call(self, ctx: Context) -> Context:
+    async def call(self, ctx: State) -> State:
         # Check if we have numbers to work with
         data = ctx.to_dict()
         if not validate_numbers(data):
@@ -102,7 +102,7 @@ class UntypedStatsChain:
         # Conditional connection - only calculate average if sum succeeded
         self.chain.connect("sum", "average", lambda ctx: ctx.get("error") is None)
 
-    async def run(self, ctx: Context) -> Context:
+    async def run(self, ctx: State) -> State:
         return await self.chain.run(ctx)
 
 
@@ -134,11 +134,11 @@ class TypedSumLink(Link[MathInput, SumOutput]):
 
     - Static type checking with TypedDict
     - Compile-time guarantees about data shape
-    - Type-safe context operations
+    - Type-safe state operations
     - Clear input/output contracts
     """
 
-    async def call(self, ctx: Context[MathInput]) -> Context[SumOutput]:
+    async def call(self, ctx: State[MathInput]) -> State[SumOutput]:
         # Static type checker knows ctx contains MathInput
         numbers = ctx.get("numbers")  # Type: List[int] | None
 
@@ -160,7 +160,7 @@ class TypedAverageLink(Link[SumOutput, StatsOutput]):
     - Static verification of data flow
     """
 
-    async def call(self, ctx: Context[SumOutput]) -> Context[StatsOutput]:
+    async def call(self, ctx: State[SumOutput]) -> State[StatsOutput]:
         # Type checker knows we have SumOutput shape
         numbers = ctx.get("numbers")  # Guaranteed to be List[int]
         existing_sum = ctx.get("sum")  # Guaranteed to be float
@@ -194,7 +194,7 @@ class TypedStatsChain:
         self.chain.add_link(TypedSumLink(), "sum")
         self.chain.add_link(TypedAverageLink(), "average")
 
-    async def run(self, ctx: Context[MathInput]) -> Context[StatsOutput]:
+    async def run(self, ctx: State[MathInput]) -> State[StatsOutput]:
         return await self.chain.run(ctx)
 
 
@@ -228,7 +228,7 @@ async def demonstrate_both_approaches():
         print("   • Flexible but error-prone")
 
         untyped_chain = UntypedStatsChain()
-        untyped_ctx = Context(test_data)
+        untyped_ctx = State(test_data)
 
         try:
             untyped_result = await untyped_chain.run(untyped_ctx)
@@ -255,12 +255,12 @@ async def demonstrate_both_approaches():
         print("�� TYPED APPROACH (Opt-in Generics):")
         print("   • Static type checking with TypedDict")
         print("   • Compile-time guarantees")
-        print("   • Type-safe context evolution")
+        print("   • Type-safe state evolution")
 
         # Only run typed approach for valid inputs (it will catch errors at type level)
         if test_data["numbers"]:  # Skip empty list for typed approach
             typed_chain = TypedStatsChain()
-            typed_ctx = Context[MathInput](test_data)
+            typed_ctx = State[MathInput](test_data)
 
             try:
                 typed_result = await typed_chain.run(typed_ctx)

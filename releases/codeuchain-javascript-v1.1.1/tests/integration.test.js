@@ -1,4 +1,4 @@
-const { Context, Chain, Link, LoggingMiddleware, TimingMiddleware, ValidationMiddleware } = require('../core');
+const { State, Chain, Link, LoggingHook, TimingHook, ValidationHook } = require('../core');
 
 class EmailValidationLink extends Link {
   async call(ctx) {
@@ -48,7 +48,7 @@ class WelcomeEmailLink extends Link {
   getName() { return 'WelcomeEmailLink'; }
 }
 
-class DataValidationMiddleware extends ValidationMiddleware {
+class DataValidationHook extends ValidationHook {
   constructor() {
     super({
       beforeValidator: async (ctx, linkName) => {
@@ -85,10 +85,10 @@ describe('Integration Tests', () => {
       registrationChain.connect('validate', 'create');
       registrationChain.connect('create', 'welcome');
 
-      // Add middleware
-      registrationChain.useMiddleware(new LoggingMiddleware());
-      registrationChain.useMiddleware(new TimingMiddleware());
-      registrationChain.useMiddleware(new DataValidationMiddleware());
+      // Add hook
+      registrationChain.useHook(new LoggingHook());
+      registrationChain.useHook(new TimingHook());
+      registrationChain.useHook(new DataValidationHook());
 
       // Add error handling
       registrationChain.onError((error, ctx, linkName) => {
@@ -103,7 +103,7 @@ describe('Integration Tests', () => {
         email: 'alice@example.com'
       };
 
-      const initialCtx = new Context(userData);
+      const initialCtx = new State(userData);
       const result = await registrationChain.run(initialCtx);
 
       // Verify the chain executed successfully (full chain execution)
@@ -123,7 +123,7 @@ describe('Integration Tests', () => {
         email: 'invalid-email'
       };
 
-      const initialCtx = new Context(userData);
+      const initialCtx = new State(userData);
 
       await expect(registrationChain.run(initialCtx)).rejects.toThrow('Invalid email format');
     });
@@ -134,18 +134,18 @@ describe('Integration Tests', () => {
         // missing name
       };
 
-      const initialCtx = new Context(userData);
+      const initialCtx = new State(userData);
 
       await expect(registrationChain.run(initialCtx)).rejects.toThrow('Name is required');
     });
 
-    test('should handle validation middleware failure', async () => {
+    test('should handle validation hook failure', async () => {
       const userData = {
         // missing email
         name: 'Bob'
       };
 
-      const initialCtx = new Context(userData);
+      const initialCtx = new State(userData);
 
       await expect(registrationChain.run(initialCtx)).rejects.toThrow('Email is required');
     });
@@ -187,14 +187,14 @@ describe('Integration Tests', () => {
       chain.connect('router', 'user', (ctx) => ctx.get('route') === 'user');
 
       // Test admin path (full chain executes based on condition)
-      const adminCtx = new Context({ userType: 'admin' });
+      const adminCtx = new State({ userType: 'admin' });
       const adminResult = await chain.run(adminCtx);
       expect(adminResult.get('route')).toBe('admin');
       // Conditional execution: router -> admin (condition met)
       expect(adminResult.get('permissions')).toEqual(['read', 'write', 'delete']);
 
       // Test user path
-      const userCtx = new Context({ userType: 'user' });
+      const userCtx = new State({ userType: 'user' });
       const userResult = await chain.run(userCtx);
       expect(userResult.get('route')).toBe('user');
       // Conditional execution: router -> user (condition met)
@@ -229,15 +229,15 @@ describe('Integration Tests', () => {
       chain.addLink(new UnreliableLink(true), 'unreliable');
       chain.addLink(new RecoveryLink(), 'recovery');
 
-      // Add error recovery middleware
-      chain.useMiddleware({
+      // Add error recovery hook
+      chain.useHook({
         onError: async (link, error, ctx, linkName) => {
           console.log(`Recovering from error in ${linkName}`);
           // In a real scenario, you might trigger the recovery link
         }
       });
 
-      const ctx = new Context({ input: 'test' });
+      const ctx = new State({ input: 'test' });
 
       // This will fail, but we test that error handling works
       await expect(chain.run(ctx)).rejects.toThrow('Simulated failure');
@@ -295,7 +295,7 @@ describe('Integration Tests', () => {
         email: 'alice@example.com'
       });
 
-      const initialCtx = new Context({ rawData });
+      const initialCtx = new State({ rawData });
       const result = await chain.run(initialCtx);
 
       // Full chain executes: parse -> validate -> transform
@@ -314,7 +314,7 @@ describe('Integration Tests', () => {
   });
 
   describe('Performance and Scalability', () => {
-    test('should handle large contexts efficiently', async () => {
+    test('should handle large states efficiently', async () => {
       const chain = new Chain();
 
       class LargeDataProcessor extends Link {
@@ -336,7 +336,7 @@ describe('Integration Tests', () => {
         timestamp: Date.now()
       }));
 
-      const initialCtx = new Context({ largeData });
+      const initialCtx = new State({ largeData });
       const result = await chain.run(initialCtx);
 
       const processedData = result.get('processedData');
@@ -359,12 +359,12 @@ describe('Integration Tests', () => {
       };
 
       const chains = Array.from({ length: 10 }, () => createChain());
-      const contexts = Array.from({ length: 10 }, (_, i) =>
-        new Context({ id: i })
+      const states = Array.from({ length: 10 }, (_, i) =>
+        new State({ id: i })
       );
 
       // Run all chains concurrently
-      const promises = chains.map((chain, i) => chain.run(contexts[i]));
+      const promises = chains.map((chain, i) => chain.run(states[i]));
       const results = await Promise.all(promises);
 
       results.forEach((result, i) => {
@@ -378,7 +378,7 @@ describe('Integration Tests', () => {
     test('should handle API request processing', async () => {
       const chain = new Chain();
 
-      class AuthMiddleware extends Link {
+      class AuthHook extends Link {
         async call(ctx) {
           const token = ctx.get('token');
           if (!token) {
@@ -386,7 +386,7 @@ describe('Integration Tests', () => {
           }
           return ctx.insert('user', { id: 123, role: 'user' });
         }
-        getName() { return 'AuthMiddleware'; }
+        getName() { return 'AuthHook'; }
       }
 
       class RequestValidator extends Link {
@@ -422,7 +422,7 @@ describe('Integration Tests', () => {
         getName() { return 'BusinessLogic'; }
       }
 
-      chain.addLink(new AuthMiddleware(), 'auth');
+      chain.addLink(new AuthHook(), 'auth');
       chain.addLink(new RequestValidator(), 'validate');
       chain.addLink(new BusinessLogic(), 'process');
 
@@ -438,7 +438,7 @@ describe('Integration Tests', () => {
         }
       };
 
-      const initialCtx = new Context(apiRequest);
+      const initialCtx = new State(apiRequest);
       const result = await chain.run(initialCtx);
 
       // Full chain executes: auth -> validate -> process
@@ -519,7 +519,7 @@ describe('Integration Tests', () => {
         content: 'A'.repeat(1500) // Long content that exceeds 1000 characters
       };
 
-      const shortCtx = new Context({ submission: shortSubmission });
+      const shortCtx = new State({ submission: shortSubmission });
       const shortResult = await chain.run(shortCtx);
 
       // Full chain executes: validate -> autoApprove -> approve -> notify
@@ -528,7 +528,7 @@ describe('Integration Tests', () => {
       expect(shortResult.get('status')).toBe('approved');
       expect(shortResult.get('notification')).toBe('Submission "Short Article" has been approved');
 
-      const longCtx = new Context({ submission: longSubmission });
+      const longCtx = new State({ submission: longSubmission });
       const longResult = await chain.run(longCtx);
 
       // Full chain executes: validate -> autoApprove -> approve -> notify

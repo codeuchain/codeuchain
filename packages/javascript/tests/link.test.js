@@ -1,4 +1,4 @@
-const { Link, Context } = require('../core');
+const { Link, State } = require('../core');
 
 describe('Link', () => {
   class TestLink extends Link {
@@ -27,7 +27,7 @@ describe('Link', () => {
     test('should call processor function', async () => {
       const processor = jest.fn(async (ctx) => ctx.insert('processed', true));
       const link = new TestLink(processor);
-      const ctx = new Context({ input: 'test' });
+      const ctx = new State({ input: 'test' });
 
       const result = await link.call(ctx);
 
@@ -36,26 +36,26 @@ describe('Link', () => {
       expect(result.get('input')).toBe('test');
     });
 
-    test('should validate context with required fields', () => {
+    test('should validate state with required fields', () => {
       const link = new TestLink();
-      const validCtx = new Context({ name: 'Alice', email: 'alice@test.com' });
-      const invalidCtx = new Context({ name: 'Alice' });
+      const validCtx = new State({ name: 'Alice', email: 'alice@test.com' });
+      const invalidCtx = new State({ name: 'Alice' });
 
       expect(() => {
-        link.validateContext(validCtx, ['name', 'email']);
+        link.validateState(validCtx, ['name', 'email']);
       }).not.toThrow();
 
       expect(() => {
-        link.validateContext(invalidCtx, ['name', 'email']);
-      }).toThrow('Required field \'email\' is missing from context');
+        link.validateState(invalidCtx, ['name', 'email']);
+      }).toThrow('Required field \'email\' is missing from state');
     });
 
     test('should handle empty required fields array', () => {
       const link = new TestLink();
-      const ctx = new Context({});
+      const ctx = new State({});
 
       expect(() => {
-        link.validateContext(ctx, []);
+        link.validateState(ctx, []);
       }).not.toThrow();
     });
   });
@@ -67,7 +67,7 @@ describe('Link', () => {
       }
 
       const link = new BrokenLink();
-      const ctx = new Context();
+      const ctx = new State();
 
       await expect(link.call(ctx)).rejects.toThrow('Link.call() must be implemented by subclass');
     });
@@ -77,7 +77,7 @@ describe('Link', () => {
         throw new Error('Processor failed');
       });
       const link = new TestLink(processor);
-      const ctx = new Context();
+      const ctx = new State();
 
       await expect(link.call(ctx)).rejects.toThrow('Processor failed');
     });
@@ -89,7 +89,7 @@ describe('Link', () => {
       const link2 = new TestLink(async (ctx) => ctx.insert('step2', true));
       const link3 = new TestLink(async (ctx) => ctx.insert('final', 'done'));
 
-      let ctx = new Context({ input: 'start' });
+      let ctx = new State({ input: 'start' });
       ctx = await link1.call(ctx);
       ctx = await link2.call(ctx);
       ctx = await link3.call(ctx);
@@ -109,8 +109,8 @@ describe('Link', () => {
         return ctx.insert('result', 'skipped');
       });
 
-      const ctx1 = new Context({ process: true });
-      const ctx2 = new Context({ process: false });
+      const ctx1 = new State({ process: true });
+      const ctx2 = new State({ process: false });
 
       const result1 = await conditionalLink.call(ctx1);
       const result2 = await conditionalLink.call(ctx2);
@@ -128,7 +128,7 @@ describe('Link', () => {
         return ctx.insert('doubled', doubled);
       });
 
-      const ctx = new Context({ number: 5 });
+      const ctx = new State({ number: 5 });
       const result = await transformLink.call(ctx);
 
       expect(result.get('number')).toBe(5);
@@ -146,7 +146,7 @@ describe('Link', () => {
         return ctx.insert('processedUser', processedUser);
       });
 
-      const ctx = new Context({
+      const ctx = new State({
         user: { firstName: 'Alice', lastName: 'Johnson', age: 30 }
       });
       const result = await transformLink.call(ctx);
@@ -166,7 +166,7 @@ describe('Link', () => {
         return ctx.insert('doubled', doubled).insert('sum', sum);
       });
 
-      const ctx = new Context({ numbers: [1, 2, 3, 4] });
+      const ctx = new State({ numbers: [1, 2, 3, 4] });
       const result = await arrayLink.call(ctx);
 
       expect(result.get('doubled')).toEqual([2, 4, 6, 8]);
@@ -184,8 +184,8 @@ describe('Link', () => {
         return ctx.insert('emailValid', true);
       });
 
-      const validCtx = new Context({ email: 'alice@test.com' });
-      const invalidCtx = new Context({ email: 'invalid-email' });
+      const validCtx = new State({ email: 'alice@test.com' });
+      const invalidCtx = new State({ email: 'invalid-email' });
 
       const validResult = await emailValidator.call(validCtx);
       expect(validResult.get('emailValid')).toBe(true);
@@ -195,16 +195,16 @@ describe('Link', () => {
 
     test('should validate required fields presence', async () => {
       const link = new TestLink(async (ctx) => {
-        link.validateContext(ctx, ['name', 'email', 'age']);
+        link.validateState(ctx, ['name', 'email', 'age']);
         return ctx.insert('validated', true);
       });
 
-      const validCtx = new Context({
+      const validCtx = new State({
         name: 'Alice',
         email: 'alice@test.com',
         age: 30
       });
-      const invalidCtx = new Context({
+      const invalidCtx = new State({
         name: 'Alice',
         email: 'alice@test.com'
         // missing age
@@ -213,7 +213,7 @@ describe('Link', () => {
       const validResult = await link.call(validCtx);
       expect(validResult.get('validated')).toBe(true);
 
-      await expect(link.call(invalidCtx)).rejects.toThrow('Required field \'age\' is missing from context');
+      await expect(link.call(invalidCtx)).rejects.toThrow('Required field \'age\' is missing from state');
     });
   });
 });

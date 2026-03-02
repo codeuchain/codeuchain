@@ -4,7 +4,7 @@
  * Demonstrates basic CodeUChain usage in JavaScript with a user registration flow.
  */
 
-const { Context, Chain, Link, LoggingMiddleware } = require('../core');
+const { State, Chain, Link, LoggingHook } = require('../core');
 
 class EmailValidationLink extends Link {
   async call(ctx) {
@@ -106,8 +106,8 @@ async function main() {
 
   console.log('🔗 Mixed named links:', mixedChain.getLinkNames());
 
-  // Add middleware and error handling to the mixed chain
-  mixedChain.useMiddleware(new LoggingMiddleware());
+  // Add hook and error handling to the mixed chain
+  mixedChain.useHook(new LoggingHook());
   mixedChain.onError((error, ctx, linkName) => {
     console.error(`❌ Error in ${linkName}: ${error.message}`);
   });
@@ -124,11 +124,11 @@ async function main() {
     console.log(`\n📝 Processing user: ${user.name}`);
 
     try {
-      const initialCtx = new Context(user);
+      const initialCtx = new State(user);
       const resultCtx = await mixedChain.run(initialCtx);
 
       console.log('✅ Registration completed successfully!');
-      console.log('📊 Final context keys:', Object.keys(resultCtx.toObject()));
+      console.log('📊 Final state keys:', Object.keys(resultCtx.toObject()));
     } catch (error) {
       console.log('❌ Registration failed:', error.message);
     }

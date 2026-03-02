@@ -10,7 +10,7 @@
 **Authors:** CodeUChain contributors  
 **Languages:** TypeScript (first-class) + JavaScript consumers  
 **Runtime Targets:** Node.js 18+, Edge (Workers), Modern Browsers (ES2020)  
-**Paradigm Keywords:** Composable, Immutable Context, Type Evolution, Selfless Links, Optional Strict Typing
+**Paradigm Keywords:** Composable, Immutable State, Type Evolution, Selfless Links, Optional Strict Typing
 
 ---
 ## 1. Purpose & Philosophy
@@ -19,47 +19,47 @@ Provide a frictionless way to compose stateless async transformations across env
 | Principle | TS Expression | JS Expression | Benefit |
 |-----------|--------------|--------------|---------|
 | Selfless Links | `async call(ctx)` | same | Predictable & testable |
-| Immutable Context | `ctx2 = ctx.insert(k,v)` | same | No hidden mutation |
+| Immutable State | `ctx2 = ctx.insert(k,v)` | same | No hidden mutation |
 | Type Evolution | `insertAs<U>` -> widens | same semantics | Gradual modeling |
 | Mixed Typing | default `<any, any>` | dynamic access | Incremental adoption |
-| Middleware Observability | lifecycle hooks | object functions | Instrumentation without coupling |
+| Hook Observability | lifecycle hooks | object functions | Instrumentation without coupling |
 
 ---
 ## 2. Architectural Overview
 ```
-Input Payload -> Context<T0>
+Input Payload -> State<T0>
     | validateLink
     v
-Context<T1>
+State<T1>
     | parseLink
     v
-Context<T2>
-    | enrichLink + middleware(before/after/error)
+State<T2>
+    | enrichLink + hook(before/after/error)
     v
-Context<T3>
+State<T3>
 ```
 Supports branching (conditional link inclusion), retry decorators, and error routing.
 
 ---
 ## 3. Core TypeScript Types (Representative)
 ```ts
-export interface Context<T = any> {
+export interface State<T = any> {
   get<K extends string = string>(key: K): any;
   has(key: string): boolean;
-  insert(key: string, value: any): Context<T>;         // preserve generic T
-  insertAs<U>(key: string, value: any): Context<U>;     // evolve to U
+  insert(key: string, value: any): State<T>;         // preserve generic T
+  insertAs<U>(key: string, value: any): State<U>;     // evolve to U
   keys(): string[];
   toObject(): Record<string, any>;
 }
 
 export interface Link<TInput = any, TOutput = any> {
-  call(ctx: Context<TInput>): Promise<Context<TOutput>>;
+  call(ctx: State<TInput>): Promise<State<TOutput>>;
 }
 
-export interface Middleware {
-  before?(name: string, ctx: Context<any>): Promise<void> | void;
-  after?(name: string, ctx: Context<any>): Promise<void> | void;
-  onError?(name: string, ctx: Context<any>, err: Error): Promise<void> | void;
+export interface Hook {
+  before?(name: string, ctx: State<any>): Promise<void> | void;
+  after?(name: string, ctx: State<any>): Promise<void> | void;
+  onError?(name: string, ctx: State<any>, err: Error): Promise<void> | void;
 }
 ```
 
@@ -76,13 +76,13 @@ pnpm add @codeuchain/javascript
 ---
 ## 5. Creating Links (TypeScript)
 ```ts
-import { Link, Context } from '@codeuchain/javascript';
+import { Link, State } from '@codeuchain/javascript';
 
 interface RawInput { email: string; text: string }
 interface Parsed { email: string; tokens: string[] }
 
 class ParseLink implements Link<RawInput, Parsed> {
-  async call(ctx: Context<RawInput>): Promise<Context<Parsed>> {
+  async call(ctx: State<RawInput>): Promise<State<Parsed>> {
     const email = ctx.get('email');
     if (!email.includes('@')) throw new Error('invalid_email');
     const text = ctx.get('text');
@@ -114,7 +114,7 @@ const chain = new Chain()
   .then(new ParseLink())
   .catch((linkName, err, ctx) => ctx.insert('error_tag', err.message));
 
-const start = /* context factory */;
+const start = /* state factory */;
 const result = await chain.call(start);
 ```
 
@@ -135,9 +135,9 @@ function withRetry<TIn, TOut>(inner: Link<TIn, TOut>, attempts = 3): Link<TIn, T
 ```
 
 ---
-## 7. Middleware Lifecycle
+## 7. Hook Lifecycle
 ```ts
-const metricsMiddleware = {
+const metricsHook = {
   before(name, ctx) { ctx.insert('_t0', performance.now()); },
   after(name, ctx) {
     const t0 = ctx.get('_t0');
@@ -146,11 +146,11 @@ const metricsMiddleware = {
   onError(name, ctx, err) { console.error('ERR', name, err.message); }
 };
 ```
-Register: `chain.use(metricsMiddleware)` (assuming API parity).
+Register: `chain.use(metricsHook)` (assuming API parity).
 
 Guidelines:
 - Keep side effects small; streaming logs or metrics exporters belong outside hot path.
-- Use `onError` for tagging, not swallowing, unless explicitly returning fallback context.
+- Use `onError` for tagging, not swallowing, unless explicitly returning fallback state.
 
 ---
 ## 8. Type Evolution Walkthrough
@@ -170,23 +170,23 @@ Benefits: IDE autocomplete updates at each evolution; runtime still uses same un
 ## 9. Testing & TDD
 ```ts
 // Vitest / Jest example
-import { Context } from '@codeuchain/javascript';
+import { State } from '@codeuchain/javascript';
 
 test('parse link success', async () => {
-  const ctx = new Context({ email: 'a@b.com', text: 'hello world' });
+  const ctx = new State({ email: 'a@b.com', text: 'hello world' });
   const out = await new ParseLink().call(ctx);
   expect(out.get('parsed').tokens).toHaveLength(2);
 });
 
 test('parse link invalid email', async () => {
-  const ctx = new Context({ email: 'bad', text: 'hello' });
+  const ctx = new State({ email: 'bad', text: 'hello' });
   await expect(new ParseLink().call(ctx)).rejects.toThrow('invalid_email');
 });
 ```
 Table-driven style:
 ```ts
 for (const [email, ok] of [['a@b.com', true], ['x', false]]) {
-  const ctx = new Context({ email, text: 'x y' });
+  const ctx = new State({ email, text: 'x y' });
   const link = new ParseLink();
   if (ok) await expect(link.call(ctx)).resolves.toBeTruthy();
   else await expect(link.call(ctx)).rejects.toThrow();
@@ -201,11 +201,11 @@ npm run test:coverage
 ---
 ## 10. Observation & Debugging
 Strategies:
-- Middleware for metrics / logging / tracing (e.g., OpenTelemetry)
+- Hook for metrics / logging / tracing (e.g., OpenTelemetry)
 - Dump only keys: `console.log(ctx.keys())`
 - Tag errors with classification keys inside `onError`
 
-Debug middleware:
+Debug hook:
 ```ts
 const debug = { after: (n, ctx) => console.log('DBG', n, ctx.keys()) };
 ```
@@ -214,7 +214,7 @@ const debug = { after: (n, ctx) => console.log('DBG', n, ctx.keys()) };
 ## 11. Performance Guidance
 | Concern | Recommendation |
 |---------|---------------|
-| Excess object churn | Reuse context only if a mutable variant exists; otherwise rely on small inserts |
+| Excess object churn | Reuse state only if a mutable variant exists; otherwise rely on small inserts |
 | Logging noise | Gate behind env flag |
 | Large payloads | Store references / IDs, not giant blobs |
 | Parallel work | Use `Promise.all` with sub-chains |
@@ -227,9 +227,9 @@ node benchmarks/chain.mjs
 
 ---
 ## 12. Advanced Patterns
-- Browser + Worker dual build: same links reused, different middleware (e.g., fetch vs node http)
+- Browser + Worker dual build: same links reused, different hook (e.g., fetch vs node http)
 - Edge runtime: minimal cold-start—links are pure
-- Fan-out aggregator: spawn multiple derived contexts, merge selective keys
+- Fan-out aggregator: spawn multiple derived states, merge selective keys
 - Progressive enrichment: early normalization → mid classification → final formatting
 
 ---
@@ -241,44 +241,44 @@ Start dynamic (`any` defaults). As contracts stabilize, formalize interfaces and
 | Anti-Pattern | Problem | Remedy |
 |--------------|---------|--------|
 | Storing entire DOM nodes | Memory leaks | Store stable IDs / data snapshots |
-| Doing network IO in middleware unconditionally | Latency inflation | Make it a link or add sampling |
+| Doing network IO in hook unconditionally | Latency inflation | Make it a link or add sampling |
 | Overusing `any` post-stabilization | Lost safety | Introduce interfaces incrementally |
-| Silent catches returning empty context | Hides errors | Tag & rethrow or central catch |
-| Stuffing secrets in context | Security risk | Use secure vault / env injection |
+| Silent catches returning empty state | Hides errors | Tag & rethrow or central catch |
+| Stuffing secrets in state | Security risk | Use secure vault / env injection |
 
 ---
 ## 15. FAQ
 **Q:** Can I use ESM + CJS?  
 **A:** Yes—package should export dual modules.
 
-**Q:** Is context mutable?  
+**Q:** Is state mutable?  
 **A:** Immutable by contract—each insert returns a new wrapper.
 
 **Q:** How to short-circuit?  
 **A:** Throw an error or have a link return a sentinel flag consumed by a conditional link.
 
 **Q:** Support for cancellation?  
-**A:** Use AbortController; middleware can check `signal.aborted`.
+**A:** Use AbortController; hook can check `signal.aborted`.
 
-**Q:** Can middleware change data?  
+**Q:** Can hook change data?  
 **A:** It can insert but keep business transformations in links.
 
 ---
 ## 16. Glossary
 - **Link**: Async transformer.
 - **Chain**: Ordered execution pipeline.
-- **Context**: Immutable key-value data store with type evolution helpers.
-- **Middleware**: Optional observers (before/after/error).
+- **State**: Immutable key-value data store with type evolution helpers.
+- **Hook**: Optional observers (before/after/error).
 - **Type Evolution**: Safe widening via `insertAs`.
 
 ---
 ## 17. TL;DR
 ```text
 Install: npm i @codeuchain/javascript
-Model: Links + Chain + Context + Middleware + Type Evolution
+Model: Links + Chain + State + Hook + Type Evolution
 Types: Start any → add interfaces + insertAs for evolution
 Testing: Per-link tests + chained scenarios
-Observability: Middleware logging/metrics/tracing
+Observability: Hook logging/metrics/tracing
 Performance: Pure functions, avoid giant blobs & over-logging
 Errors: Central catch + retry decorator
 Adoption: Mixed JS + TS gradual tightening

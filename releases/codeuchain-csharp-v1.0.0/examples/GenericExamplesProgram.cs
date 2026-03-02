@@ -21,7 +21,7 @@ public class GenericExamplesProgram
             Console.WriteLine("=== CodeUChain C# Generic Examples ===\n");
 
             // Run all examples
-            await GenericContextExample.RunAsync();
+            await GenericStateExample.RunAsync();
             await GenericLinkExample.RunAsync();
             await GenericChainExample.RunAsync();
             AdvancedGenericPatterns.DemonstratePatterns();

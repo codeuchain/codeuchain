@@ -5,9 +5,9 @@ Concrete implementations of the Chain protocol.
 These are the orchestrators that get composed into features.
 */
 
-use codeuchain::core::context::Context;
+use codeuchain::core::state::State;
 use codeuchain::core::link::LegacyLink;
-use codeuchain::core::middleware::Middleware;
+use codeuchain::core::hook::Hook;
 use codeuchain::core::chain::Chain;
 
 /// Loving weaver of links—connects with conditions, runs with selfless execution.
@@ -32,18 +32,18 @@ impl BasicChain {
     /// With compassionate logic, add a connection.
     pub fn connect<F>(&mut self, source: String, target: String, condition: F)
     where
-        F: Fn(&Context) -> bool + Send + Sync + 'static,
+        F: Fn(&State) -> bool + Send + Sync + 'static,
     {
         self.chain.connect(source, target, condition);
     }
 
-    /// Lovingly attach middleware.
-    pub fn use_middleware(&mut self, middleware: Box<dyn Middleware>) {
-        self.chain.use_middleware(middleware);
+    /// Lovingly attach hook.
+    pub fn use_hook(&mut self, hook: Box<dyn Hook>) {
+        self.chain.use_hook(hook);
     }
 
     /// With selfless execution, flow through links.
-    pub async fn run(&self, initial_ctx: Context) -> Result<Context, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn run(&self, initial_ctx: State) -> Result<State, Box<dyn std::error::Error + Send + Sync>> {
         self.chain.run(initial_ctx).await
     }
 

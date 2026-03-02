@@ -14,8 +14,8 @@
        01  WS-LINK-NAME.
            05  WS-LINK-NAME-LEN     PIC S9(4) COMP.
            05  WS-LINK-NAME-DATA    PIC X(30).
-       01  WS-INPUT-CONTEXT         PIC X(10000).
-       01  WS-OUTPUT-CONTEXT        PIC X(10000).
+       01  WS-INPUT-STATE         PIC X(10000).
+       01  WS-OUTPUT-STATE        PIC X(10000).
        01  WS-LINK-RESULT           PIC X(10).
 
        PROCEDURE DIVISION.
@@ -36,19 +36,19 @@
            MOVE 21 TO WS-LINK-NAME-LEN
            MOVE "COMPOUND-INTEREST-CALC" TO WS-LINK-NAME-DATA
            MOVE "Principal: $1000, Rate: 5%, Time: 2" 
-               TO WS-INPUT-CONTEXT
-           MOVE SPACES TO WS-OUTPUT-CONTEXT
+               TO WS-INPUT-STATE
+           MOVE SPACES TO WS-OUTPUT-STATE
 
            CALL "FINANCIAL-CALCULATOR" USING
                WS-LINK-NAME
-               WS-INPUT-CONTEXT
-               WS-OUTPUT-CONTEXT
+               WS-INPUT-STATE
+               WS-OUTPUT-STATE
                WS-LINK-RESULT
 
            IF WS-LINK-RESULT = "SUCCESS"
                ADD 1 TO TESTS-PASSED
                DISPLAY "PASS: Financial calculator basic functionality"
-               DISPLAY "Result: " WS-OUTPUT-CONTEXT
+               DISPLAY "Result: " WS-OUTPUT-STATE
            ELSE
                ADD 1 TO TESTS-FAILED
                DISPLAY "FAIL: Financial calculator basic functionality"

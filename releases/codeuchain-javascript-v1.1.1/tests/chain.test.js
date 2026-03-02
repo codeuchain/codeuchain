@@ -1,4 +1,4 @@
-const { Chain, Link, Context, LoggingMiddleware, TimingMiddleware } = require('../core');
+const { Chain, Link, State, LoggingHook, TimingHook } = require('../core');
 
 class TestLink extends Link {
   constructor(name, processor = async (ctx) => ctx) {
@@ -101,7 +101,7 @@ describe('Chain', () => {
 
       chain.addLink(link, 'single');
 
-      const initialCtx = new Context({ input: 'test' });
+      const initialCtx = new State({ input: 'test' });
       const result = await chain.run(initialCtx);
 
       expect(result.get('input')).toBe('test');
@@ -124,7 +124,7 @@ describe('Chain', () => {
       chain.connect('step2', 'step3');
 
       // Full chain executes: step1 -> step2 -> step3
-      const initialCtx = new Context({ input: 'start' });
+      const initialCtx = new State({ input: 'start' });
       const result = await chain.run(initialCtx);
 
       expect(result.get('input')).toBe('start');
@@ -158,7 +158,7 @@ describe('Chain', () => {
       chain.connect('validate', 'skip', (ctx) => ctx.get('valid') !== true);
 
       // Full chain executes based on conditions
-      const validCtx = new Context({ value: 15 });
+      const validCtx = new State({ value: 15 });
       const validResult = await chain.run(validCtx);
       expect(validResult.get('valid')).toBe(true);
       // Conditional execution: validate -> process (condition met)
@@ -166,7 +166,7 @@ describe('Chain', () => {
       expect(validResult.get('skipped')).toBeUndefined();
 
       // Test invalid path
-      const invalidCtx = new Context({ value: 5 });
+      const invalidCtx = new State({ value: 5 });
       const invalidResult = await chain.run(invalidCtx);
       expect(invalidResult.get('valid')).toBe(false);
       // Conditional execution: validate -> skip (condition met)
@@ -186,7 +186,7 @@ describe('Chain', () => {
       chain.addLink(link3, 'step3');
 
       // Current implementation doesn't support startLink parameter, always starts from first link
-      const initialCtx = new Context({ input: 'start' });
+      const initialCtx = new State({ input: 'start' });
       const result = await chain.run(initialCtx);
 
       expect(result.get('input')).toBe('start');
@@ -197,8 +197,8 @@ describe('Chain', () => {
     });
   });
 
-  describe('Chain Middleware', () => {
-    test('should execute middleware before and after', async () => {
+  describe('Chain Hook', () => {
+    test('should execute hook before and after', async () => {
       const chain = new Chain();
       const link = new TestLink('test', async (ctx) => ctx.insert('processed', true));
 
@@ -207,19 +207,19 @@ describe('Chain', () => {
       const beforeSpy = jest.fn();
       const afterSpy = jest.fn();
 
-      chain.useMiddleware({
+      chain.useHook({
         before: beforeSpy,
         after: afterSpy
       });
 
-      const ctx = new Context();
+      const ctx = new State();
       await chain.run(ctx);
 
       expect(beforeSpy).toHaveBeenCalledWith(link, ctx, 'test');
       expect(afterSpy).toHaveBeenCalledWith(link, expect.any(Object), 'test');
     });
 
-    test('should handle middleware errors', async () => {
+    test('should handle hook errors', async () => {
       const chain = new Chain();
       const failingLink = new TestLink('failing', async () => {
         throw new Error('Link failed');
@@ -229,12 +229,12 @@ describe('Chain', () => {
 
       const errorSpy = jest.fn();
 
-      chain.useMiddleware({
+      chain.useHook({
         onError: errorSpy
       });
 
-      // Note: In pruned version, this will execute the failing link and call error middleware
-      const ctx = new Context();
+      // Note: In pruned version, this will execute the failing link and call error hook
+      const ctx = new State();
       await expect(chain.run(ctx)).rejects.toThrow('Link failed');
 
       expect(errorSpy).toHaveBeenCalledWith(
@@ -245,28 +245,28 @@ describe('Chain', () => {
       );
     });
 
-    test('should use built-in logging middleware', async () => {
+    test('should use built-in logging hook', async () => {
       const chain = new Chain();
       const link = new TestLink('test', async (ctx) => ctx);
 
       chain.addLink(link, 'test');
-      chain.useMiddleware(new LoggingMiddleware());
+      chain.useHook(new LoggingHook());
 
-      const ctx = new Context();
+      const ctx = new State();
       await chain.run(ctx);
 
       // Console.log should have been called (spied on in setup)
       expect(console.log).toHaveBeenCalled();
     });
 
-    test('should use built-in timing middleware', async () => {
+    test('should use built-in timing hook', async () => {
       const chain = new Chain();
       const link = new TestLink('test', async (ctx) => ctx);
 
       chain.addLink(link, 'test');
-      chain.useMiddleware(new TimingMiddleware());
+      chain.useHook(new TimingHook());
 
-      const ctx = new Context();
+      const ctx = new State();
       await chain.run(ctx);
 
       expect(console.log).toHaveBeenCalledWith(
@@ -287,7 +287,7 @@ describe('Chain', () => {
       const errorHandler = jest.fn();
       chain.onError(errorHandler);
 
-      const ctx = new Context();
+      const ctx = new State();
       await expect(chain.run(ctx)).rejects.toThrow('Link failed');
 
       expect(errorHandler).toHaveBeenCalledWith(
@@ -311,9 +311,9 @@ describe('Chain', () => {
       chain.addLink(failingLink, 'failing');
       chain.addLink(recoveryLink, 'recovery');
 
-      // Note: In a real scenario, you'd want error recovery middleware
+      // Note: In a real scenario, you'd want error recovery hook
       // This test shows the error propagation
-      const ctx = new Context();
+      const ctx = new State();
       await expect(chain.run(ctx)).rejects.toThrow('First link failed');
     });
   });
@@ -360,13 +360,13 @@ describe('Chain', () => {
       chain.connect('router', 'user', (ctx) => ctx.get('route') === 'user');
 
       // Full chain executes: router -> admin/user based on condition
-      const adminCtx = new Context({ type: 'admin' });
+      const adminCtx = new State({ type: 'admin' });
       const adminResult = await chain.run(adminCtx);
       expect(adminResult.get('route')).toBe('admin');
       // Conditional execution: router -> admin (condition met)
       expect(adminResult.get('permissions')).toEqual(['read', 'write', 'delete']);
 
-      const userCtx = new Context({ type: 'user' });
+      const userCtx = new State({ type: 'user' });
       const userResult = await chain.run(userCtx);
       expect(userResult.get('route')).toBe('user');
       // Conditional execution: router -> user (condition met)
@@ -401,7 +401,7 @@ describe('Chain', () => {
 
       // Current implementation executes sequentially, not in parallel
       // Only the first link (start) executes since there are no connections
-      const ctx = new Context();
+      const ctx = new State();
       const result = await chain.run(ctx);
 
       expect(result.get('started')).toBe(true);

@@ -7,6 +7,6 @@ These are the building blocks humans compose into features.
 
 from .links import IdentityLink, MathLink
 from .chains import BasicChain
-from .middleware import LoggingMiddleware, TimingMiddleware
+from .hook import LoggingHook, TimingHook
 
-__all__ = ["IdentityLink", "MathLink", "BasicChain", "LoggingMiddleware", "TimingMiddleware"]
+__all__ = ["IdentityLink", "MathLink", "BasicChain", "LoggingHook", "TimingHook"]

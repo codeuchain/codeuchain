@@ -20,17 +20,17 @@ MAIN_SRC = $(LIB_SRC_DIR)/main.cob
 SUBPROGRAMS = $(LIB_SRC_DIR)/context.cob \
               $(LIB_SRC_DIR)/link.cob \
               $(LIB_SRC_DIR)/chain.cob \
-              $(LIB_SRC_DIR)/middleware.cob \
+              $(LIB_SRC_DIR)/hook.cob \
               $(LIB_EXAMPLES_DIR)/financial_calculator.cob \
-              $(LIB_EXAMPLES_DIR)/logging_middleware.cob
+              $(LIB_EXAMPLES_DIR)/logging_hook.cob
 
 # Test files
 TESTS = $(TESTS_DIR)/test_link.cob \
         $(TESTS_DIR)/test_financial_calculator.cob \
-        $(TESTS_DIR)/test_logging_middleware.cob \
+        $(TESTS_DIR)/test_logging_hook.cob \
         $(TESTS_DIR)/test_context.cob \
         $(TESTS_DIR)/test_chain.cob \
-        $(TESTS_DIR)/test_middleware.cob
+        $(TESTS_DIR)/test_hook.cob
 
 # Test executables
 TEST_EXES = $(TESTS_DIR)/test_link \
@@ -38,18 +38,18 @@ TEST_EXES = $(TESTS_DIR)/test_link \
             $(TESTS_DIR)/test_logging_middleware \
             $(TESTS_DIR)/test_context \
             $(TESTS_DIR)/test_chain \
-            $(TESTS_DIR)/test_middleware
+            $(TESTS_DIR)/test_hook
 
 # Example files
 EXAMPLES = $(EXAMPLES_DIR)/simple_chain_example.cob \
            $(EXAMPLES_DIR)/financial_example.cob \
-           $(EXAMPLES_DIR)/middleware_example.cob \
+           $(EXAMPLES_DIR)/hook_example.cob \
            $(EXAMPLES_DIR)/complete_architecture_demo.cob
 
 # Example executables
 EXAMPLE_EXES = $(EXAMPLES_DIR)/simple_chain_example \
                $(EXAMPLES_DIR)/financial_example \
-               $(EXAMPLES_DIR)/middleware_example \
+               $(EXAMPLES_DIR)/hook_example \
                $(EXAMPLES_DIR)/complete_architecture_demo
 
 # Executable name
@@ -83,13 +83,13 @@ $(LIB_SRC_DIR)/link.o: $(LIB_SRC_DIR)/link.cob
 $(LIB_SRC_DIR)/chain.o: $(LIB_SRC_DIR)/chain.cob
 	$(COBC) -c -m -O2 -debug -Wall -o $@ $<
 
-$(LIB_SRC_DIR)/middleware.o: $(LIB_SRC_DIR)/middleware.cob
+$(LIB_SRC_DIR)/hook.o: $(LIB_SRC_DIR)/hook.cob
 	$(COBC) -c -m -O2 -debug -Wall -o $@ $<
 
 $(LIB_EXAMPLES_DIR)/financial_calculator.o: $(LIB_EXAMPLES_DIR)/financial_calculator.cob
 	$(COBC) -c -m -O2 -debug -Wall -o $@ $<
 
-$(LIB_EXAMPLES_DIR)/logging_middleware.o: $(LIB_EXAMPLES_DIR)/logging_middleware.cob
+$(LIB_EXAMPLES_DIR)/logging_hook.o: $(LIB_EXAMPLES_DIR)/logging_hook.cob
 	$(COBC) -c -m -O2 -debug -Wall -o $@ $<
 
 # Clean build artifacts
@@ -113,7 +113,7 @@ $(EXAMPLES_DIR)/simple_chain_example: $(EXAMPLES_DIR)/simple_chain_example.cob $
 $(EXAMPLES_DIR)/financial_example: $(EXAMPLES_DIR)/financial_example.cob $(SUBPROGRAMS)
 	$(COBC) $(COBCFLAGS) -o $@ $< $(SUBPROGRAMS)
 
-$(EXAMPLES_DIR)/middleware_example: $(EXAMPLES_DIR)/middleware_example.cob $(SUBPROGRAMS)
+$(EXAMPLES_DIR)/hook_example: $(EXAMPLES_DIR)/hook_example.cob $(SUBPROGRAMS)
 	$(COBC) $(COBCFLAGS) -o $@ $< $(SUBPROGRAMS)
 
 $(EXAMPLES_DIR)/complete_architecture_demo: $(EXAMPLES_DIR)/complete_architecture_demo.cob $(SUBPROGRAMS)
@@ -129,7 +129,7 @@ $(TESTS_DIR)/test_link: $(TESTS_DIR)/test_link.cob $(SUBPROGRAMS)
 $(TESTS_DIR)/test_financial_calculator: $(TESTS_DIR)/test_financial_calculator.cob $(SUBPROGRAMS)
 	$(COBC) $(COBCFLAGS) -o $@ $< $(SUBPROGRAMS)
 
-$(TESTS_DIR)/test_logging_middleware: $(TESTS_DIR)/test_logging_middleware.cob $(SUBPROGRAMS)
+$(TESTS_DIR)/test_logging_middleware: $(TESTS_DIR)/test_logging_hook.cob $(SUBPROGRAMS)
 	$(COBC) $(COBCFLAGS) -o $@ $< $(SUBPROGRAMS)
 
 $(TESTS_DIR)/test_context: $(TESTS_DIR)/test_context.cob $(SUBPROGRAMS)
@@ -138,7 +138,7 @@ $(TESTS_DIR)/test_context: $(TESTS_DIR)/test_context.cob $(SUBPROGRAMS)
 $(TESTS_DIR)/test_chain: $(TESTS_DIR)/test_chain.cob $(SUBPROGRAMS)
 	$(COBC) $(COBCFLAGS) -o $@ $< $(SUBPROGRAMS)
 
-$(TESTS_DIR)/test_middleware: $(TESTS_DIR)/test_middleware.cob $(SUBPROGRAMS)
+$(TESTS_DIR)/test_hook: $(TESTS_DIR)/test_hook.cob $(SUBPROGRAMS)
 	$(COBC) $(COBCFLAGS) -o $@ $< $(SUBPROGRAMS)
 
 # Run tests
@@ -162,7 +162,7 @@ run-tests: tests
 	./$(TESTS_DIR)/test_chain
 	@echo ""
 	@echo "Running Middleware Tests:"
-	./$(TESTS_DIR)/test_middleware
+	./$(TESTS_DIR)/test_hook
 	@echo "=========================================="
 	@echo "Test Suite Complete"
 	@echo "=========================================="

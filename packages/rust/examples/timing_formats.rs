@@ -1,10 +1,10 @@
 /*!
-Timing Middleware Format Test Example
+Timing Hook Format Test Example
 
 This example demonstra    // Test 5: Custom configuration - microseconds with more precision
     println!("\n📊 Test 5: Custom Config (Microseconds, No Calls)");
     println!("---------------------------------------------------");
-    let custom_timing = TimingMiddleware::with_config(
+    let custom_timing = TimingHook::with_config(
         false, // per_invocation
         true,  // auto_print
         FormatConfig {
@@ -18,13 +18,13 @@ This example demonstra    // Test 5: Custom configuration - microseconds with mo
         }
     );
     test_format(custom_timing, &link1, &link2, &link3).await?;rent output formats and configurations
-available in the CodeUChain timing middleware, matching the C++ implementation.
+available in the CodeUChain timing hook, matching the C++ implementation.
 */
 
-use codeuchain::core::{Context, Chain};
+use codeuchain::core::{State, Chain};
 use codeuchain::core::link::LegacyLink;
-use codeuchain::utils::TimingMiddleware;
-use codeuchain::utils::timing_middleware::{FormatConfig, TimeUnit, OutputFormat, create_csv_timing_middleware, create_minimal_timing_middleware, create_detailed_timing_middleware};
+use codeuchain::utils::TimingHook;
+use codeuchain::utils::timing_hook::{FormatConfig, TimeUnit, OutputFormat, create_csv_timing_hook, create_minimal_timing_hook, create_detailed_timing_hook};
 use std::collections::HashMap;
 use serde_json::Value;
 
@@ -42,7 +42,7 @@ impl TestLink {
 
 #[async_trait::async_trait]
 impl LegacyLink for TestLink {
-    async fn call(&self, ctx: Context) -> Result<Context, Box<dyn std::error::Error + Send + Sync>> {
+    async fn call(&self, ctx: State) -> Result<State, Box<dyn std::error::Error + Send + Sync>> {
         // Simulate some work
         Ok(ctx.insert("processed".to_string(), Value::String(format!("{} processed", self.name))))
     }
@@ -50,7 +50,7 @@ impl LegacyLink for TestLink {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    println!("🚀 CodeUChain Timing Middleware Format Test");
+    println!("🚀 CodeUChain Timing Hook Format Test");
     println!("==========================================\n");
 
     // Create test links
@@ -61,22 +61,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Test 1: Default tabular format (all options enabled)
     println!("📊 Test 1: Default Tabular Format (All Options)");
     println!("------------------------------------------------");
-    test_format(TimingMiddleware::new(), &link1, &link2, &link3).await?;
+    test_format(TimingHook::new(), &link1, &link2, &link3).await?;
 
     // Test 2: Minimal format (only totals)
     println!("\n📊 Test 2: Minimal Format (Totals Only)");
     println!("---------------------------------------");
-    test_format(create_minimal_timing_middleware(), &link1, &link2, &link3).await?;
+    test_format(create_minimal_timing_hook(), &link1, &link2, &link3).await?;
 
     // Test 3: Detailed format with raw nanoseconds
     println!("\n📊 Test 3: Detailed Format (With Raw Nanoseconds)");
     println!("--------------------------------------------------");
-    test_format(create_detailed_timing_middleware(), &link1, &link2, &link3).await?;
+    test_format(create_detailed_timing_hook(), &link1, &link2, &link3).await?;
 
     // Test 4: CSV format (with auto_print enabled for demo)
     println!("\n📊 Test 4: CSV Format");
     println!("---------------------");
-    let csv_timing = TimingMiddleware::with_config(
+    let csv_timing = TimingHook::with_config(
         true, // per_invocation
         true, // auto_print - enabled for demo
         FormatConfig {
@@ -94,7 +94,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Test 5: Custom configuration - milliseconds only
     println!("\n📊 Test 5: Custom Config (Milliseconds, No Calls)");
     println!("---------------------------------------------------");
-    let custom_timing = TimingMiddleware::with_config(
+    let custom_timing = TimingHook::with_config(
         false, // per_invocation
         true,  // auto_print
         FormatConfig {
@@ -110,7 +110,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     test_format(custom_timing, &link1, &link2, &link3).await?;
 
     println!("\n✅ All format tests completed successfully!");
-    println!("💡 The timing middleware supports multiple output formats:");
+    println!("💡 The timing hook supports multiple output formats:");
     println!("   - Tabular (with configurable columns)");
     println!("   - CSV (for data export)");
     println!("   - Custom time units and precision");
@@ -120,7 +120,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 }
 
 async fn test_format(
-    timing: TimingMiddleware,
+    timing: TimingHook,
     link1: &TestLink,
     link2: &TestLink,
     link3: &TestLink,
@@ -130,12 +130,12 @@ async fn test_format(
     chain.add_link("link1".to_string(), Box::new(link1.clone()));
     chain.add_link("link2".to_string(), Box::new(link2.clone()));
     chain.add_link("link3".to_string(), Box::new(link3.clone()));
-    chain.use_middleware(Box::new(timing));
+    chain.use_hook(Box::new(timing));
 
-    // Create context
+    // Create state
     let mut initial_data = HashMap::new();
     initial_data.insert("test".to_string(), Value::String("data".to_string()));
-    let ctx = Context::new(initial_data);
+    let ctx = State::new(initial_data);
 
     // Run chain
     let result = chain.run(ctx).await?;

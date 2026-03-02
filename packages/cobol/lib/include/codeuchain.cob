@@ -20,18 +20,18 @@
            05  CHAIN-NAME-LEN      PIC S9(4) COMP.
            05  CHAIN-NAME-DATA     PIC X(30).
 
-      * Middleware Name Structure (used by middleware operations)
-       01  MIDDLEWARE-NAME.
-           05  MIDDLEWARE-NAME-LEN PIC S9(4) COMP.
-           05  MIDDLEWARE-NAME-DATA PIC X(30).
+      * Hook Name Structure (used by hook operations)
+       01  HOOK-NAME.
+           05  HOOK-NAME-LEN PIC S9(4) COMP.
+           05  HOOK-NAME-DATA PIC X(30).
 
-      * Operation Structure (used by middleware operations)
+      * Operation Structure (used by hook operations)
        01  OPERATION.
            05  OPERATION-LEN       PIC S9(4) COMP.
            05  OPERATION-DATA      PIC X(20).
 
-      * Context Data (large buffer for passing data between components)
-       01  CONTEXT-DATA            PIC X(10000).
+      * State Data (large buffer for passing data between components)
+       01  STATE-DATA            PIC X(10000).
 
       * Result Status (standard result codes)
        01  RESULT-STATUS           PIC X(10).
@@ -41,17 +41,17 @@
       *================================================================*
 
       * Link Interface Procedures
-      * CALL "LINK-INTERFACE" USING LINK-NAME, CONTEXT-DATA, CONTEXT-DATA, RESULT-STATUS
+      * CALL "LINK-INTERFACE" USING LINK-NAME, STATE-DATA, STATE-DATA, RESULT-STATUS
 
       * Chain Orchestrator Procedures
-      * CALL "CHAIN-ORCHESTRATOR" USING CHAIN-NAME, CONTEXT-DATA, CONTEXT-DATA, RESULT-STATUS
+      * CALL "CHAIN-ORCHESTRATOR" USING CHAIN-NAME, STATE-DATA, STATE-DATA, RESULT-STATUS
 
       * Financial Calculator Procedures
-      * CALL "FINANCIAL-CALCULATOR" USING LINK-NAME, CONTEXT-DATA, CONTEXT-DATA, RESULT-STATUS
+      * CALL "FINANCIAL-CALCULATOR" USING LINK-NAME, STATE-DATA, STATE-DATA, RESULT-STATUS
 
-      * Middleware Procedures
-      * CALL "MIDDLEWARE-INTERFACE" USING MIDDLEWARE-NAME, CONTEXT-DATA, OPERATION, RESULT-STATUS
-      * CALL "LOGGING-MIDDLEWARE" USING MIDDLEWARE-NAME, CONTEXT-DATA, OPERATION, RESULT-STATUS
+      * Hook Procedures
+      * CALL "HOOK-INTERFACE" USING HOOK-NAME, STATE-DATA, OPERATION, RESULT-STATUS
+      * CALL "LOGGING-HOOK" USING HOOK-NAME, STATE-DATA, OPERATION, RESULT-STATUS
 
       *================================================================*
       * USAGE EXAMPLES                                                *

@@ -7,18 +7,18 @@ using System.Collections.Immutable;
 public class Chain
 {
     private readonly ImmutableList<KeyValuePair<string, ILink>> _links;
-    private readonly ImmutableList<IMiddleware> _middlewares;
+    private readonly ImmutableList<IHook> _hooks;
 
-    private Chain(ImmutableList<KeyValuePair<string, ILink>> links, ImmutableList<IMiddleware> middlewares)
+    private Chain(ImmutableList<KeyValuePair<string, ILink>> links, ImmutableList<IHook> hooks)
     {
         _links = links;
-        _middlewares = middlewares;
+        _hooks = hooks;
     }
 
     public Chain()
     {
         _links = ImmutableList<KeyValuePair<string, ILink>>.Empty;
-        _middlewares = ImmutableList<IMiddleware>.Empty;
+        _hooks = ImmutableList<IHook>.Empty;
     }
 
     /// <summary>
@@ -26,39 +26,39 @@ public class Chain
     /// </summary>
     public Chain AddLink(string name, ILink link)
     {
-        return new Chain(_links.Add(new KeyValuePair<string, ILink>(name, link)), _middlewares);
+        return new Chain(_links.Add(new KeyValuePair<string, ILink>(name, link)), _hooks);
     }
 
     /// <summary>
-    /// Adds middleware to the chain.
+    /// Adds hook to the chain.
     /// </summary>
-    public Chain UseMiddleware(IMiddleware middleware)
+    public Chain UseHook(IHook hook)
     {
-        return new Chain(_links, _middlewares.Add(middleware));
+        return new Chain(_links, _hooks.Add(hook));
     }
 
     /// <summary>
     /// Executes the chain. Automatically handles sync/async based on the links.
     /// </summary>
-    public async ValueTask<Context> RunAsync(Context initialContext)
+    public async ValueTask<State> RunAsync(State initialState)
     {
-        var currentContext = initialContext;
+        var currentState = initialState;
 
         // Execute before hooks
-        foreach (var middleware in _middlewares)
+        foreach (var hook in _hooks)
         {
             try
             {
-                currentContext = await middleware.BeforeAsync(null, currentContext);
+                currentState = await hook.BeforeAsync(null, currentState);
             }
             catch (Exception ex)
             {
-                // Handle middleware errors
-                foreach (var errorMiddleware in _middlewares)
+                // Handle hook errors
+                foreach (var errorHook in _hooks)
                 {
                     try
                     {
-                        currentContext = await errorMiddleware.OnErrorAsync(null, ex, currentContext);
+                        currentState = await errorHook.OnErrorAsync(null, ex, currentState);
                     }
                     catch
                     {
@@ -73,20 +73,20 @@ public class Chain
         foreach (var (name, link) in _links)
         {
             // Before each link
-            foreach (var middleware in _middlewares)
+            foreach (var hook in _hooks)
             {
                 try
                 {
-                    currentContext = await middleware.BeforeAsync(link, currentContext);
+                    currentState = await hook.BeforeAsync(link, currentState);
                 }
                 catch (Exception ex)
                 {
-                    // Handle middleware errors
-                    foreach (var errorMiddleware in _middlewares)
+                    // Handle hook errors
+                    foreach (var errorHook in _hooks)
                     {
                         try
                         {
-                            currentContext = await errorMiddleware.OnErrorAsync(link, ex, currentContext);
+                            currentState = await errorHook.OnErrorAsync(link, ex, currentState);
                         }
                         catch
                         {
@@ -100,18 +100,18 @@ public class Chain
             // Execute link
             try
             {
-                currentContext = await link.ProcessAsync(currentContext);
+                currentState = await link.ProcessAsync(currentState);
             }
             catch (Exception ex)
             {
                 // Handle link errors
                 bool errorHandled = false;
-                foreach (var middleware in _middlewares)
+                foreach (var hook in _hooks)
                 {
                     try
                     {
-                        currentContext = await middleware.OnErrorAsync(link, ex, currentContext);
-                        errorHandled = true; // Assume middleware handled the error
+                        currentState = await hook.OnErrorAsync(link, ex, currentState);
+                        errorHandled = true; // Assume hook handled the error
                     }
                     catch
                     {
@@ -119,26 +119,26 @@ public class Chain
                     }
                 }
 
-                // Only rethrow if no middleware handled the error
+                // Only rethrow if no hook handled the error
                 if (!errorHandled)
                     throw;
             }
 
             // After each link
-            foreach (var middleware in _middlewares)
+            foreach (var hook in _hooks)
             {
                 try
                 {
-                    currentContext = await middleware.AfterAsync(link, currentContext);
+                    currentState = await hook.AfterAsync(link, currentState);
                 }
                 catch (Exception ex)
                 {
-                    // Handle middleware errors
-                    foreach (var errorMiddleware in _middlewares)
+                    // Handle hook errors
+                    foreach (var errorHook in _hooks)
                     {
                         try
                         {
-                            currentContext = await errorMiddleware.OnErrorAsync(link, ex, currentContext);
+                            currentState = await errorHook.OnErrorAsync(link, ex, currentState);
                         }
                         catch
                         {
@@ -151,20 +151,20 @@ public class Chain
         }
 
         // Final after hooks
-        foreach (var middleware in _middlewares)
+        foreach (var hook in _hooks)
         {
             try
             {
-                currentContext = await middleware.AfterAsync(null, currentContext);
+                currentState = await hook.AfterAsync(null, currentState);
             }
             catch (Exception ex)
             {
-                // Handle middleware errors
-                foreach (var errorMiddleware in _middlewares)
+                // Handle hook errors
+                foreach (var errorHook in _hooks)
                 {
                     try
                     {
-                        currentContext = await errorMiddleware.OnErrorAsync(null, ex, currentContext);
+                        currentState = await errorHook.OnErrorAsync(null, ex, currentState);
                     }
                     catch
                     {
@@ -175,81 +175,81 @@ public class Chain
             }
         }
 
-        return currentContext;
+        return currentState;
     }
 
     /// <summary>
     /// Synchronous execution - blocks if any async operations are present.
     /// </summary>
-    public Context RunSync(Context initialContext)
+    public State RunSync(State initialState)
     {
-        return RunAsync(initialContext).GetAwaiter().GetResult();
+        return RunAsync(initialState).GetAwaiter().GetResult();
     }
 }
 
 /// <summary>
 /// Generic Chain with type safety.
 /// Supports the universal Link[Input, Output] pattern for clean type evolution.
-/// Note: Middleware is simplified to work with single types for now.
+/// Note: Hook is simplified to work with single types for now.
 /// </summary>
 public class Chain<TInput, TOutput>
     where TInput : class
     where TOutput : class
 {
-    private readonly ImmutableList<KeyValuePair<string, IContextLink<TInput, TOutput>>> _links;
+    private readonly ImmutableList<KeyValuePair<string, IStateLink<TInput, TOutput>>> _links;
 
-    private Chain(ImmutableList<KeyValuePair<string, IContextLink<TInput, TOutput>>> links)
+    private Chain(ImmutableList<KeyValuePair<string, IStateLink<TInput, TOutput>>> links)
     {
         _links = links;
     }
 
     public Chain()
     {
-        _links = ImmutableList<KeyValuePair<string, IContextLink<TInput, TOutput>>>.Empty;
+        _links = ImmutableList<KeyValuePair<string, IStateLink<TInput, TOutput>>>.Empty;
     }
 
     /// <summary>
     /// Adds a link to the chain.
     /// </summary>
-    public Chain<TInput, TOutput> AddLink(string name, IContextLink<TInput, TOutput> link)
+    public Chain<TInput, TOutput> AddLink(string name, IStateLink<TInput, TOutput> link)
     {
-        return new Chain<TInput, TOutput>(_links.Add(new KeyValuePair<string, IContextLink<TInput, TOutput>>(name, link)));
+        return new Chain<TInput, TOutput>(_links.Add(new KeyValuePair<string, IStateLink<TInput, TOutput>>(name, link)));
     }
 
     /// <summary>
-    /// Executes the chain with the given context.
+    /// Executes the chain with the given state.
     /// </summary>
-    public async Task<Context<TOutput>> RunAsync(Context<TInput> initialContext)
+    public async Task<State<TOutput>> RunAsync(State<TInput> initialState)
     {
         // For a chain with type evolution, we need to handle the type transformation properly
         // This is a simplified implementation - in practice, you'd want a more sophisticated approach
 
-        Context<TInput> currentInputContext = initialContext;
-        Context<TOutput> currentOutputContext = default!;
+        State<TInput> currentInputState = initialState;
+        State<TOutput> currentOutputState = default!;
 
         // Execute links with type evolution
         foreach (var (name, link) in _links)
         {
             try
             {
-                currentOutputContext = await link.CallAsync(currentInputContext);
-                // For subsequent links, we need to adapt the context type
+                currentOutputState = await link.CallAsync(currentInputState);
+                // For subsequent links, we need to adapt the state type
                 // This is a limitation of the current simplified implementation
-                currentInputContext = currentOutputContext.InsertAs<TInput>("__temp", new object()).Remove("__temp");
+                currentInputState = currentOutputState.InsertAs<TInput>("__temp", new object()).Remove("__temp");
             }
             catch (Exception)
             {
-                // For now, rethrow exceptions - middleware can be added later
+                // For now, rethrow exceptions - hook can be added later
                 throw;
             }
         }
 
-        // If no links were executed, return an empty output context
-        if (currentOutputContext == null)
+        // If no links were executed, return an empty output state
+        if (currentOutputState == null)
         {
-            currentOutputContext = Context<TOutput>.Create();
+            currentOutputState = State<TOutput>.Create();
         }
 
-        return currentOutputContext;
+        return currentOutputState;
     }
 }

@@ -3,10 +3,10 @@
  *
  * Demonstrates the Type Evolution Layers pattern from ASCII_PIPELINES.txt:
  * ```
- * Context<T0>
- *   add validated -> Context<T1>
- *   add parsed    -> Context<T2>
- *   add enriched  -> Context<T3>
+ * State<T0>
+ *   add validated -> State<T1>
+ *   add parsed    -> State<T2>
+ *   add enriched  -> State<T3>
  * ```
  *
  * This example shows clean type evolution through processing layers
@@ -14,7 +14,7 @@
  */
 
 // Import types and classes (assuming TypeScript definitions exist)
-import { Context, Chain, Link, LoggingMiddleware } from '../core';
+import { State, Chain, Link, LoggingHook } from '../core';
 
 // =============================================================================
 // TYPE DEFINITIONS
@@ -58,9 +58,9 @@ interface ProcessedResult extends EnrichedInput {
  * Interface for data processing chains that handle raw input to processed results
  *
  * This interface defines the contract for any data processing chain that:
- * - Takes raw input data in a Context<RawInput>
+ * - Takes raw input data in a State<RawInput>
  * - Processes it through multiple stages with type evolution
- * - Returns processed results in a Context<ProcessedResult>
+ * - Returns processed results in a State<ProcessedResult>
  *
  * Benefits of this interface:
  * - Enables dependency injection and testing with mocks
@@ -71,16 +71,16 @@ interface ProcessedResult extends EnrichedInput {
 interface IDataProcessingChain {
   /**
    * Process raw input data through the entire pipeline
-   * @param initialCtx - The initial context containing raw input data
-   * @returns Promise resolving to context with processed results
+   * @param initialCtx - The initial state containing raw input data
+   * @returns Promise resolving to state with processed results
    */
-  processData(initialCtx: Context<RawInput>): Promise<Context<ProcessedResult>>;
+  processData(initialCtx: State<RawInput>): Promise<State<ProcessedResult>>;
 }// =============================================================================
 // TYPED LINK IMPLEMENTATIONS
 // =============================================================================
 
 class InputValidatorLink extends Link {
-  async call(ctx: Context<RawInput>): Promise<Context<ValidatedInput>> {
+  async call(ctx: State<RawInput>): Promise<State<ValidatedInput>> {
     const rawData = ctx.get('rawData');
     const source = ctx.get('source');
 
@@ -116,7 +116,7 @@ class InputValidatorLink extends Link {
 }
 
 class DataParserLink extends Link {
-  async call(ctx: Context<ValidatedInput>): Promise<Context<ParsedInput>> {
+  async call(ctx: State<ValidatedInput>): Promise<State<ParsedInput>> {
     const rawData = ctx.get('rawData');
     const isValid = ctx.get('isValid');
 
@@ -153,7 +153,7 @@ class DataParserLink extends Link {
 }
 
 class DataEnricherLink extends Link {
-  async call(ctx: Context<ParsedInput>): Promise<Context<EnrichedInput>> {
+  async call(ctx: State<ParsedInput>): Promise<State<EnrichedInput>> {
     const parsedData = ctx.get('parsedData');
     const source = ctx.get('source');
 
@@ -226,7 +226,7 @@ class DataEnricherLink extends Link {
 }
 
 class ResultProcessorLink extends Link {
-  async call(ctx: Context<EnrichedInput>): Promise<Context<ProcessedResult>> {
+  async call(ctx: State<EnrichedInput>): Promise<State<ProcessedResult>> {
     const enrichedData = ctx.get('enrichedData');
     const enrichmentMetadata = ctx.get('enrichmentMetadata');
 
@@ -279,11 +279,11 @@ class DataProcessingChain implements IDataProcessingChain {
     this.chain.connect('DataParserLink', 'DataEnricherLink');
     this.chain.connect('DataEnricherLink', 'ResultProcessorLink');
 
-    // Add middleware
-    this.chain.useMiddleware(new LoggingMiddleware());
+    // Add hook
+    this.chain.useHook(new LoggingHook());
   }
 
-  async processData(initialCtx: Context<RawInput>): Promise<Context<ProcessedResult>> {
+  async processData(initialCtx: State<RawInput>): Promise<State<ProcessedResult>> {
     return await this.chain.run(initialCtx);
   }
 }
@@ -301,22 +301,22 @@ function demonstrateTypeEvolution(): void {
     source: 'user_input'
   };
 
-  let ctx = new Context<RawInput>(rawInput);
-  console.log('1. Initial Context<RawInput>:');
+  let ctx = new State<RawInput>(rawInput);
+  console.log('1. Initial State<RawInput>:');
   console.log('   Type: RawInput');
   console.log('   Data keys:', Object.keys(ctx.toObject()));
   console.log();
 
   // Evolve to ValidatedInput
   ctx = ctx.insertAs('isValid', true).insertAs('validationErrors', []);
-  console.log('2. After validation - Context<ValidatedInput>:');
+  console.log('2. After validation - State<ValidatedInput>:');
   console.log('   Type: ValidatedInput');
   console.log('   Data keys:', Object.keys(ctx.toObject()));
   console.log();
 
   // Evolve to ParsedInput
   ctx = ctx.insertAs('parsedData', JSON.parse(rawInput.rawData)).insertAs('parseTimestamp', new Date().toISOString());
-  console.log('3. After parsing - Context<ParsedInput>:');
+  console.log('3. After parsing - State<ParsedInput>:');
   console.log('   Type: ParsedInput');
   console.log('   Data keys:', Object.keys(ctx.toObject()));
   console.log();
@@ -328,7 +328,7 @@ function demonstrateTypeEvolution(): void {
     enrichmentsApplied: ['json_parsing', 'validation']
   };
   ctx = ctx.insertAs('enrichedData', ctx.get('parsedData')).insertAs('enrichmentMetadata', enrichmentMetadata);
-  console.log('4. After enrichment - Context<EnrichedInput>:');
+  console.log('4. After enrichment - State<EnrichedInput>:');
   console.log('   Type: EnrichedInput');
   console.log('   Data keys:', Object.keys(ctx.toObject()));
   console.log();
@@ -363,7 +363,7 @@ async function demonstrateTypedChain(): Promise<void> {
     console.log('─'.repeat(50));
 
     try {
-      const initialCtx = new Context<RawInput>(testCase);
+      const initialCtx = new State<RawInput>(testCase);
       const resultCtx = await chain.processData(initialCtx);
 
       const finalResult = resultCtx.get('result');

@@ -21,7 +21,7 @@ Imagine Error Handling as a **wise and compassionate teacher** who sees every mi
 - **Type-safe**: Like having a spell-checker that catches errors before they cause real problems
 - **Structured**: Like having a well-organized toolbox where every tool has its proper place
 - **Type-safe**: Maintains type guarantees during error scenarios
-- **Structured**: Typed error contexts for better error information
+- **Structured**: Typed error states for better error information
 
 ## 💝 How Error Handling Works
 
@@ -113,8 +113,8 @@ Recovery: Shows you exactly what to fix and suggests corrections
 
 ### Structured Error Data
 ```
-✅ Good: Context<ValidationError>{"error": "validation_failed", "field": "email", "reason": "invalid_format"}
-❌ Avoid: Context<Any>{"error": "Something went wrong"}
+✅ Good: State<ValidationError>{"error": "validation_failed", "field": "email", "reason": "invalid_format"}
+❌ Avoid: State<Any>{"error": "Something went wrong"}
 ```
 
 **Real-World Analogy**: This is like having a well-organized toolbox where every tool has a label and specific purpose, versus dumping everything into one messy drawer.
@@ -134,7 +134,7 @@ Recovery: Shows you exactly what to fix and suggests corrections
 
 ### Type-Safe Recovery
 ```
-✅ Good: Try<Context<TInput>, Context<TSuccess>> → Fail → Retry → Fallback<Context<TInput>, Context<TFallback>> → Alert
+✅ Good: Try<State<TInput>, State<TSuccess>> → Fail → Retry → Fallback<State<TInput>, State<TFallback>> → Alert
 ❌ Avoid: Try → Fail → Crash (loses type information)
 ```
 
@@ -142,12 +142,12 @@ Recovery: Shows you exactly what to fix and suggests corrections
 
 ## 🌟 Advanced Error Handling Patterns
 
-### Error Context Propagation
+### Error State Propagation
 ```
 Error occurs in Link<TInput, TMiddle> of Chain<TInput, TOutput>
-Context<TError> carries error info through remaining links
+State<TError> carries error info through remaining links
 Each link can react appropriately to the typed error
-Final response includes comprehensive error context
+Final response includes comprehensive error state
 ```
 
 **Think of it like a relay race**: When one runner drops the baton, they don't just stop. They pass the information about what went wrong to the next runner, who can then adjust their running style to compensate.
@@ -166,7 +166,7 @@ Error Chain<TOrder, TRecovery>: HandlePaymentFailure<TOrder, TRecovery>
 
 ### Predictive Error Handling
 ```
-Monitor error patterns with typed error contexts
+Monitor error patterns with typed error states
 Predict potential failures with type analysis
 Preemptively scale resources like adding more servers
 Alert before problems become critical
@@ -188,7 +188,7 @@ Update error handling based on learning
 
 **Error Handling is the forgiving guardian that turns mistakes into opportunities for growth.** It sees every error as a chance to learn, every failure as a stepping stone to improvement.
 
-**With generic typing, Error Handling maintains type safety** even during error scenarios, providing structured, type-safe error contexts that preserve information while ensuring compile-time guarantees.
+**With generic typing, Error Handling maintains type safety** even during error scenarios, providing structured, type-safe error states that preserve information while ensuring compile-time guarantees.
 
 **Why People Care**: Imagine a world where:
 - Your car doesn't break down in the middle of the highway, but gently pulls over and calls for help

@@ -31,7 +31,7 @@
      +-------------- success <----------+
 ```
 
-## Middleware Wrap
+## Hook Wrap
 ```
 [Ctx] -> [Before MW] -> (Link) -> [After MW] -> [Ctx']
               | error
@@ -58,8 +58,8 @@ On failure -> Pop & run compensations: C3, C2, C1
 
 ## Type Evolution Layers
 ```
-Context<T0>
-  add validated -> Context<T1>
-  add parsed    -> Context<T2>
-  add enriched  -> Context<T3>
+State<T0>
+  add validated -> State<T1>
+  add parsed    -> State<T2>
+  add enriched  -> State<T3>
 ```

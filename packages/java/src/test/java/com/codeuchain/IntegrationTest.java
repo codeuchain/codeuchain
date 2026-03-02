@@ -15,7 +15,7 @@ class IntegrationTest {
         // Link that adds two numbers
         Link addLink = new Link() {
             @Override
-            public Context call(Context ctx) throws Exception {
+            public State call(State ctx) throws Exception {
                 Integer a = (Integer) ctx.get("a");
                 Integer b = (Integer) ctx.get("b");
                 if (a != null && b != null) {
@@ -28,7 +28,7 @@ class IntegrationTest {
         // Link that multiplies result by 2
         Link multiplyLink = new Link() {
             @Override
-            public Context call(Context ctx) throws Exception {
+            public State call(State ctx) throws Exception {
                 Integer sum = (Integer) ctx.get("sum");
                 if (sum != null) {
                     return ctx.insert("result", sum * 2);
@@ -40,10 +40,10 @@ class IntegrationTest {
         chain.addLink("add", addLink);
         chain.addLink("multiply", multiplyLink);
 
-                // Add logging middleware
-        Middleware loggingMiddleware = new Middleware() {
+                // Add logging hook
+        Hook loggingHook = new Hook() {
             @Override
-            public Context before(Link link, Context ctx) {
+            public State before(Link link, State ctx) {
                 // Log before execution
                 String linkName = link != null ? link.getClass().getName() : "Chain";
                 System.out.println("Executing: " + linkName);
@@ -51,7 +51,7 @@ class IntegrationTest {
             }
 
             @Override
-            public Context after(Link link, Context ctx) {
+            public State after(Link link, State ctx) {
                 // Log after execution
                 String linkName = link != null ? link.getClass().getName() : "Chain";
                 System.out.println("Completed: " + linkName);
@@ -59,7 +59,7 @@ class IntegrationTest {
             }
 
             @Override
-            public Context onError(Link link, Exception error, Context ctx) {
+            public State onError(Link link, Exception error, State ctx) {
                 // Log errors
                 String linkName = link != null ? link.getClass().getName() : "Chain";
                 System.out.println("Error in: " + linkName + " - " + error.getMessage());
@@ -67,14 +67,14 @@ class IntegrationTest {
             }
         };
 
-        chain.useMiddleware(loggingMiddleware);
+        chain.useHook(loggingHook);
 
         Map<String, Object> data = new HashMap<>();
         data.put("a", 3);
         data.put("b", 4);
 
-        Context input = Context.create(data);
-        Context result = null;
+        State input = State.create(data);
+        State result = null;
         try {
             result = chain.run(input);
         } catch (Exception e) {
@@ -94,7 +94,7 @@ class IntegrationTest {
 
         Link failingLink = new Link() {
             @Override
-            public Context call(Context ctx) throws Exception {
+            public State call(State ctx) throws Exception {
                 throw new RuntimeException("Test error");
             }
         };
@@ -103,33 +103,33 @@ class IntegrationTest {
 
         final boolean[] errorHandled = {false};
 
-        Middleware errorHandlingMiddleware = new Middleware() {
+        Hook errorHandlingHook = new Hook() {
             @Override
-            public Context before(Link link, Context ctx) { return ctx; }
+            public State before(Link link, State ctx) { return ctx; }
 
             @Override
-            public Context after(Link link, Context ctx) { return ctx; }
+            public State after(Link link, State ctx) { return ctx; }
 
             @Override
-            public Context onError(Link link, Exception error, Context ctx) {
+            public State onError(Link link, Exception error, State ctx) {
                 errorHandled[0] = true;
                 assertEquals("Test error", error.getMessage());
                 return ctx;
             }
         };
 
-        chain.useMiddleware(errorHandlingMiddleware);
+        chain.useHook(errorHandlingHook);
 
-        Context input = Context.create();
+        State input = State.create();
 
-        // The chain should throw the exception, but the middleware should still be called
+        // The chain should throw the exception, but the hook should still be called
         try {
             chain.run(input);
             fail("Expected RuntimeException to be thrown");
         } catch (Exception e) {
             if (e instanceof RuntimeException) {
                 assertEquals("Test error", e.getMessage());
-                assertTrue(errorHandled[0], "Error middleware should be called before exception is re-thrown");
+                assertTrue(errorHandled[0], "Error hook should be called before exception is re-thrown");
             } else {
                 fail("Expected RuntimeException but got: " + e.getClass().getSimpleName());
             }

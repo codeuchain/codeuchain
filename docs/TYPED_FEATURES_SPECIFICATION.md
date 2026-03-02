@@ -25,29 +25,29 @@ CodeUChain supports two complementary approaches:
 ```python
 # Python Reference
 class Link[Input, Output]:
-    async def call(self, ctx: Context[Input]) -> Context[Output]:
-        # Process context and return evolved type
+    async def call(self, ctx: State[Input]) -> State[Output]:
+        # Process state and return evolved type
         pass
 ```
 
 **Universal Requirements:**
 - Generic type parameters for Input/Output types
 - Async execution pattern (or language equivalent)
-- Context transformation capability
+- State transformation capability
 - Error handling support
-- Optional: Middleware compatibility
+- Optional: Hook compatibility
 
-### Generic Context Interface
+### Generic State Interface
 
 ```python
 # Python Reference
-class Context[T]:
+class State[T]:
     # Current: Preserve type
-    def insert(self, key: str, value: Any) -> Context[T]:
+    def insert(self, key: str, value: Any) -> State[T]:
         pass
 
     # New: Type evolution
-    def insert_as(self, key: str, value: Any) -> Context[Any]:
+    def insert_as(self, key: str, value: Any) -> State[Any]:
         pass
 ```
 
@@ -56,7 +56,7 @@ class Context[T]:
 - Immutable transformation methods
 - Runtime Dict[str, Any] equivalent storage
 - Type-safe access methods
-- Optional: Mutable context for performance-critical sections
+- Optional: Mutable state for performance-critical sections
 
 ### Type Evolution Pattern
 
@@ -69,7 +69,7 @@ class OutputData(InputData):
     result: float
 
 class Processor(Link[InputData, OutputData]):
-    async def call(self, ctx: Context[InputData]) -> Context[OutputData]:
+    async def call(self, ctx: State[InputData]) -> State[OutputData]:
         numbers = ctx.get("numbers") or []
         result = sum(numbers)
         # Clean evolution - no casting required!
@@ -91,14 +91,14 @@ class Processor(Link[InputData, OutputData]):
 // Generic interfaces
 public interface ILink<TInput, TOutput>
 {
-    Task<Context<TOutput>> CallAsync(Context<TInput> context);
+    Task<State<TOutput>> CallAsync(State<TInput> state);
 }
 
-// Covariant context
-public class Context<out T> : IContext  // Covariant for flexibility
+// Covariant state
+public class State<out T> : IState  // Covariant for flexibility
 {
-    public Context Insert(string key, object value) => this;
-    public Context<U> InsertAs<U>(string key, object value) => new Context<U>(...);
+    public State Insert(string key, object value) => this;
+    public State<U> InsertAs<U>(string key, object value) => new State<U>(...);
 }
 
 // TypedDict equivalent
@@ -118,13 +118,13 @@ public record OutputData : InputData
 ```typescript
 // Generic interfaces
 interface Link<TInput = any, TOutput = any> {
-  call(ctx: Context<TInput>): Promise<Context<TOutput>>;
+  call(ctx: State<TInput>): Promise<State<TOutput>>;
 }
 
 // Structural typing
-class Context<T = any> {
-  insert(key: string, value: any): Context<T>;
-  insertAs<U>(key: string, value: any): Context<U>;
+class State<T = any> {
+  insert(key: string, value: any): State<T>;
+  insertAs<U>(key: string, value: any): State<U>;
 }
 
 // TypedDict equivalent
@@ -142,13 +142,13 @@ interface OutputData extends InputData {
 ```java
 // Generic interfaces
 public interface Link<TInput, TOutput> {
-    CompletableFuture<Context<TOutput>> call(Context<TInput> context);
+    CompletableFuture<State<TOutput>> call(State<TInput> state);
 }
 
 // Wildcard generics
-public class Context<T> {
-    public Context<T> insert(String key, Object value);
-    public <U> Context<U> insertAs(String key, Object value);
+public class State<T> {
+    public State<T> insert(String key, Object value);
+    public <U> State<U> insertAs(String key, Object value);
 }
 
 // Record types (Java 14+)
@@ -160,13 +160,13 @@ public record OutputData(List<Integer> numbers, String operation, Double result)
 ```go
 // Generic interfaces (Go 1.18+)
 type Link[TInput any, TOutput any] interface {
-    Call(ctx Context[TInput]) (Context[TOutput], error)
+    Call(ctx State[TInput]) (State[TOutput], error)
 }
 
 // Type evolution
-type Context[T any] struct {
-    Insert(key string, value any) Context[T]
-    InsertAs[U any](key string, value any) Context[U]
+type State[T any] struct {
+    Insert(key string, value any) State[T]
+    InsertAs[U any](key string, value any) State[U]
 }
 
 // Struct types
@@ -187,20 +187,20 @@ type OutputData struct {
 // Generic traits
 #[async_trait]
 pub trait Link<Input, Output>: Send + Sync {
-    async fn call(&self, ctx: Context<Input>) -> Result<Context<Output>, Error>;
+    async fn call(&self, ctx: State<Input>) -> Result<State<Output>, Error>;
 }
 
 // Type evolution with ownership
-pub struct Context<T = serde_json::Value> {
+pub struct State<T = serde_json::Value> {
     data: HashMap<String, serde_json::Value>,
 }
 
-impl<T> Context<T> {
+impl<T> State<T> {
     pub fn insert(self, key: String, value: serde_json::Value) -> Self {
         // Implementation
     }
 
-    pub fn insert_as<U>(self, key: String, value: serde_json::Value) -> Context<U> {
+    pub fn insert_as<U>(self, key: String, value: serde_json::Value) -> State<U> {
         // Implementation
     }
 }
@@ -228,7 +228,7 @@ pub struct OutputData {
 ```python
 # Python Reference - Adapt to target language
 def test_type_evolution():
-    input_ctx = Context[InputData]({"numbers": [1, 2, 3]})
+    input_ctx = State[InputData]({"numbers": [1, 2, 3]})
     output_ctx = input_ctx.insert_as("result", 6.0)
 
     assert output_ctx.get("result") == 6.0
@@ -240,7 +240,7 @@ def test_type_evolution():
 # Python Reference - Adapt to target language
 def test_generic_link():
     link = SumLink()
-    input_ctx = Context[InputData]({"numbers": [1, 2, 3]})
+    input_ctx = State[InputData]({"numbers": [1, 2, 3]})
 
     result_ctx = await link.call(input_ctx)
 
@@ -252,7 +252,7 @@ def test_generic_link():
 ```python
 # Ensure untyped usage still works identically
 def test_runtime_compatibility():
-    untyped_ctx = Context({"numbers": [1, 2, 3]})
+    untyped_ctx = State({"numbers": [1, 2, 3]})
     result = untyped_ctx.insert("result", 6.0)
 
     assert result.get("result") == 6.0
@@ -264,7 +264,7 @@ def test_runtime_compatibility():
 - ✅ Generic link interfaces
 - ✅ Chain composition with generics
 - ✅ Runtime compatibility (untyped usage)
-- ✅ Error handling in typed contexts
+- ✅ Error handling in typed states
 - ✅ Mixed typed/untyped component usage
 
 ## 📊 Performance Considerations
@@ -296,7 +296,7 @@ def test_runtime_compatibility():
 
 ### Functional Completeness
 - ✅ Generic `Link[Input, Output]` interfaces implemented
-- ✅ Generic `Context[T]` with type evolution implemented
+- ✅ Generic `State[T]` with type evolution implemented
 - ✅ TypedDict/struct equivalents for data shapes
 - ✅ Clean `insert_as()` method implemented
 - ✅ Comprehensive test coverage achieved

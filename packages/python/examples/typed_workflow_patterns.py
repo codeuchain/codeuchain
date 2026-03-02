@@ -15,7 +15,7 @@ Key Patterns Demonstrated:
 
 import asyncio
 from typing import List, TypedDict, Union, Optional
-from codeuchain.core import Chain, Context, Link
+from codeuchain.core import Chain, State, Link
 
 # =============================================================================
 # SHARED TYPE DEFINITIONS
@@ -95,7 +95,7 @@ class OrderResult(TypedDict):
 class ValidateOrderLink(Link[OrderInput, OrderValidated]):
     """Validate order data."""
 
-    async def call(self, ctx: Context[OrderInput]) -> Context[OrderValidated]:
+    async def call(self, ctx: State[OrderInput]) -> State[OrderValidated]:
         order_id = ctx.get("order_id") or ""
         items = ctx.get("items") or []
         total_amount = ctx.get("total_amount") or 0.0
@@ -132,7 +132,7 @@ class ValidateOrderLink(Link[OrderInput, OrderValidated]):
 class LoadCustomerLink(Link[OrderValidated, OrderWithCustomer]):
     """Load customer information."""
 
-    async def call(self, ctx: Context[OrderValidated]) -> Context[OrderWithCustomer]:
+    async def call(self, ctx: State[OrderValidated]) -> State[OrderWithCustomer]:
         customer_id = ctx.get("customer_id") or ""
 
         # Mock customer lookup - in real code, this would query a database
@@ -158,7 +158,7 @@ class LoadCustomerLink(Link[OrderValidated, OrderWithCustomer]):
 class CalculatePricingLink(Link[OrderWithCustomer, OrderProcessed]):
     """Calculate taxes, discounts, and final pricing."""
 
-    async def call(self, ctx: Context[OrderWithCustomer]) -> Context[OrderProcessed]:
+    async def call(self, ctx: State[OrderWithCustomer]) -> State[OrderProcessed]:
         total_amount = ctx.get("total_amount") or 0.0
         loyalty_tier = ctx.get("customer_loyalty_tier") or "Bronze"
 
@@ -189,7 +189,7 @@ class SequentialProcessingChain:
         self.chain.add_link(LoadCustomerLink(), "load_customer")
         self.chain.add_link(CalculatePricingLink(), "calculate_pricing")
 
-    async def process(self, ctx: Context[OrderInput]) -> Context[OrderProcessed]:
+    async def process(self, ctx: State[OrderInput]) -> State[OrderProcessed]:
         return await self.chain.run(ctx)
 
 
@@ -200,7 +200,7 @@ class SequentialProcessingChain:
 class PaymentProcessingLink(Link[OrderProcessed, OrderResult]):
     """Process payment with conditional logic."""
 
-    async def call(self, ctx: Context[OrderProcessed]) -> Context[OrderResult]:
+    async def call(self, ctx: State[OrderProcessed]) -> State[OrderResult]:
         is_valid = ctx.get("is_valid") or False
         final_amount = ctx.get("final_amount") or 0.0
 
@@ -247,7 +247,7 @@ class ConditionalProcessingChain:
         self.chain.connect("process_payment", "process_payment",
                           lambda ctx: ctx.get("processing_status") == "completed")
 
-    async def process(self, ctx: Context[OrderProcessed]) -> Context[OrderResult]:
+    async def process(self, ctx: State[OrderProcessed]) -> State[OrderResult]:
         return await self.chain.run(ctx)
 
 
@@ -258,7 +258,7 @@ class ConditionalProcessingChain:
 class ErrorHandlingLink(Link[OrderResult, OrderResult]):
     """Handle errors and edge cases with typed error information."""
 
-    async def call(self, ctx: Context[OrderResult]) -> Context[OrderResult]:
+    async def call(self, ctx: State[OrderResult]) -> State[OrderResult]:
         payment_status = ctx.get("payment_status") or ""
         validation_errors = ctx.get("validation_errors") or []
 
@@ -284,7 +284,7 @@ class ErrorHandlingChain:
         self.chain: Chain[OrderResult, OrderResult] = Chain()
         self.chain.add_link(ErrorHandlingLink(), "handle_errors")
 
-    async def process(self, ctx: Context[OrderResult]) -> Context[OrderResult]:
+    async def process(self, ctx: State[OrderResult]) -> State[OrderResult]:
         return await self.chain.run(ctx)
 
 
@@ -295,7 +295,7 @@ class ErrorHandlingChain:
 class InventoryCheckLink(Link[OrderValidated, OrderValidated]):
     """Check inventory for ordered items."""
 
-    async def call(self, ctx: Context[OrderValidated]) -> Context[OrderValidated]:
+    async def call(self, ctx: State[OrderValidated]) -> State[OrderValidated]:
         items = ctx.get("items") or []
 
         # Check inventory for each item
@@ -332,7 +332,7 @@ class InventoryCheckLink(Link[OrderValidated, OrderValidated]):
 class FraudCheckLink(Link[OrderValidated, OrderValidated]):
     """Perform fraud detection checks."""
 
-    async def call(self, ctx: Context[OrderValidated]) -> Context[OrderValidated]:
+    async def call(self, ctx: State[OrderValidated]) -> State[OrderValidated]:
         customer_id = ctx.get("customer_id") or ""
         total_amount = ctx.get("total_amount") or 0.0
 
@@ -362,7 +362,7 @@ class ParallelValidationChain:
 
         # Both run in parallel, no dependencies between them
 
-    async def process(self, ctx: Context[OrderValidated]) -> Context[OrderValidated]:
+    async def process(self, ctx: State[OrderValidated]) -> State[OrderValidated]:
         return await self.chain.run(ctx)
 
 
@@ -390,7 +390,7 @@ async def demonstrate_sequential_processing():
 
     # Process through the pipeline
     chain = SequentialProcessingChain()
-    ctx = Context[OrderInput](order_data)
+    ctx = State[OrderInput](order_data)
 
     result_ctx = await chain.process(ctx)
     result = result_ctx.to_dict()
@@ -452,7 +452,7 @@ async def demonstrate_conditional_processing():
         print(f"--- {test_case['name']} ---")
 
         chain = ConditionalProcessingChain()
-        ctx = Context[OrderProcessed](test_case["data"])
+        ctx = State[OrderProcessed](test_case["data"])
 
         result_ctx = await chain.process(ctx)
         result = result_ctx.to_dict()
@@ -487,7 +487,7 @@ async def demonstrate_parallel_processing():
 
     # Run parallel validation
     chain = ParallelValidationChain()
-    ctx = Context[OrderValidated](order_data)
+    ctx = State[OrderValidated](order_data)
 
     result_ctx = await chain.process(ctx)
     result = result_ctx.to_dict()
@@ -529,7 +529,7 @@ async def demonstrate_error_handling():
     }
 
     chain = ErrorHandlingChain()
-    ctx = Context[OrderResult](error_case)
+    ctx = State[OrderResult](error_case)
 
     result_ctx = await chain.process(ctx)
     result = result_ctx.to_dict()

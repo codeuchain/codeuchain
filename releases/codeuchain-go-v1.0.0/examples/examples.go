@@ -2,7 +2,7 @@
 package examples
 
 import (
-	"context"
+	"state"
 	"fmt"
 	"log"
 	"time"
@@ -19,7 +19,7 @@ func NewIdentityLink() *IdentityLink {
 }
 
 // Call implements the Link interface
-func (il *IdentityLink) Call(ctx context.Context, c *codeuchain.Context[any]) (*codeuchain.Context[any], error) {
+func (il *IdentityLink) Call(ctx state.State, c *codeuchain.State[any]) (*codeuchain.State[any], error) {
 	return c, nil
 }
 
@@ -34,7 +34,7 @@ func NewMathLink(operation string) *MathLink {
 }
 
 // Call implements the Link interface
-func (ml *MathLink) Call(ctx context.Context, c *codeuchain.Context[any]) (*codeuchain.Context[any], error) {
+func (ml *MathLink) Call(ctx state.State, c *codeuchain.State[any]) (*codeuchain.State[any], error) {
 	numbersVal := c.Get("numbers")
 	numbers, ok := numbersVal.([]interface{})
 	if !ok {
@@ -82,16 +82,16 @@ func (ml *MathLink) Call(ctx context.Context, c *codeuchain.Context[any]) (*code
 	return c.Insert("result", result), nil
 }
 
-// LoggingMiddleware provides logging functionality
-type LoggingMiddleware struct{}
+// LoggingHook provides logging functionality
+type LoggingHook struct{}
 
-// NewLoggingMiddleware creates a new logging middleware
-func NewLoggingMiddleware() *LoggingMiddleware {
-	return &LoggingMiddleware{}
+// NewLoggingHook creates a new logging hook
+func NewLoggingHook() *LoggingHook {
+	return &LoggingHook{}
 }
 
-// Before implements the Middleware interface
-func (lm *LoggingMiddleware) Before(ctx context.Context, link codeuchain.Link[any, any], c *codeuchain.Context[any]) error {
+// Before implements the Hook interface
+func (lm *LoggingHook) Before(ctx state.State, link codeuchain.Link[any, any], c *codeuchain.State[any]) error {
 	if link != nil {
 		log.Printf("Before link execution: %v", c.ToMap())
 	} else {
@@ -100,8 +100,8 @@ func (lm *LoggingMiddleware) Before(ctx context.Context, link codeuchain.Link[an
 	return nil
 }
 
-// After implements the Middleware interface
-func (lm *LoggingMiddleware) After(ctx context.Context, link codeuchain.Link[any, any], c *codeuchain.Context[any]) error {
+// After implements the Hook interface
+func (lm *LoggingHook) After(ctx state.State, link codeuchain.Link[any, any], c *codeuchain.State[any]) error {
 	if link != nil {
 		log.Printf("After link execution: %v", c.ToMap())
 	} else {
@@ -110,26 +110,26 @@ func (lm *LoggingMiddleware) After(ctx context.Context, link codeuchain.Link[any
 	return nil
 }
 
-// OnError implements the Middleware interface
-func (lm *LoggingMiddleware) OnError(ctx context.Context, link codeuchain.Link[any, any], err error, c *codeuchain.Context[any]) error {
-	log.Printf("Error in execution: %v, context: %v", err, c.ToMap())
+// OnError implements the Hook interface
+func (lm *LoggingHook) OnError(ctx state.State, link codeuchain.Link[any, any], err error, c *codeuchain.State[any]) error {
+	log.Printf("Error in execution: %v, state: %v", err, c.ToMap())
 	return nil
 }
 
-// TimingMiddleware provides timing functionality
-type TimingMiddleware struct {
+// TimingHook provides timing functionality
+type TimingHook struct {
 	StartTimes map[string]time.Time
 }
 
-// NewTimingMiddleware creates a new timing middleware
-func NewTimingMiddleware() *TimingMiddleware {
-	return &TimingMiddleware{
+// NewTimingHook creates a new timing hook
+func NewTimingHook() *TimingHook {
+	return &TimingHook{
 		StartTimes: make(map[string]time.Time),
 	}
 }
 
-// Before implements the Middleware interface
-func (tm *TimingMiddleware) Before(ctx context.Context, link codeuchain.Link[any, any], c *codeuchain.Context[any]) error {
+// Before implements the Hook interface
+func (tm *TimingHook) Before(ctx state.State, link codeuchain.Link[any, any], c *codeuchain.State[any]) error {
 	if link != nil {
 		// Use a simple string representation for timing
 		linkKey := fmt.Sprintf("%p", link)
@@ -138,8 +138,8 @@ func (tm *TimingMiddleware) Before(ctx context.Context, link codeuchain.Link[any
 	return nil
 }
 
-// After implements the Middleware interface
-func (tm *TimingMiddleware) After(ctx context.Context, link codeuchain.Link[any, any], c *codeuchain.Context[any]) error {
+// After implements the Hook interface
+func (tm *TimingHook) After(ctx state.State, link codeuchain.Link[any, any], c *codeuchain.State[any]) error {
 	if link != nil {
 		linkKey := fmt.Sprintf("%p", link)
 		if startTime, exists := tm.StartTimes[linkKey]; exists {
@@ -151,8 +151,8 @@ func (tm *TimingMiddleware) After(ctx context.Context, link codeuchain.Link[any,
 	return nil
 }
 
-// OnError implements the Middleware interface
-func (tm *TimingMiddleware) OnError(ctx context.Context, link codeuchain.Link[any, any], err error, c *codeuchain.Context[any]) error {
+// OnError implements the Hook interface
+func (tm *TimingHook) OnError(ctx state.State, link codeuchain.Link[any, any], err error, c *codeuchain.State[any]) error {
 	if link != nil {
 		linkKey := fmt.Sprintf("%p", link)
 		if startTime, exists := tm.StartTimes[linkKey]; exists {
@@ -186,49 +186,49 @@ func SimpleMathExample() {
 	chain.AddLink("mean", NewMathLink("mean"))
 
 	// Connect links conditionally
-	chain.Connect("sum", "mean", func(ctx *codeuchain.Context[any]) bool {
+	chain.Connect("sum", "mean", func(ctx *codeuchain.State[any]) bool {
 		return ctx.Get("result") != nil
 	})
 
-	// Add middleware
-	chain.UseMiddleware(NewLoggingMiddleware())
+	// Add hook
+	chain.UseHook(NewLoggingHook())
 
 	// Create input data
 	data := map[string]interface{}{
 		"numbers": []interface{}{1.0, 2.0, 3.0, 4.0, 5.0},
 	}
-	ctx := codeuchain.NewContext[any](data)
+	ctx := codeuchain.NewState[any](data)
 
 	// Run the chain
-	result, err := chain.Run(context.Background(), ctx)
+	result, err := chain.Run(state.Background(), ctx)
 	if err != nil {
 		log.Printf("Error: %v", err)
 		return
 	}
 
 	fmt.Printf("Final result: %v\n", result.Get("result"))
-	fmt.Printf("Full context: %v\n", result.ToMap())
+	fmt.Printf("Full state: %v\n", result.ToMap())
 }
 
-// MiddlewareExample demonstrates middleware usage
-func MiddlewareExample() {
+// HookExample demonstrates hook usage
+func HookExample() {
 	chain := NewBasicChain()
 
 	// Add a simple processing link
 	chain.AddLink("process", NewIdentityLink())
 
-	// Add multiple middleware
-	chain.UseMiddleware(NewLoggingMiddleware())
-	chain.UseMiddleware(NewTimingMiddleware())
+	// Add multiple hook
+	chain.UseHook(NewLoggingHook())
+	chain.UseHook(NewTimingHook())
 
-	// Create context
+	// Create state
 	data := map[string]interface{}{
 		"input": "test data",
 	}
-	ctx := codeuchain.NewContext[any](data)
+	ctx := codeuchain.NewState[any](data)
 
-	// Run with middleware
-	result, err := chain.Run(context.Background(), ctx)
+	// Run with hook
+	result, err := chain.Run(state.Background(), ctx)
 	if err != nil {
 		log.Printf("Error: %v", err)
 		return

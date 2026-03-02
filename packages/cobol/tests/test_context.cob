@@ -1,5 +1,5 @@
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. TEST-CONTEXT.
+       PROGRAM-ID. TEST-STATE.
        AUTHOR. CodeUChain Test Suite.
 
        ENVIRONMENT DIVISION.
@@ -19,89 +19,89 @@
 
        MAIN-PROCEDURE.
            DISPLAY "=========================================="
-           DISPLAY "CodeUChain COBOL - Context Module Tests"
+           DISPLAY "CodeUChain COBOL - State Module Tests"
            DISPLAY "=========================================="
 
-           PERFORM TEST-INITIALIZE-CONTEXT
-           PERFORM TEST-SET-CONTEXT-VALUE
-           PERFORM TEST-GET-CONTEXT-VALUE
-           PERFORM TEST-CONTEXT-PERSISTENCE
+           PERFORM TEST-INITIALIZE-STATE
+           PERFORM TEST-SET-STATE-VALUE
+           PERFORM TEST-GET-STATE-VALUE
+           PERFORM TEST-STATE-PERSISTENCE
 
            PERFORM DISPLAY-TEST-RESULTS
 
            STOP RUN.
 
-       TEST-INITIALIZE-CONTEXT.
+       TEST-INITIALIZE-STATE.
            ADD 1 TO TESTS-RUN
-           DISPLAY "Test: Initialize Context"
+           DISPLAY "Test: Initialize State"
 
            MOVE "INSERT" TO WS-KEY
            MOVE "init-value" TO WS-VALUE
 
-           CALL "CONTEXT" USING WS-KEY WS-VALUE WS-RESULT
+           CALL "STATE" USING WS-KEY WS-VALUE WS-RESULT
 
            IF WS-RESULT = "SUCCESS"
                ADD 1 TO TESTS-PASSED
-               DISPLAY "✓ Context init successful"
+               DISPLAY "✓ State init successful"
            ELSE
                ADD 1 TO TESTS-FAILED
-               DISPLAY "✗ Context init failed"
+               DISPLAY "✗ State init failed"
                DISPLAY "Result: " WS-RESULT
            END-IF.
 
-       TEST-SET-CONTEXT-VALUE.
+       TEST-SET-STATE-VALUE.
            ADD 1 TO TESTS-RUN
-           DISPLAY "Test: Set Context Value"
+           DISPLAY "Test: Set State Value"
 
            MOVE "INSERT test-key" TO WS-KEY
            MOVE "test-value" TO WS-VALUE
 
-           CALL "CONTEXT" USING WS-KEY WS-VALUE WS-RESULT
+           CALL "STATE" USING WS-KEY WS-VALUE WS-RESULT
 
            IF WS-RESULT = "SUCCESS"
                ADD 1 TO TESTS-PASSED
-               DISPLAY "✓ Set context value successful"
+               DISPLAY "✓ Set state value successful"
            ELSE
                ADD 1 TO TESTS-FAILED
-               DISPLAY "✗ Set context value failed"
+               DISPLAY "✗ Set state value failed"
                DISPLAY "Result: " WS-RESULT
            END-IF.
 
-       TEST-GET-CONTEXT-VALUE.
+       TEST-GET-STATE-VALUE.
            ADD 1 TO TESTS-RUN
-           DISPLAY "Test: Get Context Value"
+           DISPLAY "Test: Get State Value"
 
            MOVE "GET test-key" TO WS-KEY
            MOVE SPACES TO WS-VALUE
 
-           CALL "CONTEXT" USING WS-KEY WS-VALUE WS-RESULT
+           CALL "STATE" USING WS-KEY WS-VALUE WS-RESULT
 
            IF WS-RESULT = "SUCCESS" AND WS-VALUE = "test-value"
                ADD 1 TO TESTS-PASSED
-               DISPLAY "✓ Get context value successful"
+               DISPLAY "✓ Get state value successful"
            ELSE
                ADD 1 TO TESTS-FAILED
-               DISPLAY "✗ Get context value failed"
+               DISPLAY "✗ Get state value failed"
            END-IF.
 
-       TEST-CONTEXT-PERSISTENCE.
+       TEST-STATE-PERSISTENCE.
            ADD 1 TO TESTS-RUN
-           DISPLAY "Test: Context Persistence"
+           DISPLAY "Test: State Persistence"
 
            MOVE "INSERT persistent-key" TO WS-KEY
            MOVE "persistent-value" TO WS-VALUE
-           CALL "CONTEXT" USING WS-KEY WS-VALUE WS-RESULT
+           CALL "STATE" USING WS-KEY WS-VALUE WS-RESULT
 
            MOVE "GET persistent-key" TO WS-KEY
            MOVE SPACES TO WS-VALUE
-           CALL "CONTEXT" USING WS-KEY WS-VALUE WS-RESULT
+           CALL "STATE" USING WS-KEY WS-VALUE WS-RESULT
 
            IF WS-RESULT = "SUCCESS" AND WS-VALUE = "persistent-value"
                ADD 1 TO TESTS-PASSED
-               DISPLAY "✓ Context persistence successful"
+               DISPLAY "✓ State persistence successful"
            ELSE
                ADD 1 TO TESTS-FAILED
-               DISPLAY "✗ Context persistence failed"
+               DISPLAY "✗ State persistence failed"
            END-IF.
 
        DISPLAY-TEST-RESULTS.
@@ -118,4 +118,4 @@
                DISPLAY "❌ Some tests failed. Please review."
            END-IF.
 
-       END PROGRAM TEST-CONTEXT.
+       END PROGRAM TEST-STATE.

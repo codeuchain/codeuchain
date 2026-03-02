@@ -3,36 +3,36 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 /// <summary>
-/// Example 1: Simple Generic Context with Type Safety
+/// Example 1: Simple Generic State with Type Safety
 /// </summary>
-public class GenericContextExample
+public class GenericStateExample
 {
     public static async Task RunAsync()
     {
-        Console.WriteLine("=== Generic Context Example ===\n");
+        Console.WriteLine("=== Generic State Example ===\n");
 
-        // Create strongly-typed context
-        var context = Context<int>.Create(new Dictionary<string, int>
+        // Create strongly-typed state
+        var state = State<int>.Create(new Dictionary<string, int>
         {
             ["a"] = 3,
             ["b"] = 4
         });
 
-        Console.WriteLine($"Initial context: {context}");
+        Console.WriteLine($"Initial state: {state}");
 
         // Type-safe operations
-        var a = context.Get("a"); // Returns int, not object
-        var b = context.Get("b"); // Returns int, not object
+        var a = state.Get("a"); // Returns int, not object
+        var b = state.Get("b"); // Returns int, not object
 
-        var newContext = context
+        var newState = state
             .Insert("sum", a + b)
             .Insert("product", a * b);
 
-        Console.WriteLine($"After operations: {newContext}");
+        Console.WriteLine($"After operations: {newState}");
 
         // Compile-time type safety
-        var sum = newContext.Get("sum"); // Guaranteed to be int
-        var product = newContext.Get("product"); // Guaranteed to be int
+        var sum = newState.Get("sum"); // Guaranteed to be int
+        var product = newState.Get("product"); // Guaranteed to be int
 
         Console.WriteLine($"Sum: {sum}, Product: {product}\n");
     }
@@ -76,7 +76,7 @@ public class GenericChainExample
             .AddLink("process", new ProcessingLink())
             .AddLink("format", new FormattingLink());
 
-        var input = Context<object>.Create(new Dictionary<string, object>
+        var input = State<object>.Create(new Dictionary<string, object>
         {
             ["data"] = "hello world",
             ["count"] = 42
@@ -131,37 +131,37 @@ public class MultiplyLink : ILink<int, int>
     }
 }
 
-// Generic Context Links
-public class ValidationLink : IContextLink<object>
+// Generic State Links
+public class ValidationLink : IStateLink<object>
 {
-    public async Task<Context<object>> CallAsync(Context<object> context)
+    public async Task<State<object>> CallAsync(State<object> state)
     {
         // Validate data exists
-        if (!context.ContainsKey("data"))
+        if (!state.ContainsKey("data"))
         {
             throw new InvalidOperationException("Missing data key");
         }
-        return context.Insert("validated", true);
+        return state.Insert("validated", true);
     }
 }
 
-public class ProcessingLink : IContextLink<object>
+public class ProcessingLink : IStateLink<object>
 {
-    public async Task<Context<object>> CallAsync(Context<object> context)
+    public async Task<State<object>> CallAsync(State<object> state)
     {
-        var data = context.Get("data")?.ToString() ?? "";
+        var data = state.Get("data")?.ToString() ?? "";
         var processed = data.ToUpper();
-        return context.Insert("processed", processed);
+        return state.Insert("processed", processed);
     }
 }
 
-public class FormattingLink : IContextLink<object>
+public class FormattingLink : IStateLink<object>
 {
-    public async Task<Context<object>> CallAsync(Context<object> context)
+    public async Task<State<object>> CallAsync(State<object> state)
     {
-        var processed = context.Get("processed")?.ToString() ?? "";
+        var processed = state.Get("processed")?.ToString() ?? "";
         var formatted = $"[{processed}]";
-        return context.Insert("formatted", formatted);
+        return state.Insert("formatted", formatted);
     }
 }
 
@@ -180,9 +180,9 @@ public class SimplifiedSyncAsyncExample
             .AddLink("sync-validate", new SyncValidator())     // Sync method
             .AddLink("async-process", new AsyncProcessor())    // Async method  
             .AddLink("sync-format", new SyncFormatter())       // Sync method
-            .UseMiddleware(new SimpleLogger());                // Works with both
+            .UseHook(new SimpleLogger());                // Works with both
 
-        var input = Context.Create(new Dictionary<string, object>
+        var input = State.Create(new Dictionary<string, object>
         {
             ["data"] = "hello world",
             ["count"] = 42
@@ -207,64 +207,64 @@ public class SimplifiedSyncAsyncExample
 // Just normal classes - no special interfaces needed!
 public class SyncValidator : ILink
 {
-    public ValueTask<Context> ProcessAsync(Context context)
+    public ValueTask<State> ProcessAsync(State state)
     {
         // Normal sync method - just return the result directly
         Console.WriteLine("🔍 Sync validation: Checking data...");
-        if (!context.ContainsKey("data"))
+        if (!state.ContainsKey("data"))
         {
             throw new InvalidOperationException("Missing data key");
         }
-        return ValueTask.FromResult(context.Insert("validated", true));
+        return ValueTask.FromResult(state.Insert("validated", true));
     }
 }
 
 public class AsyncProcessor : ILink
 {
-    public async ValueTask<Context> ProcessAsync(Context context)
+    public async ValueTask<State> ProcessAsync(State state)
     {
         // Normal async method - just use await
         Console.WriteLine("⚡ Async processing: Processing data...");
         await Task.Delay(100); // Simulate async work
-        var data = context.Get("data")?.ToString() ?? "";
+        var data = state.Get("data")?.ToString() ?? "";
         var processed = data.ToUpper();
-        return context.Insert("processed", processed);
+        return state.Insert("processed", processed);
     }
 }
 
 public class SyncFormatter : ILink
 {
-    public ValueTask<Context> ProcessAsync(Context context)
+    public ValueTask<State> ProcessAsync(State state)
     {
         // Normal sync method
         Console.WriteLine("📝 Sync formatting: Formatting result...");
-        var data = context.Get("data")?.ToString() ?? "";
+        var data = state.Get("data")?.ToString() ?? "";
         var formatted = $"[{data.ToUpper()}]";
-        return ValueTask.FromResult(context.Insert("formatted", formatted));
+        return ValueTask.FromResult(state.Insert("formatted", formatted));
     }
 }
 
-public class SimpleLogger : IMiddleware
+public class SimpleLogger : IHook
 {
-    public ValueTask<Context> BeforeAsync(ILink? link, Context context)
+    public ValueTask<State> BeforeAsync(ILink? link, State state)
     {
         var linkName = link?.GetType().Name ?? "Chain";
         Console.WriteLine($"▶️  Starting: {linkName}");
-        return ValueTask.FromResult(context);
+        return ValueTask.FromResult(state);
     }
 
-    public ValueTask<Context> AfterAsync(ILink? link, Context context)
+    public ValueTask<State> AfterAsync(ILink? link, State state)
     {
         var linkName = link?.GetType().Name ?? "Chain";
         Console.WriteLine($"✅ Completed: {linkName}");
-        return ValueTask.FromResult(context);
+        return ValueTask.FromResult(state);
     }
 
-    public ValueTask<Context> OnErrorAsync(ILink? link, Exception exception, Context context)
+    public ValueTask<State> OnErrorAsync(ILink? link, Exception exception, State state)
     {
         var linkName = link?.GetType().Name ?? "Chain";
         Console.WriteLine($"❌ Error in {linkName}: {exception.Message}");
-        return ValueTask.FromResult(context);
+        return ValueTask.FromResult(state);
     }
 }
 
@@ -278,7 +278,7 @@ public class UnifiedExampleProgram
         Console.WriteLine("=== CodeUChain C# Unified Sync/Async Examples ===\n");
 
         // Run all examples
-        await GenericContextExample.RunAsync();
+        await GenericStateExample.RunAsync();
         await GenericLinkExample.RunAsync();
         await GenericChainExample.RunAsync();
         await AdvancedGenericExample.RunAsync();

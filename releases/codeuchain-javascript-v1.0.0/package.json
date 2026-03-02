@@ -16,7 +16,7 @@
     "codeuchain",
     "chain",
     "context",
-    "middleware",
+    "hook",
     "functional",
     "async",
     "javascript",

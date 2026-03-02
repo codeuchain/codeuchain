@@ -16,21 +16,21 @@
        01  LS-LINK-NAME.
            05  LS-LINK-NAME-LEN     PIC S9(4) COMP.
            05  LS-LINK-NAME-DATA    PIC X(30).
-       01  LS-INPUT-CONTEXT         PIC X(10000).
-       01  LS-OUTPUT-CONTEXT        PIC X(10000).
+       01  LS-INPUT-STATE         PIC X(10000).
+       01  LS-OUTPUT-STATE        PIC X(10000).
        01  LS-LINK-RESULT           PIC X(10).
 
        PROCEDURE DIVISION USING LS-LINK-NAME,
-                                 LS-INPUT-CONTEXT,
-                                 LS-OUTPUT-CONTEXT,
+                                 LS-INPUT-STATE,
+                                 LS-OUTPUT-STATE,
                                  LS-LINK-RESULT.
 
            DISPLAY "LINK-INTERFACE: Process operation called for: "
                    LS-LINK-NAME-DATA(1:LS-LINK-NAME-LEN)
-           DISPLAY "Input Context: " LS-INPUT-CONTEXT
+           DISPLAY "Input State: " LS-INPUT-STATE
 
            MOVE "SUCCESS" TO LS-LINK-RESULT
-           MOVE LS-INPUT-CONTEXT TO LS-OUTPUT-CONTEXT
+           MOVE LS-INPUT-STATE TO LS-OUTPUT-STATE
            GOBACK.
 
        END PROGRAM LINK-INTERFACE.

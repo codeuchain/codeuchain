@@ -1,16 +1,16 @@
 /*!
-Timing Middleware
+Timing Hook
 
-High-performance timing middleware for measuring link execution times.
+High-performance timing hook for measuring link execution times.
 */
 
-use crate::{Context, Middleware, LegacyLink};
+use crate::{State, Hook, LegacyLink};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-/// Timing middleware for measuring execution times
-pub struct TimingMiddleware {
+/// Timing hook for measuring execution times
+pub struct TimingHook {
     per_invocation: bool,
     auto_print: bool,
     stats: Arc<Mutex<HashMap<String, LinkStats>>>,
@@ -26,8 +26,8 @@ struct LinkStats {
     max_ns: u128,
 }
 
-impl TimingMiddleware {
-    /// Create a new timing middleware with default configuration
+impl TimingHook {
+    /// Create a new timing hook with default configuration
     pub fn new() -> Self {
         Self {
             per_invocation: false,
@@ -37,7 +37,7 @@ impl TimingMiddleware {
         }
     }
 
-    /// Create timing middleware with custom configuration
+    /// Create timing hook with custom configuration
     pub fn with_config(per_invocation: bool, auto_print: bool) -> Self {
         Self {
             per_invocation,
@@ -55,7 +55,7 @@ impl TimingMiddleware {
         }
 
         let mut result = String::new();
-        result.push_str("== TimingMiddleware Report ==\n");
+        result.push_str("== TimingHook Report ==\n");
         result.push_str(&format!("{:<20} {:<8} {:<12} {:<12} {:<12}\n",
             "Link", "Calls", "Total", "Avg", "Max"));
         result.push_str(&"-".repeat(64));
@@ -80,8 +80,8 @@ impl TimingMiddleware {
 }
 
 #[async_trait::async_trait]
-impl Middleware for TimingMiddleware {
-    async fn before(&self, link: Option<&dyn LegacyLink>, _ctx: &Context) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+impl Hook for TimingHook {
+    async fn before(&self, link: Option<&dyn LegacyLink>, _ctx: &State) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         if self.per_invocation {
             if let Some(_link) = link {
                 let link_name = std::any::type_name::<dyn LegacyLink>();
@@ -92,7 +92,7 @@ impl Middleware for TimingMiddleware {
         Ok(())
     }
 
-    async fn after(&self, link: Option<&dyn LegacyLink>, _ctx: &Context) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    async fn after(&self, link: Option<&dyn LegacyLink>, _ctx: &State) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let duration = if self.per_invocation {
             if let Some(_link) = link {
                 let link_name = std::any::type_name::<dyn LegacyLink>();
@@ -140,17 +140,17 @@ impl Middleware for TimingMiddleware {
     }
 }
 
-/// Create a minimal timing middleware configuration
-pub fn create_minimal_timing_middleware() -> TimingMiddleware {
-    TimingMiddleware::with_config(true, true)
+/// Create a minimal timing hook configuration
+pub fn create_minimal_timing_hook() -> TimingHook {
+    TimingHook::with_config(true, true)
 }
 
-/// Create a detailed timing middleware configuration
-pub fn create_detailed_timing_middleware() -> TimingMiddleware {
-    TimingMiddleware::with_config(true, false)
+/// Create a detailed timing hook configuration
+pub fn create_detailed_timing_hook() -> TimingHook {
+    TimingHook::with_config(true, false)
 }
 
-/// Create a CSV timing middleware configuration
-pub fn create_csv_timing_middleware() -> TimingMiddleware {
-    TimingMiddleware::with_config(true, false)
+/// Create a CSV timing hook configuration
+pub fn create_csv_timing_hook() -> TimingHook {
+    TimingHook::with_config(true, false)
 }

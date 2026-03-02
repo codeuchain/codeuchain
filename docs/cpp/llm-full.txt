@@ -10,7 +10,7 @@
 **Authors:** CodeUChain contributors  
 **Language:** C++20 (C++17 fallback)  
 **Platforms:** Linux / macOS / Windows  
-**Paradigm Keywords:** Zero‑cost Composition, Immutable Context, Type Evolution, Middleware Observability
+**Paradigm Keywords:** Zero‑cost Composition, Immutable State, Type Evolution, Hook Observability
 
 ---
 ## 1. Purpose & Philosophy
@@ -21,49 +21,49 @@ High‑performance composable data transformation pipelines with predictable mem
 | Zero‑cost Abstraction | Templates + inline | No runtime penalty |
 | Determinism | Pure call with const ctx | Easier reasoning |
 | Evolution | `insert_as<T>()` pattern | Progressive modeling |
-| Observability | Middleware wrappers | Central instrumentation |
+| Observability | Hook wrappers | Central instrumentation |
 | Async Option | Coroutines (co_await) | Integrate non-blocking I/O |
 
 ---
 ## 2. Architectural Overview
 ```
-Context<Stage0>
+State<Stage0>
   | ValidateLink
   v
-Context<Stage1>
-  | ParseLink (middleware before/after/error)
+State<Stage1>
+  | ParseLink (hook before/after/error)
   v
-Context<Stage2>
+State<Stage2>
   | EnrichLink
   v
-Context<Stage3>
+State<Stage3>
 ```
 Branching via conditional inclusion; retries & circuit breakers via wrappers.
 
 ---
 ## 3. Core Interfaces (Representative)
 ```cpp
-template<class T> class Context {
+template<class T> class State {
 public:
   using storage_type = std::unordered_map<std::string, std::any>; // impl detail
   bool has(std::string_view key) const;
   template<class V> const V& get(std::string_view key) const; // throws if missing / bad_cast
-  Context<T> insert(std::string key, std::any value) const;                 // preserve T
-  template<class U> Context<U> insert_as(std::string key, std::any value) const; // evolve
+  State<T> insert(std::string key, std::any value) const;                 // preserve T
+  template<class U> State<U> insert_as(std::string key, std::any value) const; // evolve
   std::vector<std::string> keys() const;
 };
 
 template<class In, class Out>
 struct Link {
   virtual ~Link() = default;
-  virtual Context<Out> call(const Context<In>& ctx) = 0;
+  virtual State<Out> call(const State<In>& ctx) = 0;
 };
 
-struct Middleware {
-  virtual void before(std::string_view linkName, const Context<std::any>& ctx) {}
-  virtual void after(std::string_view linkName, const Context<std::any>& ctx) {}
-  virtual void on_error(std::string_view linkName, const Context<std::any>& ctx, const std::exception& e) {}
-  virtual ~Middleware() = default;
+struct Hook {
+  virtual void before(std::string_view linkName, const State<std::any>& ctx) {}
+  virtual void after(std::string_view linkName, const State<std::any>& ctx) {}
+  virtual void on_error(std::string_view linkName, const State<std::any>& ctx, const std::exception& e) {}
+  virtual ~Hook() = default;
 };
 ```
 Optional coroutine interface:
@@ -71,7 +71,7 @@ Optional coroutine interface:
 template<class In, class Out>
 struct AsyncLink {
   virtual ~AsyncLink() = default;
-  virtual task<Context<Out>> call_async(Context<In> ctx) = 0; // task<T> custom awaitable
+  virtual task<State<Out>> call_async(State<In> ctx) = 0; // task<T> custom awaitable
 };
 ```
 
@@ -94,7 +94,7 @@ struct Parsed  { std::string email; std::vector<std::string> tokens; };
 
 class ParseLink : public Link<Inbound, Parsed> {
 public:
-  Context<Parsed> call(const Context<Inbound>& ctx) override {
+  State<Parsed> call(const State<Inbound>& ctx) override {
     const auto& in = ctx.template get<Inbound>("inbound");
     if (in.email.find('@') == std::string::npos)
       throw std::invalid_argument("invalid_email");
@@ -122,7 +122,7 @@ template<class In, class Out>
 auto with_retry(std::shared_ptr<Link<In,Out>> inner, int attempts = 3) {
   struct Retrying : Link<In,Out> {
     std::shared_ptr<Link<In,Out>> inner; int attempts;
-    Context<Out> call(const Context<In>& ctx) override {
+    State<Out> call(const State<In>& ctx) override {
       for (int i=0;i<attempts;i++) {
         try { return inner->call(ctx); }
         catch (const transient_error&) { /* backoff */ }
@@ -135,23 +135,23 @@ auto with_retry(std::shared_ptr<Link<In,Out>> inner, int attempts = 3) {
 ```
 
 ---
-## 7. Middleware Lifecycle
+## 7. Hook Lifecycle
 ```cpp
-class MetricsMiddleware : public Middleware {
-  void before(std::string_view name, const Context<std::any>& ctx) override {
+class MetricsHook : public Hook {
+  void before(std::string_view name, const State<std::any>& ctx) override {
     // record start time
   }
-  void after(std::string_view name, const Context<std::any>& ctx) override {
+  void after(std::string_view name, const State<std::any>& ctx) override {
     // compute duration
   }
-  void on_error(std::string_view name, const Context<std::any>& ctx, const std::exception& e) override {
+  void on_error(std::string_view name, const State<std::any>& ctx, const std::exception& e) override {
     // log error
   }
 };
 ```
 Guidelines:
 - Keep allocation minimal.
-- Avoid throwing from middleware.
+- Avoid throwing from hook.
 - Tag errors; never silently swallow unless policy demands it.
 
 ---
@@ -170,7 +170,7 @@ ctx = ctx.insert_as<Stage3>("stage3", Stage3{ctx.get<Stage2>("stage2").raw, ctx.
 Frameworks: GoogleTest / Catch2. Property: rapidcheck. Benchmark: Google Benchmark.
 ```cpp
 TEST(ParseLink, ParsesTokens) {
-  auto ctx = Context<Inbound>::start({{"inbound", Inbound{"a@b.com","hello world"}}});
+  auto ctx = State<Inbound>::start({{"inbound", Inbound{"a@b.com","hello world"}}});
   ParseLink link;
   auto out = link.call(ctx);
   const auto& parsed = out.get<Parsed>("parsed");
@@ -181,13 +181,13 @@ TEST(ParseLink, ParsesTokens) {
 ---
 ## 10. Observability & Diagnostics
 Approaches:
-- Middleware instrumentation (timers, counters)
+- Hook instrumentation (timers, counters)
 - Conditional compile logging macros
-- Error classification tags inside context
+- Error classification tags inside state
 - Log only keys (privacy & noise control)
 ```cpp
-class DebugMiddleware : public Middleware {
-  void after(std::string_view n, const Context<std::any>& c) override {
+class DebugHook : public Hook {
+  void after(std::string_view n, const State<std::any>& c) override {
     std::cerr << "DBG " << n << ":"; for (auto& k : c.keys()) std::cerr << ' ' << k; std::cerr << '\n';
   }
 };
@@ -205,7 +205,7 @@ class DebugMiddleware : public Middleware {
 ```cpp
 static void ChainBench(benchmark::State& st) {
   auto chain = /* build */;
-  auto ctx = /* seed context */;
+  auto ctx = /* seed state */;
   for (auto _ : st) benchmark::DoNotOptimize(chain.call(ctx));
 }
 BENCHMARK(ChainBench);
@@ -215,9 +215,9 @@ BENCHMARK(ChainBench);
 ## 12. Advanced Patterns
 - Fan-out / fan-in (threads or coroutines)
 - Conditional link selection (predicate functor)
-- Retry + circuit breaker layering (middleware + wrapper)
+- Retry + circuit breaker layering (hook + wrapper)
 - Partial failure accumulation (vector of error tags)
-- Streaming ingestion (batch contexts)
+- Streaming ingestion (batch states)
 - SAGA compensation (undo lambda registry)
 
 ---
@@ -225,7 +225,7 @@ BENCHMARK(ChainBench);
 Phases:
 1. Minimal sync links
 2. Add templates & strong types
-3. Add middleware (metrics/logging)
+3. Add hook (metrics/logging)
 4. Parallel fan-out (threads / tasks)
 5. Optimize allocations / replace any in hot paths
 6. Introduce coroutine async links (only if needed)
@@ -236,9 +236,9 @@ Backward compatibility: add new templates; avoid signature breakage.
 ## 14. Anti-Patterns
 | Anti-Pattern | Problem | Remedy |
 |--------------|---------|--------|
-| Raw void* context | UB risk | Use std::any / variant |
+| Raw void* state | UB risk | Use std::any / variant |
 | Throw for control flow | Slow & unclear | Sentinel / classification |
-| Heavy IO in middleware | Latency | Queue/batch async |
+| Heavy IO in hook | Latency | Queue/batch async |
 | Copying large payload each link | Memory/time waste | Structural sharing / references |
 | Logging full payloads | Privacy & cost | Redact / hash / sample |
 
@@ -251,29 +251,29 @@ Backward compatibility: add new templates; avoid signature breakage.
 **Q:** Short-circuit?  
 **A:** Throw classified exception or conditional link sentinel.  
 **Q:** Replace std::any?  
-**A:** Use variant for closed type sets; or specialized context.  
+**A:** Use variant for closed type sets; or specialized state.  
 **Q:** Thread safety?  
-**A:** Context immutable; share safely. Avoid global mutable singletons.  
+**A:** State immutable; share safely. Avoid global mutable singletons.  
 
 ---
 ## 16. Glossary
 - **Link**: Transformation functor/object.
 - **Chain**: Ordered executor of links.
-- **Context**: Immutable key-value store with evolution helpers.
-- **Middleware**: Observers around link invocation.
-- **Type Evolution**: Widening of context’s conceptual schema.
+- **State**: Immutable key-value store with evolution helpers.
+- **Hook**: Observers around link invocation.
+- **Type Evolution**: Widening of state’s conceptual schema.
 - **Classification**: Mapping exceptions → semantic categories.
 
 ---
 ## 17. TL;DR
 ```text
 Build: cmake .. && make -j
-Primitives: Link + Chain + Context + Middleware + Type Evolution
+Primitives: Link + Chain + State + Hook + Type Evolution
 Performance: Move semantics, minimal allocations, benchmark hot paths
-Observability: Middleware metrics + debug-after keys
+Observability: Hook metrics + debug-after keys
 Errors: Classify, retry transient, surface permanent
 Adoption: Start sync → add async only if needed
-Avoid: heavy IO middleware, control-flow exceptions, raw void*
+Avoid: heavy IO hook, control-flow exceptions, raw void*
 ```
 
 ---

@@ -14,8 +14,8 @@
        01  WS-LINK-NAME.
            05  WS-LINK-NAME-LEN     PIC S9(4) COMP.
            05  WS-LINK-NAME-DATA    PIC X(30).
-       01  WS-INPUT-CONTEXT         PIC X(10000).
-       01  WS-OUTPUT-CONTEXT        PIC X(10000).
+       01  WS-INPUT-STATE         PIC X(10000).
+       01  WS-OUTPUT-STATE        PIC X(10000).
        01  WS-LINK-RESULT           PIC X(10).
 
        PROCEDURE DIVISION.
@@ -35,13 +35,13 @@
 
            MOVE 12 TO WS-LINK-NAME-LEN
            MOVE "SIMPLE-LINK" TO WS-LINK-NAME-DATA
-           MOVE "Test input" TO WS-INPUT-CONTEXT
-           MOVE SPACES TO WS-OUTPUT-CONTEXT
+           MOVE "Test input" TO WS-INPUT-STATE
+           MOVE SPACES TO WS-OUTPUT-STATE
 
            CALL "LINK-INTERFACE" USING
                WS-LINK-NAME
-               WS-INPUT-CONTEXT
-               WS-OUTPUT-CONTEXT
+               WS-INPUT-STATE
+               WS-OUTPUT-STATE
                WS-LINK-RESULT
 
            IF WS-LINK-RESULT = "SUCCESS"

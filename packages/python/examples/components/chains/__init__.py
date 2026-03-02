@@ -7,9 +7,9 @@ These are the orchestrators that get composed into features.
 
 from typing import Dict, List, Callable, Set
 from collections import deque
-from codeuchain.core.context import Context
+from codeuchain.core.state import State
 from codeuchain.core.link import Link
-from codeuchain.core.middleware import Middleware
+from codeuchain.core.hook import Hook
 from codeuchain.core.chain import Chain
 
 __all__ = ["BasicChain"]
@@ -23,25 +23,25 @@ class BasicChain(Chain):
 
     def __init__(self):
         self.links: Dict[str, Link] = {}
-        self.connections: List[tuple[str, str, Callable[[Context], bool]]] = []
-        self.middlewares: List[Middleware] = []
+        self.connections: List[tuple[str, str, Callable[[State], bool]]] = []
+        self.hooks: List[Hook] = []
 
     def add_link(self, name: str, link: Link) -> None:
         """With gentle inclusion, store the link."""
         self.links[name] = link
 
-    def connect(self, source: str, target: str, condition: Callable[[Context], bool]) -> None:
+    def connect(self, source: str, target: str, condition: Callable[[State], bool]) -> None:
         """With compassionate logic, add a connection."""
         self.connections.append((source, target, condition))
 
-    def use_middleware(self, middleware: Middleware) -> None:
-        """Lovingly attach middleware."""
-        self.middlewares.append(middleware)
+    def use_hook(self, hook: Hook) -> None:
+        """Lovingly attach hook."""
+        self.hooks.append(hook)
 
-    async def run(self, initial_ctx: Context) -> Context:
+    async def run(self, initial_ctx: State) -> State:
         """With selfless execution, flow through links."""
         ctx = initial_ctx
-        for mw in self.middlewares:
+        for mw in self.hooks:
             await mw.before(None, ctx)
 
         executed: Set[str] = set()
@@ -59,7 +59,7 @@ class BasicChain(Chain):
                     if src == link_name and cond(ctx):
                         to_execute.append(tgt)
 
-        for mw in self.middlewares:
+        for mw in self.hooks:
             await mw.after(None, ctx)
 
         return ctx

@@ -1,16 +1,16 @@
 /*!
 Simple Example: Math Chain Processing
 
-Demonstrates modular chain processing with math links and middleware.
+Demonstrates modular chain processing with math links and hook.
 Shows the new modular structure: core protocols, component implementations.
 */
 
 use std::collections::HashMap;
-use codeuchain::core::context::Context;
+use codeuchain::core::state::State;
 
 // Import from local examples
 mod components;
-use components::{BasicChain, MathLink, LoggingMiddleware};
+use components::{BasicChain, MathLink, LoggingHook};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -23,12 +23,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "mean".to_string(),
         |ctx| ctx.get("result").is_some(),
     );
-    chain.use_middleware(Box::new(LoggingMiddleware::new()));
+    chain.use_hook(Box::new(LoggingHook::new()));
 
-    // Run with initial context
+    // Run with initial state
     let mut data = HashMap::new();
     data.insert("numbers".to_string(), serde_json::json!([1, 2, 3, 4, 5]));
-    let ctx = Context::new(data);
+    let ctx = State::new(data);
 
     let result = chain.run(ctx).await;
     let result = match result {
@@ -40,7 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     println!("Final result: {:?}", result.get("result"));
-    println!("Full context: {:?}", result.to_hashmap());
+    println!("Full state: {:?}", result.to_hashmap());
 
     Ok(())
 }

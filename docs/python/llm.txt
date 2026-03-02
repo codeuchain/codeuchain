@@ -7,21 +7,21 @@ Full reference: `docs/python/llm-full.txt`
 pip install codeuchain
 ```
 ```python
-from codeuchain import Context, Chain
-ctx = Context({"payload": "hi"})
+from codeuchain import State, Chain
+ctx = State({"payload": "hi"})
 res = await chain.call(ctx)
 ```
 
 ## Primitives
-- Link: async `call(ctx: Context[TIn]) -> Context[TOut]`
-- Context: immutable mapping; `insert`, `insert_as`
+- Link: async `call(ctx: State[TIn]) -> State[TOut]`
+- State: immutable mapping; `insert`, `insert_as`
 - Chain: composition + `.catch()`
-- Middleware: `before/after/error` coroutines
+- Hook: `before/after/error` coroutines
 
 ## Minimal Link
 ```python
 class Parse(Link[Any, Any]):
-        async def call(self, ctx: Context[Any]) -> Context[Any]:
+        async def call(self, ctx: State[Any]) -> State[Any]:
                 return ctx.insert("parsed", True)
 ```
 
@@ -35,7 +35,7 @@ chain = Chain() \
 
 ## Type Evolution
 ```python
-c2: Context[Parsed] = c1.insert_as("parsed", Parsed(tokens=toks))
+c2: State[Parsed] = c1.insert_as("parsed", Parsed(tokens=toks))
 ```
 
 ## Error Classification
@@ -52,6 +52,6 @@ Retry transient (I/O, timeout). Surface validation/security.
 ```
 
 ## TL;DR
-Async links + immutable/evolving contexts + graceful middleware.
+Async links + immutable/evolving states + graceful hook.
 
 © 2025 Orchestrate LLC – Apache 2.0

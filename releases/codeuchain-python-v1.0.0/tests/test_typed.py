@@ -7,7 +7,7 @@ from typing import List, TypedDict, Optional
 
 import pytest
 
-from codeuchain.core import Chain, Context, Link
+from codeuchain.core import Chain, State, Link
 
 
 class InputData(TypedDict):
@@ -20,7 +20,7 @@ class OutputData(InputData):
 
 
 class SumLink(Link[InputData, OutputData]):
-    async def call(self, ctx: Context[InputData]) -> Context[OutputData]:
+    async def call(self, ctx: State[InputData]) -> State[OutputData]:
         numbers = ctx.get("numbers") or []
         total = sum(numbers)
         # Use insert_as to evolve the type from InputData to OutputData
@@ -29,10 +29,10 @@ class SumLink(Link[InputData, OutputData]):
 
 class TestTypedBasics:
     @pytest.mark.unit
-    def test_typed_context_creation(self):
-        """Test creating a typed context."""
+    def test_typed_state_creation(self):
+        """Test creating a typed state."""
         data: InputData = {"numbers": [1, 2, 3], "operation": "sum"}
-        ctx: Context[InputData] = Context(data)
+        ctx: State[InputData] = State(data)
         assert ctx.get("numbers") == [1, 2, 3]
 
     @pytest.mark.unit
@@ -40,7 +40,7 @@ class TestTypedBasics:
         """Test executing a typed link."""
         link = SumLink()
         input_data: InputData = {"numbers": [1, 2, 3, 4], "operation": "sum"}
-        ctx: Context[InputData] = Context(input_data)
+        ctx: State[InputData] = State(input_data)
 
         import asyncio
         result_ctx = asyncio.run(link.call(ctx))
@@ -53,7 +53,7 @@ class TestTypedBasics:
         chain.add_link(SumLink(), "sum")
 
         input_data: InputData = {"numbers": [2, 4, 6, 8], "operation": "stats"}
-        ctx: Context[InputData] = Context(input_data)
+        ctx: State[InputData] = State(input_data)
 
         import asyncio
         result_ctx = asyncio.run(chain.run(ctx))
@@ -64,8 +64,8 @@ class TestGenericTypeEvolution:
     """Test generic type evolution features."""
 
     @pytest.mark.unit
-    def test_context_type_evolution(self):
-        """Test that Context supports type evolution with insert_as."""
+    def test_state_type_evolution(self):
+        """Test that State supports type evolution with insert_as."""
 
         class InitialData(TypedDict):
             name: str
@@ -75,9 +75,9 @@ class TestGenericTypeEvolution:
             age: int
 
         initial: InitialData = {"name": "Alice"}
-        ctx: Context[InitialData] = Context(initial)
+        ctx: State[InitialData] = State(initial)
 
-        # Evolve the context type
+        # Evolve the state type
         evolved_ctx = ctx.insert_as("age", 30)
 
         # Verify the evolution worked
@@ -85,14 +85,14 @@ class TestGenericTypeEvolution:
         assert evolved_ctx.get("age") == 30
 
     @pytest.mark.unit
-    def test_generic_context_operations(self):
-        """Test generic Context operations maintain type safety."""
+    def test_generic_state_operations(self):
+        """Test generic State operations maintain type safety."""
 
         class TestData(TypedDict):
             value: int
 
         data: TestData = {"value": 42}
-        ctx: Context[TestData] = Context(data)
+        ctx: State[TestData] = State(data)
 
         # Test get operation
         assert ctx.get("value") == 42
@@ -105,19 +105,19 @@ class TestGenericTypeEvolution:
 
         # Test merge operation
         other_data: TestData = {"value": 100}
-        other_ctx: Context[TestData] = Context(other_data)
+        other_ctx: State[TestData] = State(other_data)
         merged_ctx = ctx.merge(other_ctx)
         assert merged_ctx.get("value") == 100  # other_ctx takes precedence
 
     @pytest.mark.unit
-    def test_mutable_context_generic(self):
-        """Test MutableContext with generic typing."""
+    def test_mutable_state_generic(self):
+        """Test MutableState with generic typing."""
 
         class TestData(TypedDict):
             counter: int
 
         data: TestData = {"counter": 0}
-        mutable_ctx = Context(data).with_mutation()
+        mutable_ctx = State(data).with_mutation()
 
         # Test mutable operations
         mutable_ctx.set("counter", 5)  # type: ignore
@@ -149,13 +149,13 @@ class TestTypedWorkflows:
             average: float
 
         class ParseLink(Link[RawData, ParsedData]):
-            async def call(self, ctx: Context[RawData]) -> Context[ParsedData]:
+            async def call(self, ctx: State[RawData]) -> State[ParsedData]:
                 raw_values = ctx.get("raw_values") or []
                 parsed_numbers = [int(x) for x in raw_values if x.isdigit()]
                 return ctx.insert_as("parsed_numbers", parsed_numbers)  # type: ignore
 
         class ProcessLink(Link[ParsedData, ProcessedData]):
-            async def call(self, ctx: Context[ParsedData]) -> Context[ProcessedData]:
+            async def call(self, ctx: State[ParsedData]) -> State[ProcessedData]:
                 numbers = ctx.get("parsed_numbers") or []
                 total = sum(numbers)
                 avg = total / len(numbers) if numbers else 0.0
@@ -167,7 +167,7 @@ class TestTypedWorkflows:
         chain.add_link(ProcessLink(), "process")
 
         input_data: RawData = {"raw_values": ["1", "2", "3", "4", "5"]}
-        ctx: Context[RawData] = Context(input_data)
+        ctx: State[RawData] = State(input_data)
 
         import asyncio
         result_ctx = asyncio.run(chain.run(ctx))
@@ -189,7 +189,7 @@ class TestTypedWorkflows:
             error: Optional[str]
 
         class ValidateLink(Link[InputData, OutputData]):
-            async def call(self, ctx: Context[InputData]) -> Context[OutputData]:
+            async def call(self, ctx: State[InputData]) -> State[OutputData]:
                 value = ctx.get("value")
                 if value is None:
                     return ctx.insert_as("error", "Value is required")  # type: ignore
@@ -201,7 +201,7 @@ class TestTypedWorkflows:
 
         # Test valid input
         valid_input: InputData = {"value": 42}
-        ctx: Context[InputData] = Context(valid_input)
+        ctx: State[InputData] = State(valid_input)
 
         link = ValidateLink()
         import asyncio
@@ -210,7 +210,7 @@ class TestTypedWorkflows:
 
         # Test invalid input
         invalid_input: InputData = {"value": -1}
-        ctx2: Context[InputData] = Context(invalid_input)
+        ctx2: State[InputData] = State(invalid_input)
         result_ctx2 = asyncio.run(link.call(ctx2))
         assert result_ctx2.get("error") == "Value must be non-negative"
 
@@ -219,9 +219,9 @@ class TestBackwardCompatibility:
     """Test that generic enhancements don't break existing untyped code."""
 
     @pytest.mark.unit
-    def test_untyped_context_still_works(self):
-        """Test that untyped Context usage still works."""
-        ctx = Context({"key": "value"})
+    def test_untyped_state_still_works(self):
+        """Test that untyped State usage still works."""
+        ctx = State({"key": "value"})
         assert ctx.get("key") == "value"
 
         new_ctx = ctx.insert("new_key", "new_value")
@@ -232,7 +232,7 @@ class TestBackwardCompatibility:
         """Test mixing typed and untyped components in chains."""
 
         class SimpleLink(Link):
-            async def call(self, ctx: Context) -> Context:
+            async def call(self, ctx: State) -> State:
                 value = ctx.get("input") or 0
                 return ctx.insert("output", value * 2)
 
@@ -240,7 +240,7 @@ class TestBackwardCompatibility:
         chain = Chain()  # Untyped chain
         chain.add_link(SimpleLink(), "double")
 
-        ctx = Context({"input": 5})
+        ctx = State({"input": 5})
         import asyncio
         result_ctx = asyncio.run(chain.run(ctx))
         assert result_ctx.get("output") == 10

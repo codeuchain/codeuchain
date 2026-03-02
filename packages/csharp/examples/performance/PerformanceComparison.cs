@@ -29,7 +29,7 @@ public class PerformanceComparison
         syncChain = syncChain.AddLink("add", new SyncAddLink());
         syncChain = syncChain.AddLink("multiply", new SyncMultiplyLink());
 
-        var input = Context.Create(new Dictionary<string, object>
+        var input = State.Create(new Dictionary<string, object>
         {
             ["a"] = 3,
             ["b"] = 4
@@ -101,19 +101,19 @@ public class PerformanceComparison
 /// </summary>
 public class FastAddLink : ILink
 {
-    public async Task<Context> CallAsync(Context context)
+    public async Task<State> CallAsync(State state)
     {
-        var a = context.Get<int>("a");
-        var b = context.Get<int>("b");
-        return context.Insert("sum", a + b);
+        var a = state.Get<int>("a");
+        var b = state.Get<int>("b");
+        return state.Insert("sum", a + b);
     }
 }
 
 public class FastMultiplyLink : ILink
 {
-    public async Task<Context> CallAsync(Context context)
+    public async Task<State> CallAsync(State state)
     {
-        var sum = context.Get<int>("sum");
-        return context.Insert("result", sum * 2);
+        var sum = state.Get<int>("sum");
+        return state.Insert("result", sum * 2);
     }
 }

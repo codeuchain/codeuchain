@@ -5,9 +5,9 @@ The foundation that AI maintains and humans rarely touch.
 Contains protocols, abstract base classes, and fundamental types.
 """
 
-from .context import Context, MutableContext
+from .state import State, MutableState
 from .link import Link
 from .chain import Chain
-from .middleware import Middleware
+from .hook import Hook
 
-__all__ = ["Context", "MutableContext", "Link", "Chain", "Middleware"]
+__all__ = ["State", "MutableState", "Link", "Chain", "Hook"]

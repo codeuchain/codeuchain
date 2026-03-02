@@ -1,6 +1,6 @@
 # CodeUChain Dart
 
-CodeUChain provides a robust framework for chaining processing links with middleware support and comprehensive error handling. Enhanced with generic typing for type-safe workflows following Dart's language idioms.
+CodeUChain provides a robust framework for chaining processing links with hook support and comprehensive error handling. Enhanced with generic typing for type-safe workflows following Dart's language idioms.
 
 [![Dart](https://img.shields.io/badge/Dart-3.9+-blue)](https://dart.dev/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -15,12 +15,12 @@ Visit us at **[codeuchain.com](https://codeuchain.com)** for the complete cross-
 
 ## ✨ Features
 
-- **🎯 Generic Types**: `Link<TInput, TOutput>` and `Context<T>` for compile-time safety
+- **🎯 Generic Types**: `Link<TInput, TOutput>` and `State<T>` for compile-time safety
 - **🔄 Type Evolution**: Transform between related types without casting via `insertAs<U>()`
 - **⚡ Zero Performance Impact**: Identical runtime behavior with or without typing
 - **📈 Gradual Adoption**: Add typing incrementally to existing code
 - **🛡️ Comprehensive Error Handling**: Built-in error routing and retry logic
-- **🔍 Rich Middleware**: Logging, performance monitoring, and custom observers
+- **🔍 Rich Hook**: Logging, performance monitoring, and custom observers
 - **🚀 Dart Idioms**: Leverages null safety, async/await, and strong typing
 - **🔗 Universal Patterns**: Same mental model as other CodeUChain implementations
 
@@ -49,10 +49,10 @@ class AddNumbersLink extends BaseLink<Map<String, dynamic>, Map<String, dynamic>
   AddNumbersLink() : super('AddNumbers');
 
   @override
-  Future<Context<Map<String, dynamic>>> execute(Context<Map<String, dynamic>> context) async {
-    final a = context.get('a') as int;
-    final b = context.get('b') as int;
-    return context.insert('result', a + b);
+  Future<State<Map<String, dynamic>>> execute(State<Map<String, dynamic>> state) async {
+    final a = state.get('a') as int;
+    final b = state.get('b') as int;
+    return state.insert('result', a + b);
   }
 }
 
@@ -60,27 +60,27 @@ void main() async {
   // Create and run a chain
   final chain = Chain<Map<String, dynamic>, Map<String, dynamic>>()
     .add(AddNumbersLink())
-    .use(LoggingMiddleware());
+    .use(LoggingHook());
 
-  final result = await chain.run(Context({'a': 10, 'b': 20}));
+  final result = await chain.run(State({'a': 10, 'b': 20}));
   print(result.get('result')); // 30
 }
 ```
 
 ## 🎯 Core Concepts
 
-### Context: The Data Container
+### State: The Data Container
 
 ```dart
 // Immutable by default
-final context = Context({'name': 'Alice', 'age': 30});
-final updated = context.insert('email', 'alice@example.com');
+final state = State({'name': 'Alice', 'age': 30});
+final updated = state.insert('email', 'alice@example.com');
 
 // Type evolution for clean transformations
-final evolved = context.insertAs<UserProfile>('profile', UserProfile(...));
+final evolved = state.insertAs<UserProfile>('profile', UserProfile(...));
 
 // Mutable for performance-critical operations
-final mutable = context.toMutable();
+final mutable = state.toMutable();
 mutable.set('temp', 'value');
 final backToImmutable = mutable.toImmutable();
 ```
@@ -93,22 +93,22 @@ class ValidateUserLink extends BaseLink<UserInput, UserInput> {
   ValidateUserLink() : super('ValidateUser');
 
   @override
-  Future<Context<UserInput>> execute(Context<UserInput> context) async {
+  Future<State<UserInput>> execute(State<UserInput> state) async {
     // Validation logic here
-    return context.insert('validated', true);
+    return state.insert('validated', true);
   }
 }
 
 // Function-based links for quick prototyping
-final quickLink = FunctionLink('ProcessData', (context) async {
-  final data = context.get('data');
-  return context.insert('processed', processData(data));
+final quickLink = FunctionLink('ProcessData', (state) async {
+  final data = state.get('data');
+  return state.insert('processed', processData(data));
 });
 
 // Synchronous links
 final syncLink = Chain()
-  .addSyncFunction('Transform', (context) {
-    return context.insert('transformed', true);
+  .addSyncFunction('Transform', (state) {
+    return state.insert('transformed', true);
   });
 ```
 
@@ -119,26 +119,26 @@ final userChain = Chain<UserInput, UserOutput>('UserProcessing')
   .add(ValidateUserLink())
   .add(ProcessUserLink())
   .add(SaveUserLink())
-  .use(LoggingMiddleware())
-  .use(PerformanceMiddleware());
+  .use(LoggingHook())
+  .use(PerformanceHook());
 
-final result = await userChain.run(initialContext);
+final result = await userChain.run(initialState);
 ```
 
-### Middleware: The Enhancer
+### Hook: The Enhancer
 
 ```dart
 // Built-in logging
-.use(LoggingMiddleware(logLevel: LogLevel.debug))
+.use(LoggingHook(logLevel: LogLevel.debug))
 
 // Performance monitoring
-.use(PerformanceMiddleware(
+.use(PerformanceHook(
   slowExecutionThreshold: 1000,
   onSlowExecution: (name, duration) => print('Slow: $name'),
 ))
 
-// Custom middleware
-.use(FunctionMiddleware(
+// Custom hook
+.use(FunctionHook(
   'CustomMonitor',
   beforeLink: (execution) async => print('Starting ${execution.linkName}'),
   afterLink: (execution) async => print('Completed ${execution.linkName}'),
@@ -155,10 +155,10 @@ class UserProcessor extends BaseLink<UserInput, ProcessedUser> {
   UserProcessor() : super('UserProcessor');
 
   @override
-  Future<Context<ProcessedUser>> execute(Context<UserInput> context) async {
-    final input = context.get('userData') as UserInput;
+  Future<State<ProcessedUser>> execute(State<UserInput> state) async {
+    final input = state.get('userData') as UserInput;
     final processed = ProcessedUser.fromInput(input);
-    return context.insertAs<ProcessedUser>('processedUser', processed);
+    return state.insertAs<ProcessedUser>('processedUser', processed);
   }
 }
 
@@ -173,12 +173,12 @@ final typedChain = Chain<UserInput, ProcessedUser>()
 
 ```dart
 // Clean type transformations without casting
-final inputContext = Context<UserInput>({'userData': userData});
-final processedContext = inputContext.insertAs<ProcessedUser>('result', processedUser);
+final inputState = State<UserInput>({'userData': userData});
+final processedState = inputState.insertAs<ProcessedUser>('result', processedUser);
 
 // Maintains both old and new data
-print(processedContext.get('userData'));  // Original UserInput
-print(processedContext.get('result'));    // New ProcessedUser
+print(processedState.get('userData'));  // Original UserInput
+print(processedState.get('result'));    // New ProcessedUser
 ```
 
 For more examples, see the [example directory](example/) which includes comprehensive demonstrations of all features.

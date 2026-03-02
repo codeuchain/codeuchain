@@ -31,7 +31,7 @@ public class TypedFeaturesExamples
             .AddLink("add", new UntypedAddLink())
             .AddLink("multiply", new UntypedMultiplyLink());
 
-        var untypedInput = Context.Create(new Dictionary<string, object>
+        var untypedInput = State.Create(new Dictionary<string, object>
         {
             ["a"] = 3,
             ["b"] = 4
@@ -46,7 +46,7 @@ public class TypedFeaturesExamples
             .AddLink("add", new TypedAddLink())
             .AddLink("multiply", new TypedMultiplyLink());
 
-        var typedInput = Context<InputData>.Create(new Dictionary<string, object>
+        var typedInput = State<InputData>.Create(new Dictionary<string, object>
         {
             ["a"] = 3,
             ["b"] = 4
@@ -65,21 +65,21 @@ public class TypedFeaturesExamples
     {
         Console.WriteLine("=== 2. Type Evolution with InsertAs<U>() ===\n");
 
-        // Start with InputData context
-        var inputContext = Context<InputData>.Create(new Dictionary<string, object>
+        // Start with InputData state
+        var inputState = State<InputData>.Create(new Dictionary<string, object>
         {
             ["numbers"] = new List<int> { 1, 2, 3 }
         });
 
-        Console.WriteLine($"Initial context: {inputContext}");
+        Console.WriteLine($"Initial state: {inputState}");
 
         // Type evolution: Transform to ProcessingData without casting
-        var processingContext = inputContext.InsertAs<ProcessingData>("sum", 6);
-        Console.WriteLine($"After type evolution: {processingContext}");
+        var processingState = inputState.InsertAs<ProcessingData>("sum", 6);
+        Console.WriteLine($"After type evolution: {processingState}");
 
         // Further evolution: Transform to OutputData
-        var outputContext = processingContext.InsertAs<OutputData>("result", 12.0);
-        Console.WriteLine($"Final context: {outputContext}");
+        var outputState = processingState.InsertAs<OutputData>("result", 12.0);
+        Console.WriteLine($"Final state: {outputState}");
 
         Console.WriteLine("\n✅ Clean type evolution without explicit casting!\n");
     }
@@ -97,7 +97,7 @@ public class TypedFeaturesExamples
             .AddLink("calculate", new CalculationLink())
             .AddLink("format", new FormattingLink());
 
-        var input = Context<InputData>.Create(new Dictionary<string, object>
+        var input = State<InputData>.Create(new Dictionary<string, object>
         {
             ["numbers"] = new List<int> { 1, 2, 3, 4, 5 }
         });
@@ -122,7 +122,7 @@ public class TypedFeaturesExamples
             .AddLink("parse", new UntypedParseLink())
             .AddLink("validate", new UntypedValidateLink());
 
-        var untypedInput = Context.Create(new Dictionary<string, object>
+        var untypedInput = State.Create(new Dictionary<string, object>
         {
             ["rawData"] = "1,2,3,4,5"
         });
@@ -130,8 +130,8 @@ public class TypedFeaturesExamples
         var untypedResult = await untypedChain.RunAsync(untypedInput);
         Console.WriteLine($"Untyped processing result: {untypedResult}");
 
-        // Convert to typed context for further processing
-        var typedContext = Context<InputData>.Create(new Dictionary<string, object>
+        // Convert to typed state for further processing
+        var typedState = State<InputData>.Create(new Dictionary<string, object>
         {
             ["numbers"] = untypedResult.Get("parsedNumbers")
         });
@@ -141,7 +141,7 @@ public class TypedFeaturesExamples
             .AddLink("calculate", new CalculationLink())
             .AddLink("format", new FormattingLink());
 
-        var finalResult = await typedChain.RunAsync(typedContext);
+        var finalResult = await typedChain.RunAsync(typedState);
         Console.WriteLine($"Final typed result: {finalResult}");
 
         Console.WriteLine("\n✅ Seamless transition between typed and untyped code!\n");
@@ -156,57 +156,57 @@ public class OutputData { }
 // Untyped link implementations (existing CodeUChain style)
 public class UntypedAddLink : ILink
 {
-    public ValueTask<Context> ProcessAsync(Context context)
+    public ValueTask<State> ProcessAsync(State state)
     {
-        var a = context.Get<int>("a");
-        var b = context.Get<int>("b");
-        return ValueTask.FromResult(context.Insert("sum", a + b));
+        var a = state.Get<int>("a");
+        var b = state.Get<int>("b");
+        return ValueTask.FromResult(state.Insert("sum", a + b));
     }
 }
 
 public class UntypedMultiplyLink : ILink
 {
-    public ValueTask<Context> ProcessAsync(Context context)
+    public ValueTask<State> ProcessAsync(State state)
     {
-        var sum = context.Get<int>("sum");
-        return ValueTask.FromResult(context.Insert("result", sum * 2));
+        var sum = state.Get<int>("sum");
+        return ValueTask.FromResult(state.Insert("result", sum * 2));
     }
 }
 
 public class UntypedParseLink : ILink
 {
-    public ValueTask<Context> ProcessAsync(Context context)
+    public ValueTask<State> ProcessAsync(State state)
     {
-        var rawData = context.Get<string>("rawData");
+        var rawData = state.Get<string>("rawData");
         var numbers = rawData?.Split(',').Select(int.Parse).ToList();
-        return ValueTask.FromResult(context.Insert("parsedNumbers", numbers));
+        return ValueTask.FromResult(state.Insert("parsedNumbers", numbers));
     }
 }
 
 public class UntypedValidateLink : ILink
 {
-    public ValueTask<Context> ProcessAsync(Context context)
+    public ValueTask<State> ProcessAsync(State state)
     {
-        var numbers = context.Get<List<int>>("parsedNumbers");
+        var numbers = state.Get<List<int>>("parsedNumbers");
         if (numbers == null || !numbers.Any())
         {
             throw new InvalidOperationException("No numbers to process");
         }
-        return ValueTask.FromResult(context.Insert("validated", true));
+        return ValueTask.FromResult(state.Insert("validated", true));
     }
 }
 
 // Typed link implementations (new opt-in feature)
-public class TypedAddLink : IContextLink<InputData, ProcessingData>
+public class TypedAddLink : IStateLink<InputData, ProcessingData>
 {
-    public async Task<Context<ProcessingData>> CallAsync(Context<InputData> context)
+    public async Task<State<ProcessingData>> CallAsync(State<InputData> state)
     {
         // Type-safe access to input data
-        var numbers = context.GetAny("numbers") as List<int> ?? new List<int>();
+        var numbers = state.GetAny("numbers") as List<int> ?? new List<int>();
         var sum = numbers.Sum();
 
-        // Return new context with evolved type
-        return Context<ProcessingData>.Create(new Dictionary<string, object>
+        // Return new state with evolved type
+        return State<ProcessingData>.Create(new Dictionary<string, object>
         {
             ["numbers"] = numbers,
             ["sum"] = sum
@@ -214,14 +214,14 @@ public class TypedAddLink : IContextLink<InputData, ProcessingData>
     }
 }
 
-public class TypedMultiplyLink : IContextLink<ProcessingData, OutputData>
+public class TypedMultiplyLink : IStateLink<ProcessingData, OutputData>
 {
-    public async Task<Context<OutputData>> CallAsync(Context<ProcessingData> context)
+    public async Task<State<OutputData>> CallAsync(State<ProcessingData> state)
     {
-        var sum = context.GetAny("sum") as int? ?? 0;
+        var sum = state.GetAny("sum") as int? ?? 0;
         var result = sum * 2;
 
-        return Context<OutputData>.Create(new Dictionary<string, object>
+        return State<OutputData>.Create(new Dictionary<string, object>
         {
             ["sum"] = sum,
             ["result"] = result
@@ -229,29 +229,29 @@ public class TypedMultiplyLink : IContextLink<ProcessingData, OutputData>
     }
 }
 
-public class ValidationLink : IContextLink<InputData, InputData>
+public class ValidationLink : IStateLink<InputData, InputData>
 {
-    public async Task<Context<InputData>> CallAsync(Context<InputData> context)
+    public async Task<State<InputData>> CallAsync(State<InputData> state)
     {
-        var numbers = context.GetAny("numbers") as List<int>;
+        var numbers = state.GetAny("numbers") as List<int>;
         if (numbers == null || !numbers.Any())
         {
             throw new InvalidOperationException("Input must contain numbers");
         }
-        return context.Insert("validated", true);
+        return state.Insert("validated", true);
     }
 }
 
-public class CalculationLink : IContextLink<InputData, ProcessingData>
+public class CalculationLink : IStateLink<InputData, ProcessingData>
 {
-    public async Task<Context<ProcessingData>> CallAsync(Context<InputData> context)
+    public async Task<State<ProcessingData>> CallAsync(State<InputData> state)
     {
-        var numbers = context.GetAny("numbers") as List<int> ?? new List<int>();
+        var numbers = state.GetAny("numbers") as List<int> ?? new List<int>();
         var sum = numbers.Sum();
         var average = numbers.Average();
         var count = numbers.Count;
 
-        return Context<ProcessingData>.Create(new Dictionary<string, object>
+        return State<ProcessingData>.Create(new Dictionary<string, object>
         {
             ["numbers"] = numbers,
             ["sum"] = sum,
@@ -261,18 +261,18 @@ public class CalculationLink : IContextLink<InputData, ProcessingData>
     }
 }
 
-public class FormattingLink : IContextLink<ProcessingData, OutputData>
+public class FormattingLink : IStateLink<ProcessingData, OutputData>
 {
-    public async Task<Context<OutputData>> CallAsync(Context<ProcessingData> context)
+    public async Task<State<OutputData>> CallAsync(State<ProcessingData> state)
     {
-        var numbers = context.GetAny("numbers") as List<int> ?? new List<int>();
-        var sum = context.GetAny("sum") as int? ?? 0;
-        var average = context.GetAny("average") as double? ?? 0.0;
-        var count = context.GetAny("count") as int? ?? 0;
+        var numbers = state.GetAny("numbers") as List<int> ?? new List<int>();
+        var sum = state.GetAny("sum") as int? ?? 0;
+        var average = state.GetAny("average") as double? ?? 0.0;
+        var count = state.GetAny("count") as int? ?? 0;
 
         var formatted = $"Processed {count} numbers: {string.Join(", ", numbers)} = Sum: {sum}, Avg: {average:F2}";
 
-        return Context<OutputData>.Create(new Dictionary<string, object>
+        return State<OutputData>.Create(new Dictionary<string, object>
         {
             ["formatted"] = formatted,
             ["summary"] = new { sum, average, count }

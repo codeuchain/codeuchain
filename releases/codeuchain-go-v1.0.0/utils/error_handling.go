@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"context"
+	"state"
 	"fmt"
 )
 
@@ -34,13 +34,13 @@ func (ehm *ErrorHandlingMixin) OnError(source, handler string, condition func(er
 }
 
 // HandleError finds and executes error handler
-func (ehm *ErrorHandlingMixin) HandleError(linkName string, err error, ctx *Context, links map[string]Link) (*Context, error) {
+func (ehm *ErrorHandlingMixin) HandleError(linkName string, err error, ctx *State, links map[string]Link) (*State, error) {
 	for _, conn := range ehm.ErrorConnections {
 		if conn.Source == linkName && conn.Condition(err) {
 			if handler, exists := links[conn.Handler]; exists {
-				// Insert error info into context
+				// Insert error info into state
 				ctxWithError := ctx.Insert("error", err.Error())
-				return handler.Call(context.Background(), ctxWithError)
+				return handler.Call(state.Background(), ctxWithError)
 			}
 		}
 	}
@@ -62,7 +62,7 @@ func NewRetryLink(inner Link, maxRetries int) *RetryLink {
 }
 
 // Call implements the Link interface with retry logic
-func (rl *RetryLink) Call(ctx context.Context, c *Context) (*Context, error) {
+func (rl *RetryLink) Call(ctx state.State, c *State) (*State, error) {
 	var lastErr error
 
 	for attempt := 0; attempt <= rl.MaxRetries; attempt++ {

@@ -3,31 +3,31 @@ using System.Threading.Tasks;
 /// <summary>
 /// Double Value Link: Doubles numeric values
 /// </summary>
-public class DoubleValueLink : IContextLink<string, string>
+public class DoubleValueLink : IStateLink<string, string>
 {
-    public async Task<Context<string>> CallAsync(Context<string> context)
+    public async Task<State<string>> CallAsync(State<string> state)
     {
-        var valueStr = context.GetAny("result")?.ToString() ?? context.GetAny("value")?.ToString() ?? context.GetAny("string")?.ToString() ?? "0";
+        var valueStr = state.GetAny("result")?.ToString() ?? state.GetAny("value")?.ToString() ?? state.GetAny("string")?.ToString() ?? "0";
         if (int.TryParse(valueStr, out int value))
         {
-            return Context<string>.Create(new Dictionary<string, object>
+            return State<string>.Create(new Dictionary<string, object>
             {
                 ["result"] = (value * 2).ToString()
             });
         }
-        return context;
+        return state;
     }
 }
 
 /// <summary>
 /// Object to String Link: Converts values to strings
 /// </summary>
-public class ObjectToStringLink : IContextLink<string, string>
+public class ObjectToStringLink : IStateLink<string, string>
 {
-    public async Task<Context<string>> CallAsync(Context<string> context)
+    public async Task<State<string>> CallAsync(State<string> state)
     {
-        var value = context.GetAny("value")?.ToString() ?? "0";
-        return Context<string>.Create(new Dictionary<string, object>
+        var value = state.GetAny("value")?.ToString() ?? "0";
+        return State<string>.Create(new Dictionary<string, object>
         {
             ["string"] = value
         });
@@ -37,7 +37,7 @@ public class ObjectToStringLink : IContextLink<string, string>
 /// <summary>
 /// Nested Chain Link: Wraps another chain
 /// </summary>
-public class NestedChainLink : IContextLink<string, string>
+public class NestedChainLink : IStateLink<string, string>
 {
     private readonly Chain<string, string> _innerChain;
 
@@ -46,21 +46,21 @@ public class NestedChainLink : IContextLink<string, string>
         _innerChain = innerChain;
     }
 
-    public async Task<Context<string>> CallAsync(Context<string> context)
+    public async Task<State<string>> CallAsync(State<string> state)
     {
-        return await _innerChain.RunAsync(context);
+        return await _innerChain.RunAsync(state);
     }
 }
 
 /// <summary>
 /// String to Object Link: Processes string results
 /// </summary>
-public class StringToObjectLink : IContextLink<string, string>
+public class StringToObjectLink : IStateLink<string, string>
 {
-    public async Task<Context<string>> CallAsync(Context<string> context)
+    public async Task<State<string>> CallAsync(State<string> state)
     {
-        var value = context.GetAny("result")?.ToString() ?? "0";
-        return Context<string>.Create(new Dictionary<string, object>
+        var value = state.GetAny("result")?.ToString() ?? "0";
+        return State<string>.Create(new Dictionary<string, object>
         {
             ["final"] = value
         });

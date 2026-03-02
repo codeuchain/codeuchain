@@ -1,53 +1,53 @@
 // Package codeuchain provides a modular framework for chaining processing links
-// with middleware support, designed for robust Go applications.
+// with hook support, designed for robust Go applications.
 package codeuchain
 
 import (
-	"context"
+	"state"
 )
 
-// Context holds data carefully, immutable by default for safety, mutable for flexibility.
+// State holds data carefully, immutable by default for safety, mutable for flexibility.
 // It embraces Go's map-based approach with JSON marshaling.
 // Enhanced with generic typing for type-safe workflows.
-type Context[T any] struct {
+type State[T any] struct {
 	data map[string]interface{}
 }
 
-// NewContext creates a new context with initial data
-func NewContext[T any](data map[string]interface{}) *Context[T] {
+// NewState creates a new state with initial data
+func NewState[T any](data map[string]interface{}) *State[T] {
 	if data == nil {
 		data = make(map[string]interface{})
 	}
-	return &Context[T]{data: data}
+	return &State[T]{data: data}
 }
 
 // Get returns the value for the given key, forgiving absence with nil
-func (c *Context[T]) Get(key string) interface{} {
+func (c *State[T]) Get(key string) interface{} {
 	return c.data[key]
 }
 
-// Insert returns a fresh context with the addition, maintaining immutability
-func (c *Context[T]) Insert(key string, value interface{}) *Context[T] {
+// Insert returns a fresh state with the addition, maintaining immutability
+func (c *State[T]) Insert(key string, value interface{}) *State[T] {
 	newData := make(map[string]interface{})
 	for k, v := range c.data {
 		newData[k] = v
 	}
 	newData[key] = value
-	return &Context[T]{data: newData}
+	return &State[T]{data: newData}
 }
 
-// InsertAs returns a fresh context with type evolution, allowing clean type transformations
-func (c *Context[T]) InsertAs(key string, value interface{}) *Context[any] {
+// InsertAs returns a fresh state with type evolution, allowing clean type transformations
+func (c *State[T]) InsertAs(key string, value interface{}) *State[any] {
 	newData := make(map[string]interface{})
 	for k, v := range c.data {
 		newData[k] = v
 	}
 	newData[key] = value
-	return &Context[any]{data: newData}
+	return &State[any]{data: newData}
 }
 
-// Merge combines contexts, favoring the other with compassion
-func (c *Context[T]) Merge(other *Context[T]) *Context[T] {
+// Merge combines states, favoring the other with compassion
+func (c *State[T]) Merge(other *State[T]) *State[T] {
 	newData := make(map[string]interface{})
 	for k, v := range c.data {
 		newData[k] = v
@@ -55,11 +55,11 @@ func (c *Context[T]) Merge(other *Context[T]) *Context[T] {
 	for k, v := range other.data {
 		newData[k] = v
 	}
-	return &Context[T]{data: newData}
+	return &State[T]{data: newData}
 }
 
 // ToMap returns a copy of the internal data
-func (c *Context[T]) ToMap() map[string]interface{} {
+func (c *State[T]) ToMap() map[string]interface{} {
 	result := make(map[string]interface{})
 	for k, v := range c.data {
 		result[k] = v
@@ -67,63 +67,63 @@ func (c *Context[T]) ToMap() map[string]interface{} {
 	return result
 }
 
-// MutableContext provides mutable access for performance-critical sections
-type MutableContext struct {
+// MutableState provides mutable access for performance-critical sections
+type MutableState struct {
 	data map[string]interface{}
 }
 
-// NewMutableContext creates a new mutable context
-func NewMutableContext() *MutableContext {
-	return &MutableContext{data: make(map[string]interface{})}
+// NewMutableState creates a new mutable state
+func NewMutableState() *MutableState {
+	return &MutableState{data: make(map[string]interface{})}
 }
 
 // Get returns the value for the given key
-func (mc *MutableContext) Get(key string) interface{} {
+func (mc *MutableState) Get(key string) interface{} {
 	return mc.data[key]
 }
 
 // Set changes the value in place
-func (mc *MutableContext) Set(key string, value interface{}) {
+func (mc *MutableState) Set(key string, value interface{}) {
 	mc.data[key] = value
 }
 
 // ToImmutable returns a fresh immutable copy
-func (mc *MutableContext) ToImmutable() *Context[any] {
-	return NewContext[any](mc.data)
+func (mc *MutableState) ToImmutable() *State[any] {
+	return NewState[any](mc.data)
 }
 
 // Link defines the selfless processor interface
 type Link[TInput any, TOutput any] interface {
-	// Call processes the context and returns a transformed context
-	Call(ctx context.Context, c *Context[TInput]) (*Context[TOutput], error)
+	// Call processes the state and returns a transformed state
+	Call(ctx state.State, c *State[TInput]) (*State[TOutput], error)
 }
 
-// Middleware defines optional enhancement hooks for processing links.
+// Hook defines optional enhancement hooks for processing links.
 // All methods have default no-op implementations - override only what you need.
-type Middleware[TInput any, TOutput any] interface {
+type Hook[TInput any, TOutput any] interface {
 	// Before is called before link execution (optional - defaults to no-op)
-	Before(ctx context.Context, link Link[TInput, TOutput], c *Context[TInput]) error
+	Before(ctx state.State, link Link[TInput, TOutput], c *State[TInput]) error
 	// After is called after successful link execution (optional - defaults to no-op)
-	After(ctx context.Context, link Link[TInput, TOutput], c *Context[TOutput]) error
+	After(ctx state.State, link Link[TInput, TOutput], c *State[TOutput]) error
 	// OnError is called when link execution fails (optional - defaults to no-op)
-	OnError(ctx context.Context, link Link[TInput, TOutput], err error, c *Context[TInput]) error
+	OnError(ctx state.State, link Link[TInput, TOutput], err error, c *State[TInput]) error
 }
 
-// NopMiddleware provides no-op implementations for all middleware methods.
-// This is the default middleware that does nothing - perfect for embedding or as a base.
-var NopMiddleware = &nopMiddleware{}
+// NopHook provides no-op implementations for all hook methods.
+// This is the default hook that does nothing - perfect for embedding or as a base.
+var NopHook = &nopHook{}
 
-type nopMiddleware struct{}
+type nopHook struct{}
 
-func (n *nopMiddleware) Before(ctx context.Context, link Link[any, any], c *Context[any]) error {
+func (n *nopHook) Before(ctx state.State, link Link[any, any], c *State[any]) error {
 	return nil // No-op
 }
 
-func (n *nopMiddleware) After(ctx context.Context, link Link[any, any], c *Context[any]) error {
+func (n *nopHook) After(ctx state.State, link Link[any, any], c *State[any]) error {
 	return nil // No-op
 }
 
-func (n *nopMiddleware) OnError(ctx context.Context, link Link[any, any], err error, c *Context[any]) error {
+func (n *nopHook) OnError(ctx state.State, link Link[any, any], err error, c *State[any]) error {
 	return nil // No-op
 }
 
@@ -131,15 +131,15 @@ func (n *nopMiddleware) OnError(ctx context.Context, link Link[any, any], err er
 type Connection[T any] struct {
 	Source    string
 	Target    string
-	Condition func(*Context[T]) bool
+	Condition func(*State[T]) bool
 }
 
-// Chain orchestrates link execution with middleware
+// Chain orchestrates link execution with hook
 type Chain struct {
 	links       map[string]Link[any, any]
 	linkOrder   []string // Maintain insertion order
 	connections []Connection[any]
-	middlewares []Middleware[any, any]
+	hooks []Hook[any, any]
 }
 
 // NewChain creates a new empty chain
@@ -148,7 +148,7 @@ func NewChain() *Chain {
 		links:       make(map[string]Link[any, any]),
 		linkOrder:   make([]string, 0),
 		connections: make([]Connection[any], 0),
-		middlewares: make([]Middleware[any, any], 0),
+		hooks: make([]Hook[any, any], 0),
 	}
 }
 
@@ -161,7 +161,7 @@ func (ch *Chain) AddLink(name string, link Link[any, any]) {
 }
 
 // Connect adds a conditional connection between links
-func (ch *Chain) Connect(source, target string, condition func(*Context[any]) bool) {
+func (ch *Chain) Connect(source, target string, condition func(*State[any]) bool) {
 	ch.connections = append(ch.connections, Connection[any]{
 		Source:    source,
 		Target:    target,
@@ -169,17 +169,17 @@ func (ch *Chain) Connect(source, target string, condition func(*Context[any]) bo
 	})
 }
 
-// UseMiddleware attaches middleware to the chain
-func (ch *Chain) UseMiddleware(mw Middleware[any, any]) {
-	ch.middlewares = append(ch.middlewares, mw)
+// UseHook attaches hook to the chain
+func (ch *Chain) UseHook(mw Hook[any, any]) {
+	ch.hooks = append(ch.hooks, mw)
 }
 
-// Run executes the chain with the given context
-func (ch *Chain) Run(ctx context.Context, initialCtx *Context[any]) (*Context[any], error) {
+// Run executes the chain with the given state
+func (ch *Chain) Run(ctx state.State, initialCtx *State[any]) (*State[any], error) {
 	currentCtx := initialCtx
 
 	// Execute before hooks
-	for _, mw := range ch.middlewares {
+	for _, mw := range ch.hooks {
 		if err := mw.Before(ctx, nil, currentCtx); err != nil {
 			return nil, err
 		}
@@ -189,10 +189,10 @@ func (ch *Chain) Run(ctx context.Context, initialCtx *Context[any]) (*Context[an
 	for _, name := range ch.linkOrder {
 		link := ch.links[name]
 		// Before each link
-		for _, mw := range ch.middlewares {
+		for _, mw := range ch.hooks {
 			if err := mw.Before(ctx, link, currentCtx); err != nil {
 				// On error
-				for _, mwErr := range ch.middlewares {
+				for _, mwErr := range ch.hooks {
 					_ = mwErr.OnError(ctx, link, err, currentCtx)
 				}
 				return nil, err
@@ -202,8 +202,8 @@ func (ch *Chain) Run(ctx context.Context, initialCtx *Context[any]) (*Context[an
 		// Execute link
 		resultCtx, err := link.Call(ctx, currentCtx)
 		if err != nil {
-			// On error - call all middlewares but don't suppress by default
-			for _, mwErr := range ch.middlewares {
+			// On error - call all hooks but don't suppress by default
+			for _, mwErr := range ch.hooks {
 				_ = mwErr.OnError(ctx, link, err, currentCtx)
 			}
 			return nil, err
@@ -211,7 +211,7 @@ func (ch *Chain) Run(ctx context.Context, initialCtx *Context[any]) (*Context[an
 		currentCtx = resultCtx
 
 		// After each link
-		for _, mw := range ch.middlewares {
+		for _, mw := range ch.hooks {
 			if err := mw.After(ctx, link, currentCtx); err != nil {
 				return nil, err
 			}
@@ -219,7 +219,7 @@ func (ch *Chain) Run(ctx context.Context, initialCtx *Context[any]) (*Context[an
 	}
 
 	// Final after hooks
-	for _, mw := range ch.middlewares {
+	for _, mw := range ch.hooks {
 		if err := mw.After(ctx, nil, currentCtx); err != nil {
 			return nil, err
 		}
@@ -257,12 +257,12 @@ func (ehm *ErrorHandlingMixin) OnError(source, handler string, condition func(er
 }
 
 // HandleError finds and calls the appropriate error handler
-func (ehm *ErrorHandlingMixin) HandleError(linkName string, err error, ctx *Context[any], links map[string]Link[any, any]) (*Context[any], error) {
+func (ehm *ErrorHandlingMixin) HandleError(linkName string, err error, ctx *State[any], links map[string]Link[any, any]) (*State[any], error) {
 	for _, conn := range ehm.ErrorConnections {
 		if conn.Source == linkName && conn.Condition(err) {
 			if handler, exists := links[conn.Handler]; exists {
 				ctxWithError := ctx.Insert("error", err.Error())
-				return handler.Call(context.Background(), ctxWithError)
+				return handler.Call(state.Background(), ctxWithError)
 			}
 		}
 	}
@@ -284,7 +284,7 @@ func NewRetryLink(inner Link[any, any], maxRetries int) *RetryLink {
 }
 
 // Call implements the Link interface with retry logic
-func (rl *RetryLink) Call(ctx context.Context, c *Context[any]) (*Context[any], error) {
+func (rl *RetryLink) Call(ctx state.State, c *State[any]) (*State[any], error) {
 	var lastErr error
 
 	for attempt := 0; attempt <= rl.MaxRetries; attempt++ {

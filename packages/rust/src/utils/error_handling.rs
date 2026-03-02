@@ -6,7 +6,7 @@ Optimized for Rust—Result types, retries, ecosystem integrations.
 */
 
 use async_trait::async_trait;
-use crate::core::context::Context;
+use crate::core::state::State;
 use crate::core::link::Link;
 
 /// Mixin for chains to handle errors with forgiveness.
@@ -35,9 +35,9 @@ impl ErrorHandlingMixin {
         &self,
         link_name: &str,
         error: &Box<dyn std::error::Error + Send + Sync>,
-        ctx: Context,
+        ctx: State,
         links: &std::collections::HashMap<String, Box<dyn Link>>,
-    ) -> Result<Option<Context>, Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<Option<State>, Box<dyn std::error::Error + Send + Sync>> {
         for (src, hdl, cond) in &self.error_connections {
             if src == link_name && cond(error) {
                 if let Some(handler) = links.get(hdl) {
@@ -74,7 +74,7 @@ impl<L: Link> RetryLink<L> {
 
 #[async_trait]
 impl<L: Link> Link for RetryLink<L> {
-    async fn call(&self, ctx: Context) -> Result<Context, Box<dyn std::error::Error + Send + Sync>> {
+    async fn call(&self, ctx: State) -> Result<State, Box<dyn std::error::Error + Send + Sync>> {
         let mut last_error: Option<Box<dyn std::error::Error + Send + Sync>> = None;
 
         for attempt in 0..=self.max_retries {

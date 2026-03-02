@@ -5,9 +5,9 @@ This directory contains example programs that demonstrate the CodeUChain COBOL i
 ## Examples
 
 ### 1. `simple_chain_example.cob`
-**Purpose**: Basic demonstration of chain execution and context passing
+**Purpose**: Basic demonstration of chain execution and state passing
 **Features**:
-- Simple context initialization
+- Simple state initialization
 - Link interface execution
 - Chain orchestration
 - Basic result handling
@@ -20,21 +20,21 @@ This directory contains example programs that demonstrate the CodeUChain COBOL i
 - COBOL's decimal arithmetic (COMP-3 fields)
 - Business-oriented calculations
 
-### 3. `middleware_example.cob`
-**Purpose**: Demonstrates middleware functionality and logging
+### 3. `hook_example.cob`
+**Purpose**: Demonstrates hook functionality and logging
 **Features**:
-- Middleware name retrieval
+- Hook name retrieval
 - Before/After operations
-- Logging middleware execution
+- Logging hook execution
 - Audit trail generation
 
 ### 4. `complete_architecture_demo.cob`
 **Purpose**: Complete demonstration of all CodeUChain components
 **Features**:
 - Full architecture integration
-- Context management
+- State management
 - Link processing (financial + general)
-- Middleware operations
+- Hook operations
 - Chain orchestration
 - Comprehensive workflow
 
@@ -54,7 +54,7 @@ make all
 # Compile individual examples
 cobc -x -O2 -debug -Wall -o simple_chain_example examples/simple_chain_example.cob
 cobc -x -O2 -debug -Wall -o financial_example examples/financial_example.cob
-cobc -x -O2 -debug -Wall -o middleware_example examples/middleware_example.cob
+cobc -x -O2 -debug -Wall -o hook_example examples/hook_example.cob
 cobc -x -O2 -debug -Wall -o complete_demo examples/complete_architecture_demo.cob
 ```
 
@@ -63,10 +63,10 @@ cobc -x -O2 -debug -Wall -o complete_demo examples/complete_architecture_demo.co
 # Run individual examples
 ./simple_chain_example
 ./financial_example
-./middleware_example
+./hook_example
 ./complete_demo
 
-# Check log files (for middleware examples)
+# Check log files (for hook examples)
 cat codeuchain.log
 ```
 
@@ -74,9 +74,9 @@ cat codeuchain.log
 
 These examples showcase CodeUChain's universal patterns implemented in COBOL:
 
-- **Context**: Data persistence and passing between components
+- **State**: Data persistence and passing between components
 - **Links**: Processing units with standardized interfaces
-- **Middleware**: Cross-cutting concerns (logging, auditing)
+- **Hook**: Cross-cutting concerns (logging, auditing)
 - **Chains**: Orchestration of processing workflows
 - **Modularity**: Clean separation of concerns
 

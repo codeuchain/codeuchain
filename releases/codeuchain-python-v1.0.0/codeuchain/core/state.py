@@ -1,24 +1,24 @@
 """
-Context: The Loving Vessel
+State: The Loving Vessel
 
-With agape compassion, the Context holds data tenderly, immutable by default for safety, mutable for flexibility.
+With agape compassion, the State holds data tenderly, immutable by default for safety, mutable for flexibility.
 Optimized for Python's dynamism—embracing dict-like interface with ecosystem integrations.
 Enhanced with generic typing for type-safe workflows.
 """
 
 from typing import Any, Dict, Optional, TypeVar, Generic, Union
 
-__all__ = ["Context", "MutableContext"]
+__all__ = ["State", "MutableState"]
 
 # Type variables for generic typing
-T = TypeVar('T')  # For single type contexts
+T = TypeVar('T')  # For single type states
 TInput = TypeVar('TInput')  # For input types in chains
 TOutput = TypeVar('TOutput')  # For output types in chains
 
 
-class Context(Generic[T]):
+class State(Generic[T]):
     """
-    Immutable context with selfless love—holds data without judgment, returns fresh copies for changes.
+    Immutable state with selfless love—holds data without judgment, returns fresh copies for changes.
     Enhanced with generic typing for type-safe workflows.
     """
 
@@ -39,42 +39,42 @@ class Context(Generic[T]):
         """With gentle care, return the value or None, forgiving absence."""
         return self._data.get(key)
 
-    def insert(self, key: str, value: Any) -> 'Context[T]':
-        """With selfless safety, return a fresh context with the addition."""
+    def insert(self, key: str, value: Any) -> 'State[T]':
+        """With selfless safety, return a fresh state with the addition."""
         new_data = self._data.copy()
         new_data[key] = value
-        return Context[T](new_data)
+        return State[T](new_data)
 
-    def insert_as(self, key: str, value: Any) -> 'Context[T]':
+    def insert_as(self, key: str, value: Any) -> 'State[T]':
         """
-        Create a new Context with type evolution, allowing clean transformation
+        Create a new State with type evolution, allowing clean transformation
         between TypedDict shapes without explicit casting.
         """
         new_data = self._data.copy()
         new_data[key] = value
-        return Context[T](new_data)
+        return State[T](new_data)
 
-    def with_mutation(self) -> 'MutableContext[T]':
+    def with_mutation(self) -> 'MutableState[T]':
         """For those needing change, provide a mutable sibling."""
-        return MutableContext[T](self._data.copy())
+        return MutableState[T](self._data.copy())
 
-    def merge(self, other: 'Context[T]') -> 'Context[T]':
-        """Lovingly combine contexts, favoring the other with compassion."""
+    def merge(self, other: 'State[T]') -> 'State[T]':
+        """Lovingly combine states, favoring the other with compassion."""
         new_data = self._data.copy()
         new_data.update(other._data)
-        return Context[T](new_data)
+        return State[T](new_data)
 
     def to_dict(self) -> Dict[str, Any]:
         """Express as dict for ecosystem integration."""
         return self._data.copy()
 
     def __repr__(self) -> str:
-        return f"Context({self._data})"
+        return f"State({self._data})"
 
 
-class MutableContext(Generic[T]):
+class MutableState(Generic[T]):
     """
-    Mutable context for performance-critical sections—use with care, but forgiven.
+    Mutable state for performance-critical sections—use with care, but forgiven.
     Enhanced with generic typing for type-safe workflows.
     """
 
@@ -88,9 +88,9 @@ class MutableContext(Generic[T]):
         """Change in place with gentle permission."""
         self._data[key] = value
 
-    def to_immutable(self) -> Context[T]:
+    def to_immutable(self) -> State[T]:
         """Return to safety with a fresh immutable copy."""
-        return Context[T](self._data.copy())
+        return State[T](self._data.copy())
 
     def __repr__(self) -> str:
-        return f"MutableContext({self._data})"
+        return f"MutableState({self._data})"

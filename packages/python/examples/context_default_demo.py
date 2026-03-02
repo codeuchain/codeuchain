@@ -1,20 +1,20 @@
 """
-Demonstration of Context.get() with Default Values
+Demonstration of State.get() with Default Values
 
-This example shows how the default parameter enhances Context usability
+This example shows how the default parameter enhances State usability
 by following Python's standard dict.get() behavior.
 """
 
-from codeuchain.core import Context, MutableContext
+from codeuchain.core import State, MutableState
 
 
 def main():
     print("=" * 60)
-    print("Context.get() Default Parameter Demo")
+    print("State.get() Default Parameter Demo")
     print("=" * 60)
     
-    # Create a context with some data
-    ctx = Context({
+    # Create a state with some data
+    ctx = State({
         "user_name": "Alice",
         "timeout": 30,
         "retries": 3,
@@ -41,7 +41,7 @@ def main():
     
     print("\n4. Working with Falsy Values")
     print("-" * 60)
-    ctx_with_falsy = Context({
+    ctx_with_falsy = State({
         "zero": 0,
         "false": False,
         "empty_string": "",
@@ -56,7 +56,7 @@ def main():
     
     print("\n5. Configuration Pattern")
     print("-" * 60)
-    config_ctx = Context({
+    config_ctx = State({
         "api_key": "secret123",
         "endpoint": "https://api.example.com"
     })
@@ -76,9 +76,9 @@ def main():
     print(f"Retry Count: {retry_count} (default)")
     print(f"Debug Mode: {debug} (default)")
     
-    print("\n6. Mutable Context with Defaults")
+    print("\n6. Mutable State with Defaults")
     print("-" * 60)
-    mutable_ctx = MutableContext({"counter": 10})
+    mutable_ctx = MutableState({"counter": 10})
     
     print(f"counter (exists): {mutable_ctx.get('counter', 0)}")
     print(f"max (missing): {mutable_ctx.get('max', 100)}")

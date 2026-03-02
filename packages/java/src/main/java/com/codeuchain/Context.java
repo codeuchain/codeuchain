@@ -5,39 +5,39 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Context: The Data Container
+ * State: The Data Container
  * Holds data carefully, immutable by default for safety.
  */
-public class Context {
+public class State {
     private final Map<String, Object> data;
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private Context(Map<String, Object> data) {
+    private State(Map<String, Object> data) {
         this.data = new HashMap<>(data);
     }
 
-    public static Context create() {
-        return new Context(new HashMap<>());
+    public static State create() {
+        return new State(new HashMap<>());
     }
 
-    public static Context create(Map<String, Object> initialData) {
-        return new Context(initialData != null ? initialData : new HashMap<>());
+    public static State create(Map<String, Object> initialData) {
+        return new State(initialData != null ? initialData : new HashMap<>());
     }
 
     public Object get(String key) {
         return data.get(key);
     }
 
-    public Context insert(String key, Object value) {
+    public State insert(String key, Object value) {
         Map<String, Object> newData = new HashMap<>(this.data);
         newData.put(key, value);
-        return new Context(newData);
+        return new State(newData);
     }
 
-    public Context merge(Context other) {
+    public State merge(State other) {
         Map<String, Object> newData = new HashMap<>(this.data);
         newData.putAll(other.data);
-        return new Context(newData);
+        return new State(newData);
     }
 
     public Map<String, Object> toMap() {
@@ -49,7 +49,7 @@ public class Context {
         try {
             return objectMapper.writeValueAsString(data);
         } catch (Exception e) {
-            return "Context" + data.toString();
+            return "State" + data.toString();
         }
     }
 }

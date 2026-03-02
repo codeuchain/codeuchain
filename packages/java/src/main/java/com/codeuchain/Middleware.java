@@ -1,19 +1,19 @@
 package com.codeuchain;
 
 /**
- * Middleware: The Gentle Enhancer
+ * Hook: The Gentle Enhancer
  * Optional hooks for cross-cutting concerns.
  */
-public interface Middleware {
-    default Context before(Link link, Context context) throws Exception {
-        return context;
+public interface Hook {
+    default State before(Link link, State state) throws Exception {
+        return state;
     }
 
-    default Context after(Link link, Context context) throws Exception {
-        return context;
+    default State after(Link link, State state) throws Exception {
+        return state;
     }
 
-    default Context onError(Link link, Exception error, Context context) throws Exception {
-        return context;
+    default State onError(Link link, Exception error, State state) throws Exception {
+        return state;
     }
 }

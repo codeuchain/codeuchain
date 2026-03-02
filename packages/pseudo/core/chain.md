@@ -26,14 +26,14 @@ Imagine a Chain as a **loving conductor** who brings together individual musicia
 - Brings together individual musicians (links)
 - Ensures perfect timing and harmony (orchestration)
 - Makes decisions about what to play when (conditional logic)
-- Allows the musicians to focus on their parts (middleware observation)
+- Allows the musicians to focus on their parts (hook observation)
 - Handles disruptions gracefully (error handling)
 - Creates beautiful music from individual notes (data transformation)
 
 ### The Heart of Chain
 - **Orchestrator**: Coordinates the execution of links, like a conductor who brings all musicians together
 - **Conditional**: Can make decisions about which path to take, like choosing different musical pieces based on the audience
-- **Observable**: Allows middleware to observe and enhance the flow, like having music critics who provide feedback
+- **Observable**: Allows hook to observe and enhance the flow, like having music critics who provide feedback
 - **Forgiving**: Handles errors gracefully without breaking the entire flow, like continuing a concert when one instrument has issues
 - **Type-safe**: Generic typing ensures type safety across the entire chain, like ensuring all musicians play in the same key
 - **Composable**: Chains can be composed into larger workflows, like having multiple concerts that build on each other
@@ -42,25 +42,25 @@ Imagine a Chain as a **loving conductor** who brings together individual musicia
 
 ### The Simple Flow
 ```
-Context<TInput> → Link<TInput, TMiddle> → Link<TMiddle, TOutput> → Context<TOutput>
+State<TInput> → Link<TInput, TMiddle> → Link<TMiddle, TOutput> → State<TOutput>
 ```
 
 ### With Conditions
 ```
-Context<TInput> → Link<TInput, TDecision>
+State<TInput> → Link<TInput, TDecision>
                       ↓ (if condition met)
-              Link<TDecision, TOutputA> → Context<TOutputA>
+              Link<TDecision, TOutputA> → State<TOutputA>
                       ↓ (if condition not met)
-              Link<TDecision, TOutputB> → Context<TOutputB>
+              Link<TDecision, TOutputB> → State<TOutputB>
 ```
 
 ### With Parallel Processing
 ```
-Context<TInput> → Link<TInput, TSplit>
+State<TInput> → Link<TInput, TSplit>
               ↙        ↘
     Link<TSplit, TA>   Link<TSplit, TB>
               ↘        ↙
-         Link<TA+TB, TOutput> → Context<TOutput>
+         Link<TA+TB, TOutput> → State<TOutput>
 ```
 
 ## 🌈 Chain Patterns
@@ -124,7 +124,7 @@ ApiRequestChain<Request, Response>:
 
 ### Logical Flow
 ```
-✅ Good: Context<Input> → Validation → Processing → Context<Output>
+✅ Good: State<Input> → Validation → Processing → State<Output>
 ❌ Avoid: Random ordering that confuses the flow
 ```
 

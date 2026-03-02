@@ -7,12 +7,12 @@
  */
 
 // Import types from definition files (I-prefixed named imports)
-import type { IContext as Context, IMutableContext as MutableContext, ILink as Link, IChain as Chain, IMiddleware as Middleware } from '../types';
-import { ILoggingMiddleware as LoggingMiddleware, ITimingMiddleware as TimingMiddleware, IValidationMiddleware as ValidationMiddleware } from '../types';
+import type { IState as State, IMutableState as MutableState, ILink as Link, IChain as Chain, IHook as Hook } from '../types';
+import { ILoggingHook as LoggingHook, ITimingHook as TimingHook, IValidationHook as ValidationHook } from '../types';
 
 // Import runtime values from JavaScript files
-import { Context as ContextClass, MutableContext as MutableContextClass, Link as LinkClass, Chain as ChainClass, Middleware as MiddlewareClass } from '../core';
-import { LoggingMiddleware as LoggingMiddlewareClass, TimingMiddleware as TimingMiddlewareClass, ValidationMiddleware as ValidationMiddlewareClass } from '../core';
+import { State as StateClass, MutableState as MutableStateClass, Link as LinkClass, Chain as ChainClass, Hook as HookClass } from '../core';
+import { LoggingHook as LoggingHookClass, TimingHook as TimingHookClass, ValidationHook as ValidationHookClass } from '../core';
 
 // =============================================================================
 // TYPE DEFINITIONS FOR TESTING
@@ -71,7 +71,7 @@ const testUserProcessed: UserProcessed = {
 // =============================================================================
 
 class ValidateUserLink extends LinkClass<UserInput, UserValidated> {
-  async call(ctx: Context<UserInput>): Promise<Context<UserValidated>> {
+  async call(ctx: State<UserInput>): Promise<State<UserValidated>> {
     const name = ctx.get('name');
     const email = ctx.get('email');
 
@@ -93,7 +93,7 @@ class ValidateUserLink extends LinkClass<UserInput, UserValidated> {
 }
 
 class ProcessUserLink extends LinkClass<UserValidated, UserProcessed> {
-  async call(ctx: Context<UserValidated>): Promise<Context<UserProcessed>> {
+  async call(ctx: State<UserValidated>): Promise<State<UserProcessed>> {
     const isValid = ctx.get('isValid');
     const emailVerified = ctx.get('emailVerified');
 
@@ -108,7 +108,7 @@ class ProcessUserLink extends LinkClass<UserValidated, UserProcessed> {
 }
 
 class ResultLink extends LinkClass<UserProcessed, ProcessingResult> {
-  async call(ctx: Context<UserProcessed>): Promise<Context<ProcessingResult>> {
+  async call(ctx: State<UserProcessed>): Promise<State<ProcessingResult>> {
     const userId = ctx.get('userId');
     const profileComplete = ctx.get('profileComplete');
 
@@ -126,20 +126,20 @@ class ResultLink extends LinkClass<UserProcessed, ProcessingResult> {
 // TYPE-SAFE MIDDLEWARE IMPLEMENTATIONS
 // =============================================================================
 
-class TypeValidationMiddleware extends MiddlewareClass {
-  async before(link: Link<any, any>, ctx: Context<any>, linkName: string): Promise<void> {
+class TypeValidationHook extends HookClass {
+  async before(link: Link<any, any>, ctx: State<any>, linkName: string): Promise<void> {
     // TypeScript should catch type mismatches here
     if (linkName === 'ValidateUserLink') {
-      const userCtx = ctx as Context<UserInput>;
+      const userCtx = ctx as State<UserInput>;
       const name: string = userCtx.get('name'); // Should be typed as string
       const email: string = userCtx.get('email'); // Should be typed as string
     }
   }
 
-  async after(link: Link<any, any>, ctx: Context<any>, linkName: string): Promise<void> {
-    // Validate that the context has the expected shape after processing
+  async after(link: Link<any, any>, ctx: State<any>, linkName: string): Promise<void> {
+    // Validate that the state has the expected shape after processing
     if (linkName === 'ProcessUserLink') {
-      const processedCtx = ctx as Context<UserProcessed>;
+      const processedCtx = ctx as State<UserProcessed>;
       const userId: string = processedCtx.get('userId');
       const age: number = processedCtx.get('age');
       const profileComplete: boolean = processedCtx.get('profileComplete');
@@ -154,29 +154,29 @@ class TypeValidationMiddleware extends MiddlewareClass {
 describe('TypeScript Import Tests', () => {
   test('should import all types correctly', () => {
     // Test that all expected runtime classes are available
-    expect(ContextClass).toBeDefined();
-    expect(MutableContextClass).toBeDefined();
+    expect(StateClass).toBeDefined();
+    expect(MutableStateClass).toBeDefined();
     expect(LinkClass).toBeDefined();
     expect(ChainClass).toBeDefined();
-    expect(MiddlewareClass).toBeDefined();
-    expect(LoggingMiddlewareClass).toBeDefined();
-    expect(TimingMiddlewareClass).toBeDefined();
-    expect(ValidationMiddlewareClass).toBeDefined();
+    expect(HookClass).toBeDefined();
+    expect(LoggingHookClass).toBeDefined();
+    expect(TimingHookClass).toBeDefined();
+    expect(ValidationHookClass).toBeDefined();
   });
 
-  test('should create typed contexts', () => {
-    const userCtx: Context<UserInput> = new ContextClass(testUserInput);
-    const validatedCtx: Context<UserValidated> = new ContextClass(testUserValidated);
-    const processedCtx: Context<UserProcessed> = new ContextClass(testUserProcessed);
+  test('should create typed states', () => {
+    const userCtx: State<UserInput> = new StateClass(testUserInput);
+    const validatedCtx: State<UserValidated> = new StateClass(testUserValidated);
+    const processedCtx: State<UserProcessed> = new StateClass(testUserProcessed);
 
-    expect(userCtx).toBeInstanceOf(ContextClass);
-    expect(validatedCtx).toBeInstanceOf(ContextClass);
-    expect(processedCtx).toBeInstanceOf(ContextClass);
+    expect(userCtx).toBeInstanceOf(StateClass);
+    expect(validatedCtx).toBeInstanceOf(StateClass);
+    expect(processedCtx).toBeInstanceOf(StateClass);
   });
 
   test('should support generic type inference', () => {
-    const inferredCtx = ContextClass.from(testUserInput);
-    // TypeScript should infer this as Context<UserInput>
+    const inferredCtx = StateClass.from(testUserInput);
+    // TypeScript should infer this as State<UserInput>
     const name: string = inferredCtx.get('name');
     const email: string = inferredCtx.get('email');
 
@@ -187,7 +187,7 @@ describe('TypeScript Import Tests', () => {
 
 describe('Type Evolution Tests', () => {
   test('should support clean type evolution with insertAs', () => {
-    const userCtx = new ContextClass<UserInput>(testUserInput);
+    const userCtx = new StateClass<UserInput>(testUserInput);
 
     // TypeScript should enforce that we can only access UserInput properties
     const name: string = userCtx.get('name');
@@ -197,7 +197,7 @@ describe('Type Evolution Tests', () => {
     const validatedCtx = userCtx.insertAs<UserValidated>('isValid', true)
                                .insertAs('emailVerified', true);
 
-    // Now TypeScript knows this context has UserValidated shape
+    // Now TypeScript knows this state has UserValidated shape
     const isValid: boolean = validatedCtx.get('isValid');
     const emailVerified: boolean = validatedCtx.get('emailVerified');
 
@@ -206,7 +206,7 @@ describe('Type Evolution Tests', () => {
   });
 
   test('should maintain type safety through multiple evolutions', () => {
-    const userCtx = new ContextClass<UserInput>(testUserInput);
+    const userCtx = new StateClass<UserInput>(testUserInput);
 
     // Chain multiple type evolutions
     const finalCtx = userCtx
@@ -231,7 +231,7 @@ describe('Type Evolution Tests', () => {
   });
 
   test('should support mixed typed and untyped operations', () => {
-    const typedCtx = new ContextClass<UserInput>(testUserInput);
+    const typedCtx = new StateClass<UserInput>(testUserInput);
 
     // TypeScript allows untyped operations but loses type safety
     const untypedCtx = typedCtx.insert('dynamicField', 'any value');
@@ -255,12 +255,12 @@ describe('Generic Link Tests', () => {
 
   test('should enforce type safety in link execution', async () => {
     const validateLink = new ValidateUserLink();
-    const userCtx = new ContextClass<UserInput>(testUserInput);
+    const userCtx = new StateClass<UserInput>(testUserInput);
 
     // TypeScript should enforce that input matches UserInput interface
     const resultCtx = await validateLink.call(userCtx);
 
-    // Result should be Context<UserValidated>
+    // Result should be State<UserValidated>
     const isValid: boolean = resultCtx.get('isValid');
     const emailVerified: boolean = resultCtx.get('emailVerified');
 
@@ -273,7 +273,7 @@ describe('Generic Link Tests', () => {
     const processLink = new ProcessUserLink();
     const resultLink = new ResultLink();
 
-    const userCtx = new ContextClass<UserInput>(testUserInput);
+    const userCtx = new StateClass<UserInput>(testUserInput);
 
     // Chain links with proper type evolution
     const validatedCtx = await validateLink.call(userCtx);
@@ -302,7 +302,7 @@ describe('Generic Chain Tests', () => {
     chain.connect('validate', 'process');
     chain.connect('process', 'result');
 
-    const userCtx = new ContextClass<UserInput>(testUserInput);
+    const userCtx = new StateClass<UserInput>(testUserInput);
     const resultCtx = await chain.run(userCtx);
 
     // TypeScript should know this is ProcessingResult
@@ -313,17 +313,17 @@ describe('Generic Chain Tests', () => {
     expect(typeof message).toBe('string');
   });
 
-  test('should support middleware with type safety', async () => {
+  test('should support hook with type safety', async () => {
     const chain = new ChainClass<UserInput, UserValidated>();
-    const middleware = new TypeValidationMiddleware();
+    const hook = new TypeValidationHook();
 
     chain.addLink(new ValidateUserLink(), 'validate');
-    chain.useMiddleware(middleware);
+    chain.useHook(hook);
 
-    const userCtx = new ContextClass<UserInput>(testUserInput);
+    const userCtx = new StateClass<UserInput>(testUserInput);
     const resultCtx = await chain.run(userCtx);
 
-    // Middleware should have been applied
+    // Hook should have been applied
     const isValid: boolean = resultCtx.get('isValid');
     expect(isValid).toBe(true);
   });
@@ -331,7 +331,7 @@ describe('Generic Chain Tests', () => {
 
 describe('Type Safety Validation Tests', () => {
   test('should prevent type mismatches at compile time', () => {
-    const userCtx = new ContextClass<UserInput>(testUserInput);
+    const userCtx = new StateClass<UserInput>(testUserInput);
 
     // These should work fine
     const name: string = userCtx.get('name');
@@ -351,7 +351,7 @@ describe('Type Safety Validation Tests', () => {
       email: 'bob@example.com'
     };
 
-    const ctx = new ContextClass<UserInput>(validUser);
+    const ctx = new StateClass<UserInput>(validUser);
     expect(ctx.get('name')).toBe('Bob Smith');
 
     // This would cause TypeScript errors if uncommented:
@@ -373,7 +373,7 @@ describe('Type Safety Validation Tests', () => {
       // email and age are optional
     };
 
-    const ctx = new ContextClass<UserWithOptional>(userWithOptional);
+    const ctx = new StateClass<UserWithOptional>(userWithOptional);
 
     // TypeScript should allow these (may be undefined)
     const name: string = ctx.get('name');
@@ -388,8 +388,8 @@ describe('Type Safety Validation Tests', () => {
 
 describe('Runtime Type Compatibility Tests', () => {
   test('should maintain runtime compatibility with untyped code', () => {
-    const typedCtx = new ContextClass<UserInput>(testUserInput);
-    const untypedCtx = new ContextClass(testUserInput);
+    const typedCtx = new StateClass<UserInput>(testUserInput);
+    const untypedCtx = new StateClass(testUserInput);
 
     // Both should behave identically at runtime
     expect(typedCtx.toObject()).toEqual(untypedCtx.toObject());
@@ -397,7 +397,7 @@ describe('Runtime Type Compatibility Tests', () => {
   });
 
   test('should support dynamic property access', () => {
-    const ctx = new ContextClass<UserInput>(testUserInput);
+    const ctx = new StateClass<UserInput>(testUserInput);
 
     // TypeScript allows dynamic access but loses type safety
     const dynamicKey = 'name' as keyof UserInput;
@@ -425,7 +425,7 @@ describe('Runtime Type Compatibility Tests', () => {
       }
     };
 
-    const ctx = new ContextClass<ComplexUser>(complexUser);
+    const ctx = new StateClass<ComplexUser>(complexUser);
 
     // TypeScript should provide full type safety for nested access
     const profile = ctx.get('profile');

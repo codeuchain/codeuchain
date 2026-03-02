@@ -13,7 +13,7 @@ class LinkTest {
         // Create a simple math link that adds two numbers
         Link mathLink = new Link() {
             @Override
-            public Context call(Context ctx) throws Exception {
+            public State call(State ctx) throws Exception {
                 Integer a = (Integer) ctx.get("a");
                 Integer b = (Integer) ctx.get("b");
                 if (a != null && b != null) {
@@ -27,8 +27,8 @@ class LinkTest {
         data.put("a", 5);
         data.put("b", 3);
 
-        Context input = Context.create(data);
-        Context result = null;
+        State input = State.create(data);
+        State result = null;
         try {
             result = mathLink.call(input);
         } catch (Exception e) {
@@ -44,13 +44,13 @@ class LinkTest {
     void testLinkWithNullValues() {
         Link identityLink = new Link() {
             @Override
-            public Context call(Context ctx) throws Exception {
+            public State call(State ctx) throws Exception {
                 return ctx.insert("processed", true);
             }
         };
 
-        Context input = Context.create();
-        Context result = null;
+        State input = State.create();
+        State result = null;
         try {
             result = identityLink.call(input);
         } catch (Exception e) {

@@ -1,6 +1,6 @@
 # CodeUChain C#
 
-A modular framework for chaining processing links with middleware support, designed for robust .NET applications.
+A modular framework for chaining processing links with hook support, designed for robust .NET applications.
 
 ## 🤖 LLM Support
 
@@ -10,10 +10,10 @@ This package supports the [llm.txt standard](https://codeuchain.github.io/codeuc
 
 CodeUChain C# provides a clean, async-first architecture for building processing pipelines with:
 
-- **Immutable Context**: Thread-safe data passing between processing steps
+- **Immutable State**: Thread-safe data passing between processing steps
 - **Link Interface**: Pluggable processing units
 - **Chain Orchestration**: Sequential execution with error handling
-- **Middleware Support**: Cross-cutting concerns like logging, authentication, etc.
+- **Hook Support**: Cross-cutting concerns like logging, authentication, etc.
 
 ## Installation
 
@@ -48,12 +48,12 @@ chain = chain.AddLink("validate", new ValidationLink());
 chain = chain.AddLink("process", new ProcessingLink());
 chain = chain.AddLink("save", new SaveLink());
 
-// Add middleware
-chain = chain.UseMiddleware(new LoggingMiddleware());
-chain = chain.UseMiddleware(new ErrorHandlingMiddleware());
+// Add hook
+chain = chain.UseHook(new LoggingHook());
+chain = chain.UseHook(new ErrorHandlingHook());
 
 // Execute the chain
-var input = Context.Create(new Dictionary<string, object>
+var input = State.Create(new Dictionary<string, object>
 {
     ["data"] = "some input"
 });
@@ -63,86 +63,86 @@ var result = await chain.RunAsync(input);
 
 ## Core Components
 
-### Context
+### State
 
 Immutable data container that flows through the processing chain:
 
 ```csharp
-// Create context
-var context = Context.Create();
-var contextWithData = Context.Create(new Dictionary<string, object>
+// Create state
+var state = State.Create();
+var stateWithData = State.Create(new Dictionary<string, object>
 {
     ["key"] = "value"
 });
 
 // Manipulate data
-var newContext = context.Insert("newKey", "newValue");
-var removedContext = context.Remove("oldKey");
+var newState = state.Insert("newKey", "newValue");
+var removedState = state.Remove("oldKey");
 
 // Access data
-var value = context.Get<string>("key");
-var hasKey = context.ContainsKey("key");
+var value = state.Get<string>("key");
+var hasKey = state.ContainsKey("key");
 ```
 
 ### Link Interface
 
-Processing units that transform the context:
+Processing units that transform the state:
 
 ```csharp
 public class MyLink : ILink
 {
-    public async Task<Context> CallAsync(Context context)
+    public async Task<State> CallAsync(State state)
     {
-        // Process the context
-        var data = context.Get<string>("input");
+        // Process the state
+        var data = state.Get<string>("input");
         var result = ProcessData(data);
 
-        return context.Insert("output", result);
+        return state.Insert("output", result);
     }
 }
 ```
 
-### Middleware Interface
+### Hook Interface
 
 Cross-cutting concerns that intercept execution:
 
 ```csharp
-public class LoggingMiddleware : IMiddleware
+public class LoggingHook : IHook
 {
-    public Task<Context> BeforeAsync(ILink? link, Context context)
+    public Task<State> BeforeAsync(ILink? link, State state)
     {
         var linkName = link?.GetType().Name ?? "Chain";
         Console.WriteLine($"Executing: {linkName}");
-        return Task.FromResult(context);
+        return Task.FromResult(state);
     }
 
-    public Task<Context> AfterAsync(ILink? link, Context context)
+    public Task<State> AfterAsync(ILink? link, State state)
     {
         var linkName = link?.GetType().Name ?? "Chain";
         Console.WriteLine($"Completed: {linkName}");
-        return Task.FromResult(context);
+        return Task.FromResult(state);
     }
 
-    public Task<Context> OnErrorAsync(ILink? link, Exception exception, Context context)
+    public Task<State> OnErrorAsync(ILink? link, Exception exception, State state)
     {
         var linkName = link?.GetType().Name ?? "Chain";
         Console.WriteLine($"Error in {linkName}: {exception.Message}");
-        return Task.FromResult(context);
+        return Task.FromResult(state);
     }
 }
 ```
 
 ### Chain
 
-Orchestrator that manages link execution and middleware:
+Orchestrator that manages link execution and hook:
 
 ```csharp
 var chain = new Chain()
     .AddLink("step1", new Step1Link())
     .AddLink("step2", new Step2Link())
-    .UseMiddleware(new LoggingMiddleware());
+    .UseHook(new LoggingHook());
 
-var result = await chain.RunAsync(inputContext);
+var result = await chain.RunAsync(inputState);
 ```
 
 ## Architecture Principles
@@ -153,13 +153,13 @@ CodeUChain C# emphasizes:
 - **Immutability**: Thread-safe data flow
 - **Composability**: Easy combination of components
 - **Error Resilience**: Comprehensive error handling
-- **Observability**: Middleware-based monitoring
+- **Observability**: Hook-based monitoring
 
 ## Examples
 
 See the `examples/` directory for complete working examples:
 
-- **MathProcessingExample**: Demonstrates basic chain execution with logging middleware
+- **MathProcessingExample**: Demonstrates basic chain execution with logging hook
 - More examples coming soon...
 
 ## Testing

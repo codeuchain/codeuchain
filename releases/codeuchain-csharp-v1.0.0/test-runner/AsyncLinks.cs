@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 /// </summary>
 public class SimpleLink : ILink
 {
-    public ValueTask<Context> ProcessAsync(Context context)
+    public ValueTask<State> ProcessAsync(State state)
     {
-        var input = context.Get("input")?.ToString() ?? "";
-        return ValueTask.FromResult(context.Insert("processed", input.ToUpper()));
+        var input = state.Get("input")?.ToString() ?? "";
+        return ValueTask.FromResult(state.Insert("processed", input.ToUpper()));
     }
 }
 
@@ -17,10 +17,10 @@ public class SimpleLink : ILink
 /// </summary>
 public class AsyncDelayLink : ILink
 {
-    public async ValueTask<Context> ProcessAsync(Context context)
+    public async ValueTask<State> ProcessAsync(State state)
     {
-        var delay = (int?)context.Get("delay") ?? 100;
+        var delay = (int?)state.Get("delay") ?? 100;
         await Task.Delay(delay);
-        return context.Insert("delayed", true).Insert("completed", true);
+        return state.Insert("delayed", true).Insert("completed", true);
     }
 }

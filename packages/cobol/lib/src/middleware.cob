@@ -1,35 +1,35 @@
       *================================================================*
-      * CodeUChain COBOL Implementation - Middleware Interface        *
+      * CodeUChain COBOL Implementation - Hook Interface        *
       *                                                                *
-      * Generic middleware interface for COBOL implementation.        *
+      * Generic hook interface for COBOL implementation.        *
       *================================================================*
 
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. MIDDLEWARE-INTERFACE.
+       PROGRAM-ID. HOOK-INTERFACE.
 
        ENVIRONMENT DIVISION.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
 
        LINKAGE SECTION.
-       01  LS-MIDDLEWARE-NAME.
-           05  LS-MIDDLEWARE-NAME-LEN    PIC S9(4) COMP.
-           05  LS-MIDDLEWARE-NAME-DATA   PIC X(30).
-       01  LS-CONTEXT-DATA          PIC X(10000).
+       01  LS-HOOK-NAME.
+           05  LS-HOOK-NAME-LEN    PIC S9(4) COMP.
+           05  LS-HOOK-NAME-DATA   PIC X(30).
+       01  LS-STATE-DATA          PIC X(10000).
        01  LS-OPERATION             PIC X(20).
        01  LS-RESULT                PIC X(10).
 
-       PROCEDURE DIVISION USING LS-MIDDLEWARE-NAME,
-                               LS-CONTEXT-DATA,
+       PROCEDURE DIVISION USING LS-HOOK-NAME,
+                               LS-STATE-DATA,
                                LS-OPERATION,
                                LS-RESULT.
 
-           DISPLAY "MIDDLEWARE-INTERFACE: Operation called"
+           DISPLAY "HOOK-INTERFACE: Operation called"
            DISPLAY "Operation: " LS-OPERATION
 
-           MOVE 20 TO LS-MIDDLEWARE-NAME-LEN
-           MOVE "MIDDLEWARE-INTERFACE" TO LS-MIDDLEWARE-NAME-DATA
+           MOVE 20 TO LS-HOOK-NAME-LEN
+           MOVE "HOOK-INTERFACE" TO LS-HOOK-NAME-DATA
            MOVE "SUCCESS" TO LS-RESULT
            GOBACK.
 
-       END PROGRAM MIDDLEWARE-INTERFACE.
+       END PROGRAM HOOK-INTERFACE.

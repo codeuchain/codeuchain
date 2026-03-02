@@ -30,7 +30,7 @@ function demonstrateTypeEvolution(): void {
   // Since we're working with JavaScript classes, we'll use JSDoc types
   // and demonstrate the concept with plain JavaScript objects
 
-  // Simulate Context-like behavior with plain objects
+  // Simulate State-like behavior with plain objects
   let userData: UserInput = {
     name: 'Alice Johnson',
     email: 'alice@example.com'
@@ -155,7 +155,7 @@ async function main(): Promise<void> {
     console.log();
     console.log('This example shows how TypeScript interfaces can be used');
     console.log('to create type-safe data evolution patterns similar to');
-    console.log('the generic Context<T> pattern in CodeUChain.');
+    console.log('the generic State<T> pattern in CodeUChain.');
 
   } catch (error) {
     console.error('❌ Demonstration failed:', error instanceof Error ? error.message : String(error));

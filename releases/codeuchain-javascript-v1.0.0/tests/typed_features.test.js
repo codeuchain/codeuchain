@@ -6,7 +6,7 @@
  * and mixed typed/untyped usage patterns.
  */
 
-const { Context, Chain, Link, Middleware } = require('../core');
+const { State, Chain, Link, Hook } = require('../core');
 
 // =============================================================================
 // TEST HELPERS
@@ -51,8 +51,8 @@ const TestData = {
  */
 class TestValidationLink extends Link {
   /**
-   * @param {Context<UserInput>} ctx
-   * @returns {Promise<Context<UserValidated>>}
+   * @param {State<UserInput>} ctx
+   * @returns {Promise<State<UserValidated>>}
    */
   async call(ctx) {
     const name = ctx.get('name');
@@ -72,8 +72,8 @@ class TestValidationLink extends Link {
  */
 class TestProcessingLink extends Link {
   /**
-   * @param {Context<UserValidated>} ctx
-   * @returns {Promise<Context<UserProcessed>>}
+   * @param {State<UserValidated>} ctx
+   * @returns {Promise<State<UserProcessed>>}
    */
   async call(ctx) {
     const isValid = ctx.get('isValid');
@@ -95,8 +95,8 @@ class TestProcessingLink extends Link {
  */
 class TestErrorLink extends Link {
   /**
-   * @param {Context<UserInput>} ctx
-   * @returns {Promise<Context<UserValidated>>}
+   * @param {State<UserInput>} ctx
+   * @returns {Promise<State<UserValidated>>}
    */
   async call(ctx) {
     throw new Error('Test error for error handling');
@@ -107,16 +107,16 @@ class TestErrorLink extends Link {
 // JEST TEST SUITES
 // =============================================================================
 
-describe('Context Typed Tests', () => {
-  test('basic typed context creation', () => {
-    const ctx = new Context(TestData.userInput);
-    expect(ctx).toBeInstanceOf(Context);
+describe('State Typed Tests', () => {
+  test('basic typed state creation', () => {
+    const ctx = new State(TestData.userInput);
+    expect(ctx).toBeInstanceOf(State);
     expect(ctx.get('name')).toBe('Test User');
     expect(ctx.get('email')).toBe('test@example.com');
   });
 
   test('type evolution with insertAs', () => {
-    const ctx = new Context(TestData.userInput);
+    const ctx = new State(TestData.userInput);
     const evolvedCtx = ctx.insertAs('isValid', true);
 
     expect(evolvedCtx.get('isValid')).toBe(true);
@@ -124,7 +124,7 @@ describe('Context Typed Tests', () => {
   });
 
   test('multiple type evolutions', () => {
-    const ctx = new Context(TestData.userInput);
+    const ctx = new State(TestData.userInput);
     const multiEvolvedCtx = ctx
       .insertAs('isValid', true)
       .insertAs('age', 25)
@@ -139,14 +139,14 @@ describe('Context Typed Tests', () => {
   });
 
   test('backward compatibility with insert', () => {
-    const ctx = new Context(TestData.userInput);
+    const ctx = new State(TestData.userInput);
     const backwardCompatCtx = ctx.insert('customField', 'customValue');
 
     expect(backwardCompatCtx.get('customField')).toBe('customValue');
   });
 
-  test('context immutability', () => {
-    const ctx = new Context(TestData.userInput);
+  test('state immutability', () => {
+    const ctx = new State(TestData.userInput);
     const originalData = ctx.toObject();
     const newCtx = ctx.insertAs('newField', 'newValue');
 
@@ -155,7 +155,7 @@ describe('Context Typed Tests', () => {
 
   test('type validation after insertAs operations', () => {
     // Start with basic user input
-    const ctx = new Context(TestData.userInput);
+    const ctx = new State(TestData.userInput);
 
     // Verify initial types
     expect(typeof ctx.get('name')).toBe('string');
@@ -196,7 +196,7 @@ describe('Context Typed Tests', () => {
 describe('Link Typed Tests', () => {
   test('basic typed link execution', async () => {
     const link = new TestValidationLink();
-    const inputCtx = new Context(TestData.userInput);
+    const inputCtx = new State(TestData.userInput);
     const resultCtx = await link.call(inputCtx);
 
     expect(resultCtx.get('isValid')).toBe(true);
@@ -207,7 +207,7 @@ describe('Link Typed Tests', () => {
     const validationLink = new TestValidationLink();
     const processingLink = new TestProcessingLink();
 
-    const inputCtx = new Context(TestData.userInput);
+    const inputCtx = new State(TestData.userInput);
     const validatedCtx = await validationLink.call(inputCtx);
     const processedCtx = await processingLink.call(validatedCtx);
 
@@ -217,7 +217,7 @@ describe('Link Typed Tests', () => {
 
   test('error handling in typed links', async () => {
     const errorLink = new TestErrorLink();
-    const inputCtx = new Context(TestData.userInput);
+    const inputCtx = new State(TestData.userInput);
 
     await expect(errorLink.call(inputCtx)).rejects.toThrow('Test error for error handling');
   });
@@ -230,35 +230,35 @@ describe('Chain Typed Tests', () => {
     chain.addLink(new TestProcessingLink());
     chain.connect('TestValidationLink', 'TestProcessingLink');
 
-    const inputCtx = new Context(TestData.userInput);
+    const inputCtx = new State(TestData.userInput);
     const resultCtx = await chain.run(inputCtx);
 
     expect(resultCtx.get('status')).toBe('active');
     expect(resultCtx.get('userId')).toBe('test_user_123');
   });
 
-  test('chain with middleware', async () => {
-    class TestMiddleware extends Middleware {
+  test('chain with hook', async () => {
+    class TestHook extends Hook {
       async before(link, ctx, linkName) {
-        // ctx should be a Context instance, use insertAs for type evolution
-        return ctx.insertAs('middleware_before', true);
+        // ctx should be a State instance, use insertAs for type evolution
+        return ctx.insertAs('hook_before', true);
       }
 
       async after(link, ctx, linkName) {
-        return ctx.insertAs('middleware_after', true);
+        return ctx.insertAs('hook_after', true);
       }
     }
 
     const chain = new Chain();
     chain.addLink(new TestValidationLink());
-    chain.useMiddleware(new TestMiddleware());
+    chain.useHook(new TestHook());
 
-    const inputCtx = new Context(TestData.userInput);
+    const inputCtx = new State(TestData.userInput);
     const resultCtx = await chain.run(inputCtx);
 
-    expect(resultCtx.get('middleware_before')).toBe(true);
+    expect(resultCtx.get('hook_before')).toBe(true);
     expect(resultCtx.get('isValid')).toBe(true);
-    expect(resultCtx.get('middleware_after')).toBe(true);
+    expect(resultCtx.get('hook_after')).toBe(true);
   });
 
   test('chain error handling', async () => {
@@ -272,7 +272,7 @@ describe('Chain Typed Tests', () => {
       expect(error.message).toContain('Test error');
     });
 
-    const inputCtx = new Context(TestData.userInput);
+    const inputCtx = new State(TestData.userInput);
 
     try {
       await errorChain.run(inputCtx);
@@ -293,8 +293,8 @@ describe('Chain Typed Tests', () => {
 });
 
 describe('Backward Compatibility Tests', () => {
-  test('untyped context operations', () => {
-    const untypedCtx = new Context({ name: 'Untyped User', email: 'untyped@example.com' });
+  test('untyped state operations', () => {
+    const untypedCtx = new State({ name: 'Untyped User', email: 'untyped@example.com' });
     const evolvedUntyped = untypedCtx.insert('customField', 'customValue');
 
     expect(evolvedUntyped.get('customField')).toBe('customValue');
@@ -312,7 +312,7 @@ describe('Backward Compatibility Tests', () => {
     mixedChain.addLink(new UntypedLink()); // Untyped
     mixedChain.connect('TestValidationLink', 'UntypedLink');
 
-    const inputCtx = new Context(TestData.userInput);
+    const inputCtx = new State(TestData.userInput);
     const resultCtx = await mixedChain.run(inputCtx);
 
     expect(resultCtx.get('isValid')).toBe(true);
@@ -320,8 +320,8 @@ describe('Backward Compatibility Tests', () => {
   });
 
   test('runtime behavior consistency', () => {
-    const typedCtx = new Context(TestData.userInput);
-    const untypedCtx = new Context(TestData.userInput);
+    const typedCtx = new State(TestData.userInput);
+    const untypedCtx = new State(TestData.userInput);
 
     const typedResult = typedCtx.insertAs('field', 'value');
     const untypedResult = untypedCtx.insert('field', 'value');
@@ -337,7 +337,7 @@ describe('Performance Tests', () => {
     // Measure typed operations
     const startTyped = Date.now();
     for (let i = 0; i < iterations; i++) {
-      const ctx = new Context(TestData.userInput);
+      const ctx = new State(TestData.userInput);
       const result = ctx.insertAs('testField', i);
       result.get('testField');
     }
@@ -346,7 +346,7 @@ describe('Performance Tests', () => {
     // Measure untyped operations
     const startUntyped = Date.now();
     for (let i = 0; i < iterations; i++) {
-      const ctx = new Context(TestData.userInput);
+      const ctx = new State(TestData.userInput);
       const result = ctx.insert('testField', i);
       result.get('testField');
     }
@@ -359,13 +359,13 @@ describe('Performance Tests', () => {
   });
 
   test('memory usage consistency', () => {
-    const memoryTestContexts = [];
+    const memoryTestStates = [];
     for (let i = 0; i < 100; i++) {
-      const ctx = new Context(TestData.userInput);
+      const ctx = new State(TestData.userInput);
       const evolved = ctx.insertAs('field' + i, 'value' + i);
-      memoryTestContexts.push(evolved);
+      memoryTestStates.push(evolved);
     }
 
-    expect(memoryTestContexts).toHaveLength(100);
+    expect(memoryTestStates).toHaveLength(100);
   });
 });

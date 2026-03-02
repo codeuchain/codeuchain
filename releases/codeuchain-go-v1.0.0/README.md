@@ -1,6 +1,6 @@
 # CodeUChain Go: Agape-Optimized Implementation
 
-With selfless love, CodeUChain chains your code as links, observes with middleware, and flows through forgiving contexts.
+With selfless love, CodeUChain chains your code as links, observes with hook, and flows through forgiving states.
 
 ## 🚀 **Production Ready - 97.5% Test Coverage**
 
@@ -16,10 +16,10 @@ This package supports the [llm.txt standard](https://codeuchain.github.io/codeuc
 
 ## ✨ Features
 
-- **🎯 Context System**: Immutable by default, mutable for flexibility—embracing Go's interface{} approach
+- **🎯 State System**: Immutable by default, mutable for flexibility—embracing Go's interface{} approach
 - **🔗 Link Interface**: Selfless processors with generic type support
-- **⛓️ Chain Orchestration**: Harmonious connectors with conditional flows and middleware
-- **🛡️ Middleware ABC Pattern**: Gentle enhancers with no-op defaults (implement only what you need)
+- **⛓️ Chain Orchestration**: Harmonious connectors with conditional flows and hook
+- **🛡️ Hook ABC Pattern**: Gentle enhancers with no-op defaults (implement only what you need)
 - **💝 Error Handling**: Compassionate routing and retry logic
 - **🎨 Typed Features**: Opt-in generics for type-safe workflows
 - **📊 Comprehensive Testing**: 97.5% coverage with edge case handling
@@ -43,25 +43,25 @@ import (
 )
 
 func main() {
-    // Create a chain with typed context support
+    // Create a chain with typed state support
     chain := codeuchain.NewChain()
 
     // Add processing links
     chain.AddLink("validate", &ValidationLink{})
     chain.AddLink("process", &ProcessingLink{})
 
-    // Add middleware using ABC pattern
-    chain.UseMiddleware(&LoggingMiddleware{})
+    // Add hook using ABC pattern
+    chain.UseHook(&LoggingHook{})
 
-    // Create typed context
+    // Create typed state
     data := map[string]interface{}{
         "input": "hello world",
         "numbers": []interface{}{1.0, 2.0, 3.0},
     }
-    ctx := codeuchain.NewContext[any](data)
+    ctx := codeuchain.NewState[any](data)
 
     // Run the chain
-    result, err := chain.Run(context.Background(), ctx)
+    result, err := chain.Run(state.Background(), ctx)
     if err != nil {
         fmt.Printf("Error: %v\n", err)
         return
@@ -73,22 +73,22 @@ func main() {
 // Example Link Implementation
 type ProcessingLink struct{}
 
-func (pl *ProcessingLink) Call(ctx context.Context, c *codeuchain.Context[any]) (*codeuchain.Context[any], error) {
+func (pl *ProcessingLink) Call(ctx state.State, c *codeuchain.State[any]) (*codeuchain.State[any], error) {
     // Your processing logic here
     return c.Insert("result", "processed"), nil
 }
 
-// Example Middleware using ABC Pattern
-type LoggingMiddleware struct {
-    codeuchain.nopMiddleware // Embed for default no-op implementations
+// Example Hook using ABC Pattern
+type LoggingHook struct {
+    codeuchain.nopHook // Embed for default no-op implementations
 }
 
-func (lm *LoggingMiddleware) Before(ctx context.Context, link codeuchain.Link[any, any], c *codeuchain.Context[any]) error {
+func (lm *LoggingHook) Before(ctx state.State, link codeuchain.Link[any, any], c *codeuchain.State[any]) error {
     fmt.Printf("Before: %v\n", c.Get("input"))
     return nil
 }
 
-func (lm *LoggingMiddleware) After(ctx context.Context, link codeuchain.Link[any, any], c *codeuchain.Context[any]) error {
+func (lm *LoggingHook) After(ctx state.State, link codeuchain.Link[any, any], c *codeuchain.State[any]) error {
     fmt.Printf("After: %v\n", c.Get("result"))
     return nil
 }
@@ -97,12 +97,12 @@ func (lm *LoggingMiddleware) After(ctx context.Context, link codeuchain.Link[any
 ## 🏗️ Architecture
 
 ### Core Package (`codeuchain/`)
-- **`Context[T]`**: Generic immutable data container with map-based storage
-- **`MutableContext`**: Mutable variant for performance-critical sections
+- **`State[T]`**: Generic immutable data container with map-based storage
+- **`MutableState`**: Mutable variant for performance-critical sections
 - **`Link[TInput, TOutput]`**: Generic interface for processing units
-- **`Chain`**: Orchestrator for link execution with middleware support
-- **`Middleware[TInput, TOutput]`**: Interface for cross-cutting concerns with ABC pattern
-- **`nopMiddleware`**: Default no-op implementations for easy embedding
+- **`Chain`**: Orchestrator for link execution with hook support
+- **`Hook[TInput, TOutput]`**: Interface for cross-cutting concerns with ABC pattern
+- **`nopHook`**: Default no-op implementations for easy embedding
 
 ### Advanced Features
 - **ErrorHandlingMixin**: Compassionate error routing with conditional handlers
@@ -113,7 +113,7 @@ func (lm *LoggingMiddleware) After(ctx context.Context, link codeuchain.Link[any
 ### Testing & Quality
 - **97.5% Test Coverage**: Comprehensive test suite with edge cases
 - **Typed Features**: Full generic type support with type evolution
-- **Middleware ABC Pattern**: No-op defaults with selective implementation
+- **Hook ABC Pattern**: No-op defaults with selective implementation
 - **Production Ready**: Battle-tested with extensive error handling
 
 ## 📋 Usage Patterns
@@ -122,29 +122,29 @@ func (lm *LoggingMiddleware) After(ctx context.Context, link codeuchain.Link[any
 ```go
 chain := codeuchain.NewChain()
 chain.AddLink("process", myTypedLink)
-chain.UseMiddleware(loggingMiddleware)
+chain.UseHook(loggingHook)
 
-result, err := chain.Run(context.Background(), initialContext)
+result, err := chain.Run(state.Background(), initialState)
 ```
 
 ### 2. Custom Components with Type Safety
 ```go
 type MyLink struct{}
 
-func (ml *MyLink) Call(ctx context.Context, c *codeuchain.Context[any]) (*codeuchain.Context[any], error) {
+func (ml *MyLink) Call(ctx state.State, c *codeuchain.State[any]) (*codeuchain.State[any], error) {
     // Your processing logic with full type safety
     return c.Insert("result", "processed"), nil
 }
 ```
 
-### 3. Middleware ABC Pattern
+### 3. Hook ABC Pattern
 ```go
-type MyMiddleware struct {
-    codeuchain.nopMiddleware // Embed for defaults
+type MyHook struct {
+    codeuchain.nopHook // Embed for defaults
 }
 
 // Only implement what you need
-func (mm *MyMiddleware) Before(ctx context.Context, link codeuchain.Link[any, any], c *codeuchain.Context[any]) error {
+func (mm *MyHook) Before(ctx state.State, link codeuchain.Link[any, any], c *codeuchain.State[any]) error {
     // Custom before logic
     return nil
 }
@@ -169,11 +169,11 @@ retryLink := codeuchain.NewRetryLink(myLink, 3)
 ### 6. Type Evolution
 ```go
 // Start with specific type
-ctx := codeuchain.NewContext[string](map[string]interface{}{"input": "hello"})
+ctx := codeuchain.NewState[string](map[string]interface{}{"input": "hello"})
 
 // Evolve to any type cleanly
 evolved := ctx.InsertAs("number", 42)
-// Result type: *Context[any] with both string and int data
+// Result type: *State[any] with both string and int data
 ```
 
 ## 🧪 Testing & Quality Assurance
@@ -187,15 +187,15 @@ go tool cover -html=coverage.out -o coverage.html
 
 # Run specific test categories
 go test -v -run TestChain      # Chain functionality
-go test -v -run TestContext    # Context operations
-go test -v -run TestMiddleware # Middleware patterns
+go test -v -run TestState    # State operations
+go test -v -run TestHook # Hook patterns
 go test -v -run TestRetry      # Retry logic
 ```
 
 ### Test Coverage Breakdown
-- **Context Operations**: 100% coverage
+- **State Operations**: 100% coverage
 - **Chain.Run Method**: 95.8% coverage (comprehensive edge cases)
-- **Middleware ABC Pattern**: 100% coverage
+- **Hook ABC Pattern**: 100% coverage
 - **Error Handling**: 100% coverage
 - **Retry Logic**: 88.9% coverage (optimal for executable code)
 - **Type Evolution**: 100% coverage
@@ -211,7 +211,7 @@ go run simple_math.go
 
 ### Advanced Features Demo
 ```go
-// Demonstrates typed features, middleware ABC pattern, and error handling
+// Demonstrates typed features, hook ABC pattern, and error handling
 chain := codeuchain.NewChain()
 
 // Add links with type safety
@@ -219,9 +219,9 @@ chain.AddLink("validate", &ValidationLink{})
 chain.AddLink("process", &ProcessingLink{})
 chain.AddLink("format", &FormattingLink{})
 
-// Middleware using ABC pattern (only implement what you need)
-chain.UseMiddleware(&LoggingMiddleware{})
-chain.UseMiddleware(&MetricsMiddleware{})
+// Hook using ABC pattern (only implement what you need)
+chain.UseHook(&LoggingHook{})
+chain.UseHook(&MetricsHook{})
 
 // Error handling with conditional routing
 ehm := codeuchain.NewErrorHandlingMixin()
@@ -230,21 +230,21 @@ ehm.OnError("process", "error_handler", func(err error) bool {
 })
 
 // Run with comprehensive error handling
-result, err := chain.Run(context.Background(), inputContext)
+result, err := chain.Run(state.Background(), inputState)
 ```
 
 ## 🎯 Key Features Implemented
 
 ### ✅ **Typed Features (100% Complete)**
-- Generic `Context[T]` with type evolution
+- Generic `State[T]` with type evolution
 - Generic `Link[TInput, TOutput]` interfaces
 - Clean type transformations with `InsertAs()`
 - Mixed typed/untyped usage support
 
-### ✅ **Middleware ABC Pattern (100% Complete)**
-- `nopMiddleware` with default no-op implementations
+### ✅ **Hook ABC Pattern (100% Complete)**
+- `nopHook` with default no-op implementations
 - Selective method overriding
-- Full middleware lifecycle support
+- Full hook lifecycle support
 - Error handling integration
 
 ### ✅ **Production Quality (97.5% Coverage)**
@@ -256,7 +256,7 @@ result, err := chain.Run(context.Background(), inputContext)
 ### ✅ **Advanced Error Handling**
 - Conditional error routing
 - Retry logic with backoff
-- Middleware error hooks
+- Hook error hooks
 - Graceful degradation
 
 ## 🤝 Contributing
@@ -264,7 +264,7 @@ result, err := chain.Run(context.Background(), inputContext)
 1. **Follow the agape philosophy**: selfless, compassionate code
 2. **Maintain test coverage**: aim for 95%+ coverage on new features
 3. **Use typed features**: leverage generics for type safety
-4. **Implement ABC pattern**: use no-op defaults in middleware
+4. **Implement ABC pattern**: use no-op defaults in hook
 5. **Add comprehensive tests**: cover happy path, error cases, and edge conditions
 6. **Update documentation**: keep README and examples current
 
@@ -280,7 +280,7 @@ Apache License 2.0 - see LICENSE file for details
 
 - **Simplicity**: Clean interfaces with powerful generics
 - **Performance**: Zero-cost abstractions with interface{} flexibility
-- **Concurrency**: Native goroutine and context support
+- **Concurrency**: Native goroutine and state support
 - **Reliability**: 97.5% test coverage with comprehensive error handling
 - **Ecosystem Fit**: Perfect integration with Go's idioms and tooling
 

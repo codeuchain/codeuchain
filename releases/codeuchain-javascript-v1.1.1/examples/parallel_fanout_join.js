@@ -12,7 +12,7 @@
  * and synchronize them back together.
  */
 
-const { Context, Chain, Link, LoggingMiddleware } = require('../core');
+const { State, Chain, Link, LoggingHook } = require('../core');
 
 class DataSplitterLink extends Link {
   async call(ctx) {
@@ -165,8 +165,8 @@ async function main() {
   chain.connect('ProcessBranchBLink', 'ResultsJoinerLink');
   chain.connect('ResultsJoinerLink', 'FinalAggregatorLink');
 
-  // Add middleware
-  chain.useMiddleware(new LoggingMiddleware());
+  // Add hook
+  chain.useHook(new LoggingHook());
 
   // Test data
   const testData = [
@@ -198,7 +198,7 @@ async function main() {
 
     try {
       const startTime = Date.now();
-      const initialCtx = new Context(testCase);
+      const initialCtx = new State(testCase);
       const resultCtx = await chain.run(initialCtx);
       const endTime = Date.now();
 

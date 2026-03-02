@@ -14,7 +14,7 @@
  * for handling transient failures in processing pipelines.
  */
 
-const { Context, Chain, Link, LoggingMiddleware } = require('../core');
+const { State, Chain, Link, LoggingHook } = require('../core');
 
 class RetryableProcessorLink extends Link {
   constructor(maxRetries = 3, baseDelay = 1000) {
@@ -198,8 +198,8 @@ async function main() {
   chain.connect('RetryableProcessorLink', 'ResultAnalyzerLink');
   chain.connect('ResultAnalyzerLink', 'BackoffMetricsCollectorLink');
 
-  // Add middleware
-  chain.useMiddleware(new LoggingMiddleware());
+  // Add hook
+  chain.useHook(new LoggingHook());
 
   // Test data with different failure scenarios
   const testInputs = [
@@ -220,7 +220,7 @@ async function main() {
     console.log('─'.repeat(50));
 
     try {
-      const initialCtx = new Context(testCase);
+      const initialCtx = new State(testCase);
       const resultCtx = await chain.run(initialCtx);
 
       const analysis = resultCtx.get('analysis');

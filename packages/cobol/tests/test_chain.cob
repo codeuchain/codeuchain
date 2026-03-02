@@ -14,8 +14,8 @@
        01  WS-LINK-NAME.
            05  WS-LINK-NAME-LEN     PIC S9(4) COMP.
            05  WS-LINK-NAME-DATA    PIC X(30).
-       01  WS-INITIAL-CONTEXT       PIC X(10000).
-       01  WS-FINAL-CONTEXT         PIC X(10000).
+       01  WS-INITIAL-STATE       PIC X(10000).
+       01  WS-FINAL-STATE         PIC X(10000).
        01  WS-RESULT                PIC X(10).
 
        PROCEDURE DIVISION.
@@ -41,13 +41,13 @@
 
            MOVE 12 TO WS-LINK-NAME-LEN
            MOVE "TEST-CHAIN" TO WS-LINK-NAME-DATA
-           MOVE "Initial context" TO WS-INITIAL-CONTEXT
-           MOVE SPACES TO WS-FINAL-CONTEXT
+           MOVE "Initial state" TO WS-INITIAL-STATE
+           MOVE SPACES TO WS-FINAL-STATE
 
            CALL "CHAIN-ORCHESTRATOR" USING
                WS-LINK-NAME
-               WS-INITIAL-CONTEXT
-               WS-FINAL-CONTEXT
+               WS-INITIAL-STATE
+               WS-FINAL-STATE
                WS-RESULT
 
            IF WS-RESULT = "SUCCESS"
@@ -64,13 +64,13 @@
 
            MOVE 15 TO WS-LINK-NAME-LEN
            MOVE "SINGLE-LINK" TO WS-LINK-NAME-DATA
-           MOVE "Test input data" TO WS-INITIAL-CONTEXT
-           MOVE SPACES TO WS-FINAL-CONTEXT
+           MOVE "Test input data" TO WS-INITIAL-STATE
+           MOVE SPACES TO WS-FINAL-STATE
 
            CALL "CHAIN-ORCHESTRATOR" USING
                WS-LINK-NAME
-               WS-INITIAL-CONTEXT
-               WS-FINAL-CONTEXT
+               WS-INITIAL-STATE
+               WS-FINAL-STATE
                WS-RESULT
 
            IF WS-RESULT = "SUCCESS"
@@ -87,13 +87,13 @@
 
            MOVE 14 TO WS-LINK-NAME-LEN
            MOVE "MULTI-LINK" TO WS-LINK-NAME-DATA
-           MOVE "Multiple link test data" TO WS-INITIAL-CONTEXT
-           MOVE SPACES TO WS-FINAL-CONTEXT
+           MOVE "Multiple link test data" TO WS-INITIAL-STATE
+           MOVE SPACES TO WS-FINAL-STATE
 
            CALL "CHAIN-ORCHESTRATOR" USING
                WS-LINK-NAME
-               WS-INITIAL-CONTEXT
-               WS-FINAL-CONTEXT
+               WS-INITIAL-STATE
+               WS-FINAL-STATE
                WS-RESULT
 
            IF WS-RESULT = "SUCCESS"
@@ -110,13 +110,13 @@
 
            MOVE 11 TO WS-LINK-NAME-LEN
            MOVE "ERROR-CHAIN" TO WS-LINK-NAME-DATA
-           MOVE "Error test data" TO WS-INITIAL-CONTEXT
-           MOVE SPACES TO WS-FINAL-CONTEXT
+           MOVE "Error test data" TO WS-INITIAL-STATE
+           MOVE SPACES TO WS-FINAL-STATE
 
            CALL "CHAIN-ORCHESTRATOR" USING
                WS-LINK-NAME
-               WS-INITIAL-CONTEXT
-               WS-FINAL-CONTEXT
+               WS-INITIAL-STATE
+               WS-FINAL-STATE
                WS-RESULT
 
            IF WS-RESULT = "SUCCESS"
@@ -133,13 +133,13 @@
 
            MOVE 16 TO WS-LINK-NAME-LEN
            MOVE "STATUS-TEST" TO WS-LINK-NAME-DATA
-           MOVE "Status tracking test" TO WS-INITIAL-CONTEXT
-           MOVE SPACES TO WS-FINAL-CONTEXT
+           MOVE "Status tracking test" TO WS-INITIAL-STATE
+           MOVE SPACES TO WS-FINAL-STATE
 
            CALL "CHAIN-ORCHESTRATOR" USING
                WS-LINK-NAME
-               WS-INITIAL-CONTEXT
-               WS-FINAL-CONTEXT
+               WS-INITIAL-STATE
+               WS-FINAL-STATE
                WS-RESULT
 
            IF WS-RESULT = "SUCCESS"

@@ -1,7 +1,7 @@
 /**
- * Middleware Wrap Example
+ * Hook Wrap Example
  *
- * Demonstrates the Middleware Wrap pattern from ASCII_PIPELINES.txt:
+ * Demonstrates the Hook Wrap pattern from ASCII_PIPELINES.txt:
  * ```
  * [Ctx] -> [Before MW] -> (Link) -> [After MW] -> [Ctx']
  *               | error
@@ -9,13 +9,13 @@
  *           [OnError MW]
  * ```
  *
- * This example shows how to wrap links with middleware for
+ * This example shows how to wrap links with hook for
  * cross-cutting concerns like logging, timing, and error handling.
  */
 
-const { Context, Chain, Link, LoggingMiddleware } = require('../core');
+const { State, Chain, Link, LoggingHook } = require('../core');
 
-class TimingMiddleware {
+class TimingHook {
   async execute(link, ctx, next) {
     const startTime = Date.now();
     const linkName = link.constructor.name;
@@ -40,7 +40,7 @@ class TimingMiddleware {
   }
 }
 
-class ValidationMiddleware {
+class ValidationHook {
   async execute(link, ctx, next) {
     const linkName = link.constructor.name;
 
@@ -91,7 +91,7 @@ class ValidationMiddleware {
   }
 }
 
-class MetricsMiddleware {
+class MetricsHook {
   constructor() {
     this.metrics = {
       executions: 0,
@@ -177,14 +177,14 @@ class OutputWriterLink extends Link {
 }
 
 async function main() {
-  console.log('🔧 CodeUChain: Middleware Wrap Example');
+  console.log('🔧 CodeUChain: Hook Wrap Example');
   console.log('=' * 42);
   console.log();
 
-  // Create custom middleware instances
-  const timingMW = new TimingMiddleware();
-  const validationMW = new ValidationMiddleware();
-  const metricsMW = new MetricsMiddleware();
+  // Create custom hook instances
+  const timingMW = new TimingHook();
+  const validationMW = new ValidationHook();
+  const metricsMW = new MetricsHook();
 
   // Create the chain
   const chain = new Chain();
@@ -198,15 +198,15 @@ async function main() {
   chain.connect('DataProcessorLink', 'ResultFormatterLink');
   chain.connect('ResultFormatterLink', 'OutputWriterLink');
 
-  // Apply middleware to all links
-  chain.useMiddleware(timingMW);
-  chain.useMiddleware(validationMW);
-  chain.useMiddleware(metricsMW);
+  // Apply hook to all links
+  chain.useHook(timingMW);
+  chain.useHook(validationMW);
+  chain.useHook(metricsMW);
 
-  // Add error handling middleware
+  // Add error handling hook
   chain.onError((error, ctx, linkName) => {
     console.error(`🚨 Error in ${linkName}: ${error.message}`);
-    console.error(`   Context keys: ${Object.keys(ctx.toObject()).join(', ')}`);
+    console.error(`   State keys: ${Object.keys(ctx.toObject()).join(', ')}`);
 
     // Could add error recovery logic here
     return ctx.insert('errorHandled', true);
@@ -220,7 +220,7 @@ async function main() {
     { inputData: 'test_data_3' }
   ];
 
-  console.log('🧪 Testing Middleware Wrap Pipeline:\n');
+  console.log('🧪 Testing Hook Wrap Pipeline:\n');
 
   for (let i = 0; i < testInputs.length; i++) {
     const testCase = testInputs[i];
@@ -228,7 +228,7 @@ async function main() {
     console.log('─'.repeat(40));
 
     try {
-      const initialCtx = new Context(testCase);
+      const initialCtx = new State(testCase);
       const resultCtx = await chain.run(initialCtx);
 
       console.log('✅ Pipeline completed successfully!');
@@ -248,7 +248,7 @@ async function main() {
   }
 
   // Show final metrics
-  console.log('\n📈 Final Middleware Metrics:');
+  console.log('\n📈 Final Hook Metrics:');
   const finalMetrics = metricsMW.getMetrics();
   console.log(`   Total executions: ${finalMetrics.executions}`);
   console.log(`   Successes: ${finalMetrics.successes}`);
@@ -256,13 +256,13 @@ async function main() {
   console.log(`   Success rate: ${finalMetrics.successRate.toFixed(1)}%`);
   console.log(`   Average time: ${Math.round(finalMetrics.avgTime)}ms`);
 
-  console.log('\n✨ Middleware Wrap Example Complete!');
+  console.log('\n✨ Hook Wrap Example Complete!');
   console.log();
   console.log('Key Concepts Demonstrated:');
-  console.log('• Before/After middleware execution');
-  console.log('• Error handling middleware');
+  console.log('• Before/After hook execution');
+  console.log('• Error handling hook');
   console.log('• Cross-cutting concerns (timing, validation, metrics)');
-  console.log('• Middleware composition and ordering');
+  console.log('• Hook composition and ordering');
   console.log('• Non-invasive enhancement of link behavior');
 }
 

@@ -5,7 +5,7 @@ Testing the Link protocol with concrete implementations.
 """
 
 import pytest
-from codeuchain.core.context import Context
+from codeuchain.core.state import State
 from codeuchain.core.link import Link
 
 
@@ -26,7 +26,7 @@ class SimpleProcessingLink:
     def __init__(self, name: str = "test"):
         self.name = name
 
-    async def call(self, ctx: Context) -> Context:
+    async def call(self, ctx: State) -> State:
         """Simple processing: add a 'processed' field."""
         return ctx.insert("processed", True).insert("processor", self.name)
 
@@ -34,7 +34,7 @@ class SimpleProcessingLink:
 class DataTransformationLink:
     """Link that transforms data."""
 
-    async def call(self, ctx: Context) -> Context:
+    async def call(self, ctx: State) -> State:
         """Transform data by doubling numbers and uppercasing strings."""
         data = ctx.get("data")
         if isinstance(data, list):
@@ -59,7 +59,7 @@ class ValidationLink:
     def __init__(self, required_fields: list):
         self.required_fields = required_fields
 
-    async def call(self, ctx: Context) -> Context:
+    async def call(self, ctx: State) -> State:
         """Validate required fields exist."""
         for field in self.required_fields:
             if ctx.get(field) is None:
@@ -70,7 +70,7 @@ class ValidationLink:
 class FailingLink:
     """Link that always fails for testing error handling."""
 
-    async def call(self, ctx: Context) -> Context:
+    async def call(self, ctx: State) -> State:
         """Always raise an exception."""
         raise ValueError("Intentional failure for testing")
 
@@ -85,7 +85,7 @@ class TestSimpleProcessingLink:
         link = SimpleProcessingLink("test_processor")
 
         async def run_test():
-            ctx = Context({"input": "test_data"})
+            ctx = State({"input": "test_data"})
             result = await link.call(ctx)
 
             assert result.get("processed") is True
@@ -97,12 +97,12 @@ class TestSimpleProcessingLink:
 
     @pytest.mark.unit
     @pytest.mark.core
-    def test_empty_context_processing(self):
-        """Test processing with empty context."""
+    def test_empty_state_processing(self):
+        """Test processing with empty state."""
         link = SimpleProcessingLink()
 
         async def run_test():
-            ctx = Context()
+            ctx = State()
             result = await link.call(ctx)
 
             assert result.get("processed") is True
@@ -122,7 +122,7 @@ class TestDataTransformationLink:
         link = DataTransformationLink()
 
         async def run_test():
-            ctx = Context({"data": [1, 2, 3, 4.5]})
+            ctx = State({"data": [1, 2, 3, 4.5]})
             result = await link.call(ctx)
 
             transformed = result.get("transformed")
@@ -138,7 +138,7 @@ class TestDataTransformationLink:
         link = DataTransformationLink()
 
         async def run_test():
-            ctx = Context({"data": ["hello", "world"]})
+            ctx = State({"data": ["hello", "world"]})
             result = await link.call(ctx)
 
             transformed = result.get("transformed")
@@ -154,7 +154,7 @@ class TestDataTransformationLink:
         link = DataTransformationLink()
 
         async def run_test():
-            ctx = Context({"data": ["hello", 42, True]})
+            ctx = State({"data": ["hello", 42, True]})
             result = await link.call(ctx)
 
             transformed = result.get("transformed")
@@ -170,7 +170,7 @@ class TestDataTransformationLink:
         link = DataTransformationLink()
 
         async def run_test():
-            ctx = Context({"data": "single_value"})
+            ctx = State({"data": "single_value"})
             result = await link.call(ctx)
 
             assert result.get("transformed") == "single_value"
@@ -189,7 +189,7 @@ class TestValidationLink:
         link = ValidationLink(["name", "email"])
 
         async def run_test():
-            ctx = Context({"name": "Alice", "email": "alice@example.com", "age": 30})
+            ctx = State({"name": "Alice", "email": "alice@example.com", "age": 30})
             result = await link.call(ctx)
 
             assert result.get("validated") is True
@@ -205,7 +205,7 @@ class TestValidationLink:
         link = ValidationLink(["name", "email"])
 
         async def run_test():
-            ctx = Context({"name": "Alice"})  # Missing email
+            ctx = State({"name": "Alice"})  # Missing email
             result = await link.call(ctx)
 
             assert result.get("validated") is None
@@ -221,7 +221,7 @@ class TestValidationLink:
         link = ValidationLink(["name", "email", "phone"])
 
         async def run_test():
-            ctx = Context({"email": "alice@example.com"})  # Missing name and phone
+            ctx = State({"email": "alice@example.com"})  # Missing name and phone
             result = await link.call(ctx)
 
             assert result.get("validated") is None
@@ -241,7 +241,7 @@ class TestFailingLink:
         link = FailingLink()
 
         async def run_test():
-            ctx = Context({"data": "test"})
+            ctx = State({"data": "test"})
             with pytest.raises(ValueError, match="Intentional failure for testing"):
                 await link.call(ctx)
 
@@ -261,7 +261,7 @@ class TestLinkIntegration:
 
         async def run_test():
             # Start with valid data
-            ctx = Context({"data": "test_input"})
+            ctx = State({"data": "test_input"})
 
             # First validate
             validated_ctx = await validation_link.call(ctx)
@@ -285,12 +285,12 @@ class TestLinkIntegration:
 
         async def run_test():
             # Test validation failure
-            ctx = Context({"optional": "value"})  # Missing required_field
+            ctx = State({"optional": "value"})  # Missing required_field
             result = await validation_link.call(ctx)
             assert result.get("error") == "Missing required field: required_field"
 
             # Test runtime failure
-            ctx2 = Context({"data": "test"})
+            ctx2 = State({"data": "test"})
             with pytest.raises(ValueError):
                 await failing_link.call(ctx2)
 

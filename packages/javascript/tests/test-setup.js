@@ -3,10 +3,10 @@
 
 // Global test utilities
 global.testUtils = {
-  // Create a simple test context
-  createTestContext: (data = {}) => {
-    const { Context } = require('../core');
-    return new Context(data);
+  // Create a simple test state
+  createTestState: (data = {}) => {
+    const { State } = require('../core');
+    return new State(data);
   },
 
   // Create a simple test link
@@ -29,7 +29,7 @@ global.testUtils = {
   }
 };
 
-// Set up console spy for middleware tests
+// Set up console spy for hook tests
 beforeEach(() => {
   jest.spyOn(console, 'log').mockImplementation(() => {});
   jest.spyOn(console, 'error').mockImplementation(() => {});

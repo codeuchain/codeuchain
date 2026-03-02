@@ -1,11 +1,11 @@
 // Business Workflow Example using CodeUChain
 // ------------------------------------------
-// Simulated order processing pipeline demonstrating the timing middleware
-// and realistic context evolution without external systems.
+// Simulated order processing pipeline demonstrating the timing hook
+// and realistic state evolution without external systems.
 //
 // Purpose: Illustrates a multi-stage business workflow where each link
 // performs meaningful work (validation, enrichment, calculation, persistence)
-// and mutates the context. Uses TimingMiddleware to measure per-link
+// and mutates the state. Uses TimingHook to measure per-link
 // performance, showing how real-world chains can be profiled.
 //
 // Stages:
@@ -16,14 +16,14 @@
 //   5. PersistOrder       - simulates persistence (adds order_id & timestamps)
 //   6. PublishEvent       - simulates outbound event publish
 //
-// Each stage mutates/extends context, giving us a realistic chain for the
-// TimingMiddleware to measure. No real I/O: simulated delays via lightweight
+// Each stage mutates/extends state, giving us a realistic chain for the
+// TimingHook to measure. No real I/O: simulated delays via lightweight
 // computations to avoid sleeping (sleep would dominate noise & wall clock).
 //
 // Build: part of examples (see CMake). Run:
 //   ./examples/business_workflow --runs 3 --per-invocation
 //
-// Sample output includes timing report and final context keys.
+// Sample output includes timing report and final state keys.
 
 #include <iostream>
 #include <random>
@@ -37,8 +37,8 @@
 
 #include "codeuchain/chain.hpp"
 #include "codeuchain/link.hpp"
-#include "codeuchain/context.hpp"
-#include "codeuchain/timing_middleware.hpp"
+#include "codeuchain/state.hpp"
+#include "codeuchain/timing_hook.hpp"
 
 using namespace codeuchain;
 
@@ -55,7 +55,7 @@ static void cpu_burn(int iters, uint64_t seed_base = 0) {
 
 class ValidateInputLink : public ILink {
 public:
-    LinkAwaitable call(Context ctx) override {
+    LinkAwaitable call(State ctx) override {
         auto customer = ctx.get("customer_id");
         auto items = ctx.get("items");
         bool ok = customer.has_value() && items.has_value();
@@ -69,7 +69,7 @@ public:
 
 class EnrichCustomerLink : public ILink {
 public:
-    LinkAwaitable call(Context ctx) override {
+    LinkAwaitable call(State ctx) override {
         auto valid = ctx.get("valid");
         if (valid && std::holds_alternative<bool>(*valid) && std::get<bool>(*valid)) {
             // Simulate enrichment (tier based on hash of customer)
@@ -91,7 +91,7 @@ public:
 
 class PriceCalculationLink : public ILink {
 public:
-    LinkAwaitable call(Context ctx) override {
+    LinkAwaitable call(State ctx) override {
         // Items represented as vector<string> of numeric price tokens for simplicity
         double subtotal = 0.0;
         if (auto items = ctx.get("items")) {
@@ -111,7 +111,7 @@ public:
 
 class ApplyDiscountsLink : public ILink {
 public:
-    LinkAwaitable call(Context ctx) override {
+    LinkAwaitable call(State ctx) override {
         double subtotal = 0.0;
         if (auto st = ctx.get("subtotal")) {
             if (st && std::holds_alternative<double>(*st)) subtotal = std::get<double>(*st);
@@ -137,7 +137,7 @@ public:
 
 class PersistOrderLink : public ILink {
 public:
-    LinkAwaitable call(Context ctx) override {
+    LinkAwaitable call(State ctx) override {
         // Simulate persistence cost with extra cpu burn and ID generation
         static std::atomic<uint64_t> next_id{1000};
         uint64_t oid = next_id.fetch_add(1, std::memory_order_relaxed);
@@ -152,7 +152,7 @@ public:
 
 class PublishEventLink : public ILink {
 public:
-    LinkAwaitable call(Context ctx) override {
+    LinkAwaitable call(State ctx) override {
         // Simulate event serialization hashing workload
         cpu_burn(2100, 6);
         ctx = ctx.insert("event_published", true);
@@ -165,7 +165,7 @@ public:
 int main(int argc, char** argv) {
     int runs = 1;
     bool per_invocation = false;
-    codeuchain::TimingMiddleware::FormatConfig config;
+    codeuchain::TimingHook::FormatConfig config;
 
     for (int i = 1; i < argc; ++i) {
         std::string a = argv[i];
@@ -173,15 +173,15 @@ int main(int argc, char** argv) {
         else if (a == "--per-invocation") per_invocation = true;
         else if (a == "--format" && i + 1 < argc) {
             std::string fmt = argv[++i];
-            if (fmt == "csv") config.format = codeuchain::TimingMiddleware::OutputFormat::CSV;
-            else if (fmt == "tabular") config.format = codeuchain::TimingMiddleware::OutputFormat::Tabular;
+            if (fmt == "csv") config.format = codeuchain::TimingHook::OutputFormat::CSV;
+            else if (fmt == "tabular") config.format = codeuchain::TimingHook::OutputFormat::Tabular;
         }
         else if (a == "--unit" && i + 1 < argc) {
             std::string unit = argv[++i];
-            if (unit == "ns") config.time_unit = codeuchain::TimingMiddleware::TimeUnit::Nano;
-            else if (unit == "us" || unit == "µs") config.time_unit = codeuchain::TimingMiddleware::TimeUnit::Micro;
-            else if (unit == "ms") config.time_unit = codeuchain::TimingMiddleware::TimeUnit::Milli;
-            else if (unit == "auto") config.time_unit = codeuchain::TimingMiddleware::TimeUnit::Auto;
+            if (unit == "ns") config.time_unit = codeuchain::TimingHook::TimeUnit::Nano;
+            else if (unit == "us" || unit == "µs") config.time_unit = codeuchain::TimingHook::TimeUnit::Micro;
+            else if (unit == "ms") config.time_unit = codeuchain::TimingHook::TimeUnit::Milli;
+            else if (unit == "auto") config.time_unit = codeuchain::TimingHook::TimeUnit::Auto;
         }
         else if (a == "--decimals" && i + 1 < argc) {
             config.decimal_places = std::stoi(argv[++i]);
@@ -228,14 +228,14 @@ int main(int argc, char** argv) {
     // chain.connect("discount", "persist", always);
     // chain.connect("persist", "publish", always);
 
-        auto timing = std::make_shared<codeuchain::TimingMiddleware>(config, per_invocation, false);
-    chain.use_middleware(timing);
+        auto timing = std::make_shared<codeuchain::TimingHook>(config, per_invocation, false);
+    chain.use_hook(timing);
 
     std::cout << "Runs: " << runs << " per-invocation: " << (per_invocation ? "on" : "off") << "\n";
 
     for (int r = 0; r < runs; ++r) {
-        Context ctx;
-        // Seed context with simple order
+        State ctx;
+        // Seed state with simple order
         ctx = ctx.insert("customer_id", 123 + r);
         ctx = ctx.insert("items", std::vector<std::string>{"19.99","5.00","3.50"});
         auto fut = chain.run(ctx);

@@ -1,30 +1,30 @@
 """
-Tests for Context Classes
+Tests for State Classes
 
-Testing immutable Context and mutable MutableContext functionality.
+Testing immutable State and mutable MutableState functionality.
 """
 
 import pytest
-from codeuchain.core.context import Context, MutableContext
+from codeuchain.core.state import State, MutableState
 
 
-class TestContext:
-    """Test the immutable Context class."""
+class TestState:
+    """Test the immutable State class."""
 
     @pytest.mark.unit
     @pytest.mark.core
-    def test_empty_context(self):
-        """Test creating an empty context."""
-        ctx = Context()
+    def test_empty_state(self):
+        """Test creating an empty state."""
+        ctx = State()
         assert ctx.get("nonexistent") is None
         assert ctx.to_dict() == {}
 
     @pytest.mark.unit
     @pytest.mark.core
-    def test_context_with_data(self):
-        """Test creating context with initial data."""
+    def test_state_with_data(self):
+        """Test creating state with initial data."""
         data = {"name": "Alice", "age": 30}
-        ctx = Context(data)
+        ctx = State(data)
         assert ctx.get("name") == "Alice"
         assert ctx.get("age") == 30
         assert ctx.get("nonexistent") is None
@@ -32,27 +32,27 @@ class TestContext:
     @pytest.mark.unit
     @pytest.mark.core
     def test_insert_immutability(self):
-        """Test that insert returns new context without modifying original."""
-        ctx1 = Context({"name": "Alice"})
+        """Test that insert returns new state without modifying original."""
+        ctx1 = State({"name": "Alice"})
         ctx2 = ctx1.insert("age", 30)
 
         # Original should be unchanged
         assert ctx1.get("age") is None
         assert ctx1.get("name") == "Alice"
 
-        # New context should have the insertion
+        # New state should have the insertion
         assert ctx2.get("age") == 30
         assert ctx2.get("name") == "Alice"
 
-        # Contexts should be different objects
+        # States should be different objects
         assert ctx1 is not ctx2
 
     @pytest.mark.unit
     @pytest.mark.core
-    def test_merge_contexts(self):
-        """Test merging two contexts."""
-        ctx1 = Context({"name": "Alice", "age": 30})
-        ctx2 = Context({"city": "Wonderland", "age": 25})  # age should be overridden
+    def test_merge_states(self):
+        """Test merging two states."""
+        ctx1 = State({"name": "Alice", "age": 30})
+        ctx2 = State({"city": "Wonderland", "age": 25})  # age should be overridden
 
         merged = ctx1.merge(ctx2)
 
@@ -60,33 +60,33 @@ class TestContext:
         assert merged.get("city") == "Wonderland"
         assert merged.get("age") == 25  # from ctx2
 
-        # Original contexts should be unchanged
+        # Original states should be unchanged
         assert ctx1.get("age") == 30
         assert ctx2.get("city") == "Wonderland"
 
     @pytest.mark.unit
     @pytest.mark.core
     def test_to_dict(self):
-        """Test converting context to dictionary."""
+        """Test converting state to dictionary."""
         data = {"name": "Alice", "age": 30}
-        ctx = Context(data)
+        ctx = State(data)
         dict_result = ctx.to_dict()
 
         assert dict_result == data
         assert dict_result is not data  # Should be a copy
 
-        # Modifying the dict shouldn't affect the context
+        # Modifying the dict shouldn't affect the state
         dict_result["new_key"] = "new_value"
         assert ctx.get("new_key") is None
 
     @pytest.mark.unit
     @pytest.mark.core
     def test_with_mutation(self):
-        """Test converting to mutable context."""
-        ctx = Context({"name": "Alice"})
+        """Test converting to mutable state."""
+        ctx = State({"name": "Alice"})
         mutable = ctx.with_mutation()
 
-        assert isinstance(mutable, MutableContext)
+        assert isinstance(mutable, MutableState)
         assert mutable.get("name") == "Alice"
 
         # Original should be unchanged
@@ -98,16 +98,16 @@ class TestContext:
     @pytest.mark.core
     def test_repr(self):
         """Test string representation."""
-        ctx = Context({"name": "Alice"})
+        ctx = State({"name": "Alice"})
         repr_str = repr(ctx)
-        assert "Context" in repr_str
+        assert "State" in repr_str
         assert "Alice" in repr_str
 
     @pytest.mark.unit
     @pytest.mark.core
     def test_get_with_default_value(self):
         """Test get() method with default parameter."""
-        ctx = Context({"name": "Alice", "age": 30})
+        ctx = State({"name": "Alice", "age": 30})
         
         # Existing keys should ignore default
         assert ctx.get("name", "default") == "Alice"
@@ -129,7 +129,7 @@ class TestContext:
         """Test that default parameter works correctly with falsy stored values."""
         # This tests that we're not using 'or' logic which would incorrectly
         # replace falsy values with the default
-        ctx = Context({
+        ctx = State({
             "zero": 0,
             "false": False,
             "empty_string": "",
@@ -147,22 +147,22 @@ class TestContext:
         assert ctx.get("none", "default") is None
 
 
-class TestMutableContext:
-    """Test the mutable MutableContext class."""
+class TestMutableState:
+    """Test the mutable MutableState class."""
 
     @pytest.mark.unit
     @pytest.mark.core
-    def test_mutable_context_creation(self):
-        """Test creating mutable context."""
+    def test_mutable_state_creation(self):
+        """Test creating mutable state."""
         data = {"name": "Alice"}
-        mutable = MutableContext(data)
+        mutable = MutableState(data)
         assert mutable.get("name") == "Alice"
 
     @pytest.mark.unit
     @pytest.mark.core
     def test_set_value(self):
-        """Test setting values in mutable context."""
-        mutable = MutableContext({})
+        """Test setting values in mutable state."""
+        mutable = MutableState({})
         mutable.set("name", "Alice")
         mutable.set("age", 30)
 
@@ -172,13 +172,13 @@ class TestMutableContext:
     @pytest.mark.unit
     @pytest.mark.core
     def test_to_immutable(self):
-        """Test converting mutable context to immutable."""
-        mutable = MutableContext({"name": "Alice"})
+        """Test converting mutable state to immutable."""
+        mutable = MutableState({"name": "Alice"})
         mutable.set("age", 30)
 
         immutable = mutable.to_immutable()
 
-        assert isinstance(immutable, Context)
+        assert isinstance(immutable, State)
         assert immutable.get("name") == "Alice"
         assert immutable.get("age") == 30
 
@@ -190,17 +190,17 @@ class TestMutableContext:
     @pytest.mark.unit
     @pytest.mark.core
     def test_mutable_repr(self):
-        """Test string representation of mutable context."""
-        mutable = MutableContext({"name": "Alice"})
+        """Test string representation of mutable state."""
+        mutable = MutableState({"name": "Alice"})
         repr_str = repr(mutable)
-        assert "MutableContext" in repr_str
+        assert "MutableState" in repr_str
         assert "Alice" in repr_str
 
     @pytest.mark.unit
     @pytest.mark.core
     def test_mutable_get_with_default_value(self):
-        """Test get() method with default parameter for mutable context."""
-        mutable = MutableContext({"name": "Alice", "age": 30})
+        """Test get() method with default parameter for mutable state."""
+        mutable = MutableState({"name": "Alice", "age": 30})
         
         # Existing keys should ignore default
         assert mutable.get("name", "default") == "Alice"
@@ -215,15 +215,15 @@ class TestMutableContext:
         assert mutable.get("missing") is None
 
 
-class TestContextIntegration:
-    """Integration tests for Context and MutableContext."""
+class TestStateIntegration:
+    """Integration tests for State and MutableState."""
 
     @pytest.mark.integration
     @pytest.mark.core
     def test_round_trip_conversion(self):
-        """Test converting between mutable and immutable contexts."""
+        """Test converting between mutable and immutable states."""
         # Start with immutable
-        ctx = Context({"name": "Alice", "age": 30})
+        ctx = State({"name": "Alice", "age": 30})
 
         # Convert to mutable and modify
         mutable = ctx.with_mutation()
@@ -251,7 +251,7 @@ class TestContextIntegration:
             "metadata": {"created": "2023-01-01", "version": 1.0}
         }
 
-        ctx = Context(complex_data)
+        ctx = State(complex_data)
         dict_result = ctx.to_dict()
 
         assert dict_result == complex_data

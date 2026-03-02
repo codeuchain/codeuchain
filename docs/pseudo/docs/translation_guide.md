@@ -15,7 +15,7 @@
 
 ## 💝 Pattern Translation Matrix
 
-### Context: The Loving Vessel
+### State: The Loving Vessel
 
 #### Python: Dictionary with Type Hints
 ```python
@@ -23,37 +23,37 @@ from typing import Dict, Any, Optional
 from dataclasses import dataclass
 
 @dataclass(frozen=True)  # Immutable by default
-class Context:
+class State:
     """A loving vessel that carries data safely through chains."""
     data: Dict[str, Any]
     metadata: Optional[Dict[str, Any]] = None
 
-    def with_value(self, key: str, value: Any) -> 'Context':
-        """Create new context with additional data (immutable update)."""
+    def with_value(self, key: str, value: Any) -> 'State':
+        """Create new state with additional data (immutable update)."""
         new_data = {**self.data, key: value}
-        return Context(data=new_data, metadata=self.metadata)
+        return State(data=new_data, metadata=self.metadata)
 ```
 
 #### JavaScript/TypeScript: Object with Immutability
 ```typescript
-interface ContextData {
+interface StateData {
   [key: string]: any;
 }
 
-interface ContextMetadata {
+interface StateMetadata {
   timestamp?: number;
   source?: string;
   [key: string]: any;
 }
 
-class Context {
+class State {
   constructor(
-    public readonly data: ContextData,
-    public readonly metadata?: ContextMetadata
+    public readonly data: StateData,
+    public readonly metadata?: StateMetadata
   ) {}
 
-  withValue(key: string, value: any): Context {
-    return new Context(
+  withValue(key: string, value: any): State {
+    return new State(
       { ...this.data, [key]: value },
       this.metadata
     );
@@ -67,12 +67,12 @@ use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Context {
+pub struct State {
     pub data: HashMap<String, serde_json::Value>,
     pub metadata: Option<HashMap<String, serde_json::Value>>,
 }
 
-impl Context {
+impl State {
     pub fn new() -> Self {
         Self {
             data: HashMap::new(),
@@ -96,30 +96,30 @@ import (
     "encoding/json"
 )
 
-// Context carries data safely through chains
-type Context struct {
+// State carries data safely through chains
+type State struct {
     Data     map[string]interface{} `json:"data"`
     Metadata map[string]interface{} `json:"metadata,omitempty"`
     Created  time.Time             `json:"created"`
 }
 
-// NewContext creates a new loving vessel
-func NewContext() *Context {
-    return &Context{
+// NewState creates a new loving vessel
+func NewState() *State {
+    return &State{
         Data:    make(map[string]interface{}),
         Created: time.Now(),
     }
 }
 
-// WithValue creates new context with additional data
-func (c *Context) WithValue(key string, value interface{}) *Context {
+// WithValue creates new state with additional data
+func (c *State) WithValue(key string, value interface{}) *State {
     newData := make(map[string]interface{})
     for k, v := range c.Data {
         newData[k] = v
     }
     newData[key] = value
 
-    return &Context{
+    return &State{
         Data:     newData,
         Metadata: c.Metadata,
         Created:  c.Created,
@@ -133,14 +133,14 @@ func (c *Context) WithValue(key string, value interface{}) *Context {
 ```python
 from abc import ABC, abstractmethod
 from typing import Awaitable, Union
-from .context import Context
+from .state import State
 
 class Link(ABC):
-    """A selfless processor that transforms context with love."""
+    """A selfless processor that transforms state with love."""
 
     @abstractmethod
-    async def process(self, context: Context) -> Context:
-        """Process the context and return transformed result."""
+    async def process(self, state: State) -> State:
+        """Process the state and return transformed result."""
         pass
 
     @property
@@ -154,19 +154,19 @@ class Link(ABC):
 ```typescript
 export interface Link {
   readonly name: string;
-  process(context: Context): Promise<Context>;
+  process(state: State): Promise<State>;
 }
 
 // Example implementation
 export class ValidationLink implements Link {
   readonly name = "ValidationLink";
 
-  async process(context: Context): Promise<Context> {
+  async process(state: State): Promise<State> {
     // Validate data with care
-    if (!context.data.email) {
+    if (!state.data.email) {
       throw new Error("Email is required for loving validation");
     }
-    return context.withValue("validated", true);
+    return state.withValue("validated", true);
   }
 }
 ```
@@ -174,13 +174,13 @@ export class ValidationLink implements Link {
 #### Rust: Trait with Async Support
 ```rust
 use async_trait::async_trait;
-use crate::context::Context;
+use crate::state::State;
 use anyhow::Result;
 
 #[async_trait]
 pub trait Link: Send + Sync {
     fn name(&self) -> &str;
-    async fn process(&self, context: Context) -> Result<Context>;
+    async fn process(&self, state: State) -> Result<State>;
 }
 
 // Example implementation
@@ -192,11 +192,11 @@ impl Link for ValidationLink {
         "ValidationLink"
     }
 
-    async fn process(&self, context: Context) -> Result<Context> {
-        if !context.data.contains_key("email") {
+    async fn process(&self, state: State) -> Result<State> {
+        if !state.data.contains_key("email") {
             return Err(anyhow::anyhow!("Email is required for loving validation"));
         }
-        Ok(context.with_value("validated".to_string(), serde_json::json!(true)))
+        Ok(state.with_value("validated".to_string(), serde_json::json!(true)))
     }
 }
 ```
@@ -206,14 +206,14 @@ impl Link for ValidationLink {
 package codeuchain
 
 import (
-    "context"
+    "state"
     "fmt"
 )
 
-// Link processes context with selfless devotion
+// Link processes state with selfless devotion
 type Link interface {
     Name() string
-    Process(ctx context.Context, c *Context) (*Context, error)
+    Process(ctx state.State, c *State) (*State, error)
 }
 
 // ValidationLink example
@@ -223,7 +223,7 @@ func (v *ValidationLink) Name() string {
     return "ValidationLink"
 }
 
-func (v *ValidationLink) Process(ctx context.Context, c *Context) (*Context, error) {
+func (v *ValidationLink) Process(ctx state.State, c *State) (*State, error) {
     if c.Data["email"] == nil {
         return nil, fmt.Errorf("email is required for loving validation")
     }
@@ -236,7 +236,7 @@ func (v *ValidationLink) Process(ctx context.Context, c *Context) (*Context, err
 #### Python: Async Iterator Pattern
 ```python
 from typing import List, AsyncIterator
-from .context import Context
+from .state import State
 from .link import Link
 
 class Chain:
@@ -246,18 +246,18 @@ class Chain:
         self.name = name
         self.links = links
 
-    async def execute(self, context: Context) -> Context:
+    async def execute(self, state: State) -> State:
         """Execute all links in loving sequence."""
-        current_context = context
+        current_state = state
 
         for link in self.links:
             try:
-                current_context = await link.process(current_context)
+                current_state = await link.process(current_state)
             except Exception as e:
                 # Handle with compassion
                 raise ChainExecutionError(f"Link {link.name} failed: {e}")
 
-        return current_context
+        return current_state
 ```
 
 #### JavaScript/TypeScript: Promise Chain
@@ -268,12 +268,12 @@ export class Chain {
     private readonly links: Link[]
   ) {}
 
-  async execute(context: Context): Promise<Context> {
-    let currentContext = context;
+  async execute(state: State): Promise<State> {
+    let currentState = state;
 
     for (const link of this.links) {
       try {
-        currentContext = await link.process(currentContext);
+        currentState = await link.process(currentState);
       } catch (error) {
         throw new ChainExecutionError(
           `Link ${link.name} failed: ${error.message}`,
@@ -282,14 +282,14 @@ export class Chain {
       }
     }
 
-    return currentContext;
+    return currentState;
   }
 }
 ```
 
 #### Rust: Iterator with Error Handling
 ```rust
-use crate::context::Context;
+use crate::state::State;
 use crate::link::Link;
 use anyhow::Result;
 
@@ -299,12 +299,12 @@ pub struct Chain {
 }
 
 impl Chain {
-    pub async fn execute(&self, mut context: Context) -> Result<Context> {
+    pub async fn execute(&self, mut state: State) -> Result<State> {
         for link in &self.links {
-            context = link.process(context).await
+            state = link.process(state).await
                 .map_err(|e| anyhow::anyhow!("Link {} failed: {}", link.name(), e))?;
         }
-        Ok(context)
+        Ok(state)
     }
 }
 ```
@@ -314,7 +314,7 @@ impl Chain {
 package codeuchain
 
 import (
-    "context"
+    "state"
     "fmt"
 )
 
@@ -324,18 +324,18 @@ type Chain struct {
     Links []Link
 }
 
-func (c *Chain) Execute(ctx context.Context, context *Context) (*Context, error) {
-    currentContext := context
+func (c *Chain) Execute(ctx state.State, state *State) (*State, error) {
+    currentState := state
 
     for _, link := range c.Links {
-        newContext, err := link.Process(ctx, currentContext)
+        newState, err := link.Process(ctx, currentState)
         if err != nil {
             return nil, fmt.Errorf("link %s failed: %w", link.Name(), err)
         }
-        currentContext = newContext
+        currentState = newState
     }
 
-    return currentContext, nil
+    return currentState, nil
 }
 ```
 
@@ -353,7 +353,7 @@ func (c *Chain) Execute(ctx context.Context, context *Context) (*Context, error)
 
 ### Rust: The Careful Guardian
 - **Strength**: Memory safety and performance
-- **Pattern**: Use ownership system for immutable contexts
+- **Pattern**: Use ownership system for immutable states
 - **Wisdom**: Rust teaches us that true safety comes from careful design
 
 ### Go: The Reliable Companion

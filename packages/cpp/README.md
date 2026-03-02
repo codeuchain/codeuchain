@@ -8,7 +8,7 @@
 
 ## 🌟 Overview
 
-The C++ implementation of CodeUChain brings the universal patterns to modern C++20 development. Leveraging coroutines, smart pointers, and RAII principles, this implementation provides the same core concepts (Chain, Link, Context, Middleware) with C++-appropriate syntax and performance optimizations.
+The C++ implementation of CodeUChain brings the universal patterns to modern C++20 development. Leveraging coroutines, smart pointers, and RAII principles, this implementation provides the same core concepts (Chain, Link, State, Hook) with C++-appropriate syntax and performance optimizations.
 
 ### 🎯 Key Features
 
@@ -18,7 +18,7 @@ The C++ implementation of CodeUChain brings the universal patterns to modern C++
 - **Universal Patterns**: Same concepts as all other language implementations
 - **Typed Features**: Opt-in generics for compile-time type safety
 - **Branching Support**: Advanced conditional branching with return-to-main functionality
-- **Timing Middleware**: Built-in performance profiling for optimization
+- **Timing Hook**: Built-in performance profiling for optimization
 - **CMake Build System**: Industry-standard build configuration
 - **Comprehensive Testing**: Full unit test coverage
 
@@ -37,10 +37,10 @@ CodeUChain C++ now includes opt-in generic features that provide compile-time ty
 ### Quick Typed Example
 
 ```cpp
-#include "codeuchain/typed_context.hpp"
+#include "codeuchain/typed_state.hpp"
 
 // Type-safe operations
-auto ctx = codeuchain::make_typed_context<std::string>({});
+auto ctx = codeuchain::make_typed_state<std::string>({});
 auto ctx2 = ctx.insert("name", std::string("Alice"));
 auto ctx3 = ctx2.insert("age", 30);
 
@@ -52,7 +52,7 @@ auto age = ctx3.get_typed<int>("age");            // Compile-time checked
 auto ctx4 = ctx3.insert_as<double>("score", 95.5);  // Clean type change
 
 // Runtime flexibility
-auto base_ctx = ctx4.to_context();
+auto base_ctx = ctx4.to_state();
 ```
 
 ## ⚡ TL;DR (Performance & When to Optimize)
@@ -71,31 +71,31 @@ Quick ladder:
 2. StaticChain (remove virtual dispatch) 
 3. StaticChain + mut ops (remove immutable copy churn)
 4. Slot caching / value hoisting (remove repeated lookup/variant cost)
-5. HybridContext + interning (planned) (remove alloc + hash overhead)
+5. HybridState + interning (planned) (remove alloc + hash overhead)
 6. Direct fused function (only if extreme constraints)
 
 Heuristic: If chain structural overhead < 15% of total useful link work, leave it alone.
 
-### ⏱ Reusable Per-Link Timing (TimingMiddleware)
+### ⏱ Reusable Per-Link Timing (TimingHook)
 
-For quick, ad-hoc measurement of real chain behavior (including your own links' logic), enable the built-in `TimingMiddleware`.
+For quick, ad-hoc measurement of real chain behavior (including your own links' logic), enable the built-in `TimingHook`.
 
 Why it exists:
 * Complements synthetic microbenchmarks by measuring your actual link mix
-* Zero changes to link code – pure middleware drop-in
+* Zero changes to link code – pure hook drop-in
 * Human-readable units + raw nanoseconds (same formatter as benchmark harness)
 
 Usage:
 ```cpp
 #include "codeuchain/chain.hpp"
-#include "codeuchain/timing_middleware.hpp"
+#include "codeuchain/timing_hook.hpp"
 
 codeuchain::Chain chain;
 // add links ...
-auto timing = std::make_shared<codeuchain::TimingMiddleware>(/*per_invocation=*/true);
-chain.use_middleware(timing);
+auto timing = std::make_shared<codeuchain::TimingHook>(/*per_invocation=*/true);
+chain.use_hook(timing);
 
-auto fut = chain.run(codeuchain::Context{});
+auto fut = chain.run(codeuchain::State{});
 auto out = fut.get();
 timing->report(std::cout); // prints per-link totals + averages + chain total
 ```
@@ -108,7 +108,7 @@ CLI (benchmark harness):
 Design notes:
 * `per_invocation=true` stores each call to compute an average; set `false` to aggregate only (lower memory).
 * Uses steady_clock wall time – sufficient for relative comparisons; for instruction-level analysis still use external profilers.
-* Report distinguishes total chain wall time vs sum of links (middleware cost / scheduler gaps become visible if they diverge).
+* Report distinguishes total chain wall time vs sum of links (hook cost / scheduler gaps become visible if they diverge).
 
 When to use:
 * Validating that a suspected hot link actually dominates chain time
@@ -117,7 +117,7 @@ When to use:
 
 When not to use:
 * Ultra high-frequency microbench (prefer dedicated harness where timer noise can be amplified via batching)
-* Multi-thread contention analysis (extend middleware or integrate with external tracing)
+* Multi-thread contention analysis (extend hook or integrate with external tracing)
 
 Future extensions (roadmap alignment): statistical summarization (median/p95), optional JSON export, integration with forthcoming instrumentation counters (lookup counts, variant constructions) for a unified performance report.
 
@@ -127,33 +127,33 @@ Future extensions (roadmap alignment): statistical summarization (median/p95), o
 ```
 packages/cpp/
 │   ├── codeuchain.hpp         # Main include file
-│   ├── context.hpp            # Context class
+│   ├── state.hpp            # State class
 │   ├── link.hpp               # Link interface
-│   ├── middleware.hpp         # Middleware interface
+│   ├── hook.hpp         # Hook interface
 │   ├── chain.hpp              # Chain class with branching support
 │   ├── error_handling.hpp     # Error utilities
-│   ├── typed_context.hpp      # Typed features (NEW!)
-│   ├── timing_middleware.hpp  # Performance profiling middleware
+│   ├── typed_state.hpp      # Typed features (NEW!)
+│   ├── timing_hook.hpp  # Performance profiling hook
 │   └── TYPED_FEATURES_README.md # Typed features documentation
 ├── src/                       # Implementation files
 │   ├── core/                  # Core implementations
 │   │   ├── chain.cpp          # Chain with advanced branching
-│   │   ├── context.cpp        # Context implementation
+│   │   ├── state.cpp        # State implementation
 │   │   ├── link.cpp           # Link interface
-│   │   └── middleware.cpp     # Middleware system
+│   │   └── hook.cpp     # Hook system
 │   ├── utils/                 # Utility implementations
-│   └── typed_context.cpp      # Typed features implementation
+│   └── typed_state.cpp      # Typed features implementation
 ├── examples/                  # Example programs
 │   ├── CMakeLists.txt
 │   ├── simple_math.cpp        # Basic arithmetic example
-│   ├── typed_context_example.cpp    # Typed context demo (NEW!)
+│   ├── typed_state_example.cpp    # Typed state demo (NEW!)
 │   ├── typed_link_example.cpp       # Typed link demo (NEW!)
 │   ├── business_workflow.cpp        # Real-world workflow with timing
 │   └── benchmark_chain.cpp          # Performance benchmarking
 ├── tests/                     # Unit tests
 │   ├── CMakeLists.txt
 │   ├── unit_tests.cpp         # Comprehensive test suite
-│   └── test_typed_context.cpp # Typed features tests (NEW!)
+│   └── test_typed_state.cpp # Typed features tests (NEW!)
 └── build/                     # Build artifacts (generated)
 ```
 
@@ -270,26 +270,26 @@ target_link_libraries(your_target PRIVATE codeuchain)
 
 ## 🎨 Core Components
 
-### Context
+### State
 
 The immutable data container that flows through chains:
 
 ```cpp
-#include "codeuchain/context.hpp"
+#include "codeuchain/state.hpp"
 
 ## 🎨 Core Components
 
-### Context
+### State
 
 The immutable data container that flows through chains:
 
 ```cpp
-#include "codeuchain/context.hpp"
+#include "codeuchain/state.hpp"
 
-// Create empty context
-codeuchain::Context ctx;
+// Create empty state
+codeuchain::State ctx;
 
-// Insert data (returns new context)
+// Insert data (returns new state)
 ctx = ctx.insert("key", 42);
 ctx = ctx.insert("name", std::string("example"));
 
@@ -302,11 +302,11 @@ if (value) {
 
 #### Performance Optimization: Mutable Operations
 
-For performance-critical scenarios where you need to make many modifications to the same context within a single link, CodeUChain provides mutable operations:
+For performance-critical scenarios where you need to make many modifications to the same state within a single link, CodeUChain provides mutable operations:
 
 ```cpp
 // High-frequency mutations (performance optimization)
-codeuchain::Context ctx;
+codeuchain::State ctx;
 for (int i = 0; i < 1000; ++i) {
     ctx.insert_mut("key" + std::to_string(i), i);  // Modifies in-place
     ctx.update_mut("key500", 9999);               // Modifies in-place
@@ -317,19 +317,19 @@ for (int i = 0; i < 1000; ++i) {
 - Performance is critical
 - You're making many modifications within a single link
 - You understand the implications for debugging and testing
-- Thread safety is not a concern (single-threaded context)
+- Thread safety is not a concern (single-threaded state)
 
 **✅ Recommended:** Use immutable operations (`insert()`, `update()`, etc.) for most cases to maintain predictability and thread safety.
 
-### Typed Context (NEW!)
+### Typed State (NEW!)
 
 Opt-in generics for compile-time type safety while maintaining runtime flexibility:
 
 ```cpp
-#include "codeuchain/typed_context.hpp"
+#include "codeuchain/typed_state.hpp"
 
-// Type-safe context operations
-auto ctx = codeuchain::make_typed_context<std::string>({});
+// Type-safe state operations
+auto ctx = codeuchain::make_typed_state<std::string>({});
 auto ctx2 = ctx.insert("name", std::string("Alice"));
 auto ctx3 = ctx2.insert("age", 30);
 
@@ -341,7 +341,7 @@ auto age = ctx3.get_typed<int>("age");            // std::optional<int>
 auto ctx4 = ctx3.insert_as<double>("score", 95.5);
 
 // Runtime flexibility when needed
-auto base_ctx = ctx4.to_context();
+auto base_ctx = ctx4.to_state();
 auto runtime_value = base_ctx.get("any_key");
 ```
 
@@ -350,7 +350,7 @@ auto runtime_value = base_ctx.get("any_key");
 - **Runtime flexibility** when you need it
 - **Zero performance impact** - typing doesn't affect runtime
 - **Clean type evolution** with `insert_as()`
-- **Full backward compatibility** with existing Context
+- **Full backward compatibility** with existing State
 
 ## 🌿 Advanced Branching (NEW!)
 
@@ -378,7 +378,7 @@ chain.add_link("query_database", std::make_shared<DatabaseLink>());
 chain.add_link("store_results", std::make_shared<StoreLink>());
 
 // Branch from validation to database if needed, then return to response processing
-auto needs_db = [](const codeuchain::Context& ctx) -> bool {
+auto needs_db = [](const codeuchain::State& ctx) -> bool {
     auto needs_query = ctx.get("needs_database");
     return needs_query && std::holds_alternative<bool>(*needs_query) && 
            std::get<bool>(*needs_query);
@@ -386,7 +386,7 @@ auto needs_db = [](const codeuchain::Context& ctx) -> bool {
 chain.connect_branch("validate_request", "query_database", "process_response", needs_db);
 
 // Execute
-codeuchain::Context ctx;
+codeuchain::State ctx;
 ctx = ctx.insert("needs_database", true);
 auto result = chain.run(ctx).get();
 
@@ -416,14 +416,14 @@ Individual processing units that transform data:
 
 class MyProcessor : public codeuchain::ILink {
 public:
-    codeuchain::LinkAwaitable call(codeuchain::Context context) override {
-        // Process the context
-        auto input = context.get("input");
+    codeuchain::LinkAwaitable call(codeuchain::State state) override {
+        // Process the state
+        auto input = state.get("input");
         if (input) {
             int value = std::get<int>(*input);
-            context = context.insert("output", value * 2);
+            state = state.insert("output", value * 2);
         }
-        co_return {context};
+        co_return {state};
     }
 
     std::string name() const override { return "my_processor"; }
@@ -436,7 +436,7 @@ public:
 Generic link interface for type-safe data transformation:
 
 ```cpp
-#include "codeuchain/typed_context.hpp"
+#include "codeuchain/typed_state.hpp"
 
 // Type-safe link
 class UppercaseLink : public codeuchain::Link<std::string, std::string> {
@@ -457,7 +457,7 @@ std::string result = link->call("hello world");  // "HELLO WORLD"
 
 ### Chain
 
-Orchestrates link execution with middleware support:
+Orchestrates link execution with hook support:
 
 ```cpp
 #include "codeuchain/chain.hpp"
@@ -468,28 +468,28 @@ codeuchain::Chain chain;
 // Add links
 chain.add_link("processor", std::make_shared<MyProcessor>());
 
-// Add middleware
-chain.use_middleware(std::make_shared<LoggingMiddleware>());
+// Add hook
+chain.use_hook(std::make_shared<LoggingHook>());
 
 // Execute
-codeuchain::Context initial_ctx;
+codeuchain::State initial_ctx;
 initial_ctx = initial_ctx.insert("input", 5);
 
 auto future = chain.run(initial_ctx);
 auto result = future.get();
 ```
 
-### Middleware
+### Hook
 
 Cross-cutting concerns that intercept chain execution:
 
 ```cpp
-#include "codeuchain/middleware.hpp"
+#include "codeuchain/hook.hpp"
 
-class LoggingMiddleware : public codeuchain::IMiddleware {
+class LoggingHook : public codeuchain::IHook {
 public:
     std::coroutine_handle<> before(std::shared_ptr<codeuchain::ILink> link,
-                                  const codeuchain::Context& context) override {
+                                  const codeuchain::State& state) override {
         if (link) {
             std::cout << "[BEFORE] " << link->name() << std::endl;
         }
@@ -497,7 +497,7 @@ public:
     }
 
     std::coroutine_handle<> after(std::shared_ptr<codeuchain::ILink> link,
-                                 const codeuchain::Context& context) override {
+                                 const codeuchain::State& state) override {
         if (link) {
             std::cout << "[AFTER] " << link->name() << std::endl;
         }
@@ -519,14 +519,14 @@ Individual processing units that transform data:
 
 class MyProcessor : public codeuchain::ILink {
 public:
-    codeuchain::LinkAwaitable call(codeuchain::Context context) override {
-        // Process the context
-        auto input = context.get("input");
+    codeuchain::LinkAwaitable call(codeuchain::State state) override {
+        // Process the state
+        auto input = state.get("input");
         if (input) {
             int value = std::get<int>(*input);
-            context = context.insert("output", value * 2);
+            state = state.insert("output", value * 2);
         }
-        co_return {context};
+        co_return {state};
     }
 
     std::string name() const override { return "my_processor"; }
@@ -536,7 +536,7 @@ public:
 
 ### Chain
 
-Orchestrates link execution with middleware support:
+Orchestrates link execution with hook support:
 
 ```cpp
 #include "codeuchain/chain.hpp"
@@ -547,28 +547,28 @@ codeuchain::Chain chain;
 // Add links
 chain.add_link("processor", std::make_shared<MyProcessor>());
 
-// Add middleware
-chain.use_middleware(std::make_shared<LoggingMiddleware>());
+// Add hook
+chain.use_hook(std::make_shared<LoggingHook>());
 
 // Execute
-codeuchain::Context initial_ctx;
+codeuchain::State initial_ctx;
 initial_ctx = initial_ctx.insert("input", 5);
 
 auto future = chain.run(initial_ctx);
 auto result = future.get();
 ```
 
-### Middleware
+### Hook
 
 Cross-cutting concerns that intercept chain execution:
 
 ```cpp
-#include "codeuchain/middleware.hpp"
+#include "codeuchain/hook.hpp"
 
-class LoggingMiddleware : public codeuchain::IMiddleware {
+class LoggingHook : public codeuchain::IHook {
 public:
     std::coroutine_handle<> before(std::shared_ptr<codeuchain::ILink> link,
-                                  const codeuchain::Context& context) override {
+                                  const codeuchain::State& state) override {
         if (link) {
             std::cout << "[BEFORE] " << link->name() << std::endl;
         }
@@ -576,7 +576,7 @@ public:
     }
 
     std::coroutine_handle<> after(std::shared_ptr<codeuchain::ILink> link,
-                                 const codeuchain::Context& context) override {
+                                 const codeuchain::State& state) override {
         if (link) {
             std::cout << "[AFTER] " << link->name() << std::endl;
         }
@@ -601,14 +601,14 @@ Or run tests individually:
 
 ```bash
 ./tests/unit_tests              # Core functionality tests
-./tests/test_typed_context      # Typed features tests (NEW!)
+./tests/test_typed_state      # Typed features tests (NEW!)
 ```
 
 ### Test Coverage
 
-- **Core Tests**: Context, Link, Chain, and Middleware functionality
+- **Core Tests**: State, Link, Chain, and Hook functionality
 - **Typed Tests**: Type safety, evolution, and compatibility
-- **Integration Tests**: Full chain execution with middleware
+- **Integration Tests**: Full chain execution with hook
 - **Performance Tests**: Benchmarking for optimization validation
 
 ## 📚 Examples
@@ -619,7 +619,7 @@ The `simple_math.cpp` example demonstrates:
 
 - Creating custom links for arithmetic operations
 - Building a chain with multiple processing steps
-- Adding middleware for logging
+- Adding hook for logging
 - Executing the chain and retrieving results
 
 ```bash
@@ -647,26 +647,26 @@ Final result: 16
 Same pattern works in ALL languages!
 ```
 
-### Typed Context Example (NEW!)
+### Typed State Example (NEW!)
 
-The `typed_context_example.cpp` demonstrates the new typed features:
+The `typed_state_example.cpp` demonstrates the new typed features:
 
-- Type-safe context operations with compile-time guarantees
+- Type-safe state operations with compile-time guarantees
 - Type evolution using `insert_as()` method
 - Runtime flexibility when needed
 - Type safety validation
 
 ```bash
 cd build
-./examples/typed_context_example
+./examples/typed_state_example
 ```
 
 Expected output:
 ```
-CodeUChain Typed Context Example
+CodeUChain Typed State Example
 =================================
 
-1. Creating typed context...
+1. Creating typed state...
 2. Type-safe insert operations...
 3. Type-safe retrieval...
 Name: Alice
@@ -717,11 +717,11 @@ Link example completed successfully!
 
 ### Business Workflow Example (NEW!)
 
-The `business_workflow.cpp` demonstrates a realistic multi-stage order processing pipeline with TimingMiddleware:
+The `business_workflow.cpp` demonstrates a realistic multi-stage order processing pipeline with TimingHook:
 
 - Simulated order validation, customer enrichment, pricing, discounts, persistence, and event publishing
-- Each link performs meaningful work and mutates context
-- TimingMiddleware measures per-link performance
+- Each link performs meaningful work and mutates state
+- TimingHook measures per-link performance
 - Shows how to profile real-world chains
 
 ```bash
@@ -750,7 +750,7 @@ PublishEvent,0.022 ms (22126.00 ns),0.007 ms (7375.33 ns),3
 
 ### Formatting Options
 
-The TimingMiddleware supports extensive customization of output format:
+The TimingHook supports extensive customization of output format:
 
 | Option | Values | Description |
 |--------|--------|-------------|
@@ -784,7 +784,7 @@ Final order summary:
   order_id: 1002
   loyalty_tier: gold
 
-== TimingMiddleware Report ==
+== TimingHook Report ==
 Link                    Total             Avg/Call      Calls
 ----------------------------------------------------------------------
 ValidateInput           3.62 ms (3620000.00 ns) 1.21 ms (1206667.00 ns) 3
@@ -805,11 +805,11 @@ The C++ implementation includes a dedicated micro-benchmark harness to empirical
 
 | Category | Framework Operation | Control Baseline | Notes |
 |----------|---------------------|------------------|-------|
-| Immutable Context | `Context.insert()` | Manual fresh `std::unordered_map` copy + insert | Measures persistent-style insert cost |
-| Mutable Context | `Context.insert_mut()` | Direct `unordered_map` mutation | Shows optimization path |
-| Typed Features | `TypedContext.insert() / get_typed()` | Untyped `Context.insert()/get()` | Overhead of type-safety wrapper |
+| Immutable State | `State.insert()` | Manual fresh `std::unordered_map` copy + insert | Measures persistent-style insert cost |
+| Mutable State | `State.insert_mut()` | Direct `unordered_map` mutation | Shows optimization path |
+| Typed Features | `TypedState.insert() / get_typed()` | Untyped `State.insert()/get()` | Overhead of type-safety wrapper |
 | Type Evolution | `insert_as()` | (No direct control) | Absolute per-op cost only |
-| Chain Dispatch | 3-link sync or async chain | Direct nested functions (`double -> add_ten -> square`) | Virtual + coroutine + context overhead |
+| Chain Dispatch | 3-link sync or async chain | Direct nested functions (`double -> add_ten -> square`) | Virtual + coroutine + state overhead |
 | Scaling | Chain lengths 1,2,4,8 | (Absolute) | Per-link growth characteristics |
 
 ### Building & Running
@@ -862,7 +862,7 @@ Output will include allocation call counts and total allocated bytes. (This is a
 2. When baseline per-op time falls below ~1ns the benchmark suppresses the relative overhead percentage (sub-nanosecond noise floor). Increase `--iters` and/or `--batch` for higher signal.
 3. Sync chain dispatch shows deterministic per-link scaling; async mode includes `std::future` + coroutine state overhead and is expected to be higher.
 4. Typed feature overhead should remain modest (generally low double-digit ns or a small percentage over untyped ops, depending on compiler and CPU).
-5. Use median-of-repeats to reduce tail effects from frequency scaling, context switches, and interrupt jitter.
+5. Use median-of-repeats to reduce tail effects from frequency scaling, state switches, and interrupt jitter.
 
 ### Example (Truncated) Output
 
@@ -874,14 +874,14 @@ CodeUChain Benchmark
  batch factor      : 1 (each loop performs this many ops)
  scaling section   : on
 
-== Context Insert (Immutable) ==
-Context.insert() vs manual copy        total(ms): 8.627   per-op(ns): 431.34  overhead(%): 436.29
-== Context Mutable Insert ==
-Context.insert_mut()                   total(ms): 3.473   per-op(ns): 173.67  overhead(%): 79.04
-== Typed vs Untyped Context ==
-TypedContext insert/get                total(ms): 7.225   per-op(ns): 361.23  overhead(%): 21.85
+== State Insert (Immutable) ==
+State.insert() vs manual copy        total(ms): 8.627   per-op(ns): 431.34  overhead(%): 436.29
+== State Mutable Insert ==
+State.insert_mut()                   total(ms): 3.473   per-op(ns): 173.67  overhead(%): 79.04
+== Typed vs Untyped State ==
+TypedState insert/get                total(ms): 7.225   per-op(ns): 361.23  overhead(%): 21.85
 == Type Evolution (insert_as) ==
-TypedContext insert_as()               total(ms): 13.024  per-op(ns): 651.23  overhead(%): 0.00
+TypedState insert_as()               total(ms): 13.024  per-op(ns): 651.23  overhead(%): 0.00
 == Chain vs Direct Function Pipeline ==
 Chain sync (3 links)                   total(ms): 22.719  per-op(ns): 1135.96 overhead(%): 15.42
 Chain async (3 links)                  total(ms): 158.197 per-op(ns): 15819.7 overhead(%): 1294.3
@@ -912,7 +912,7 @@ The benchmark harness now also reports a Linear Nested Evaluation baseline using
 
 * Applies the exact same logical sequence (double → add_ten → square) as the 3-link chain
 * Uses only fully inlinable static calls (no virtual dispatch)
-* Avoids context construction/copy and heap allocation
+* Avoids state construction/copy and heap allocation
 * Often optimizes below the timer’s resolution (<1ns); overhead % is therefore suppressed
 
 Interpretation guidelines:
@@ -928,7 +928,7 @@ Table row legend (if present in your build output):
 | Chain sync vs nested (Δ%) | Relative difference between structured chain and theoretical floor |
 | Nested eval length N | Scaling of recursive depth (1,2,4,8) |
 
-This addition strengthens comparative analysis by separating unavoidable structural costs (context, dispatch, coroutine/future) from the irreducible compute floor.
+This addition strengthens comparative analysis by separating unavoidable structural costs (state, dispatch, coroutine/future) from the irreducible compute floor.
 
 
 ## �🔧 Development
@@ -985,7 +985,7 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](../../
 
 ### v1.0.0 (Latest)
 - ✅ **Advanced Branching**: `connect_branch()` with return-to-main functionality
-- ✅ **Performance Profiling**: Built-in TimingMiddleware for C++ developers
+- ✅ **Performance Profiling**: Built-in TimingHook for C++ developers
 - ✅ **Typed Features**: Opt-in generics with compile-time type safety
 - ✅ **Business Workflow Example**: Real-world order processing with timing
 - ✅ **Comprehensive Testing**: 100% test coverage including branching scenarios

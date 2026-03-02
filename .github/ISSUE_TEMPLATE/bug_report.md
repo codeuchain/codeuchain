@@ -26,5 +26,5 @@ If applicable, add screenshots to help explain your problem.
 - OS: [e.g. macOS 12]
 - Version: [e.g. 1.0.0]
 
-**Additional context**
-Add any other context about the problem here.
+**Additional state**
+Add any other state about the problem here.

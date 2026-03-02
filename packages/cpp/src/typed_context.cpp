@@ -1,4 +1,4 @@
-#include "codeuchain/typed_context.hpp"
+#include "codeuchain/typed_state.hpp"
 #include <iostream>
 #include <string>
 
@@ -7,10 +7,10 @@ namespace codeuchain {
 // ===== EXPLICIT TEMPLATE INSTANTIATIONS =====
 // These ensure the templates are compiled for common types
 
-template class TypedContext<std::monostate>;  // ContextAny
-template class TypedContext<std::string>;     // ContextString
-template class TypedContext<int>;             // ContextInt
-template class TypedContext<double>;          // ContextDouble
-template class TypedContext<bool>;            // ContextBool
+template class TypedState<std::monostate>;  // StateAny
+template class TypedState<std::string>;     // StateString
+template class TypedState<int>;             // StateInt
+template class TypedState<double>;          // StateDouble
+template class TypedState<bool>;            // StateBool
 
 } // namespace codeuchain

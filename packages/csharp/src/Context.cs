@@ -1,36 +1,36 @@
 using System.Collections.Immutable;
 
 /// <summary>
-/// Context: The Immutable Data Carrier
+/// State: The Immutable Data Carrier
 /// Carries data through the processing chain in an immutable manner.
 /// </summary>
-public class Context
+public class State
 {
     private readonly ImmutableDictionary<string, object> _data;
 
-    private Context(ImmutableDictionary<string, object> data)
+    private State(ImmutableDictionary<string, object> data)
     {
         _data = data;
     }
 
     /// <summary>
-    /// Creates a new empty context.
+    /// Creates a new empty state.
     /// </summary>
-    public static Context Create()
+    public static State Create()
     {
-        return new Context(ImmutableDictionary<string, object>.Empty);
+        return new State(ImmutableDictionary<string, object>.Empty);
     }
 
     /// <summary>
-    /// Creates a new context with initial data.
+    /// Creates a new state with initial data.
     /// </summary>
-    public static Context Create(IDictionary<string, object> data)
+    public static State Create(IDictionary<string, object> data)
     {
-        return new Context(data.ToImmutableDictionary());
+        return new State(data.ToImmutableDictionary());
     }
 
     /// <summary>
-    /// Retrieves a value from the context.
+    /// Retrieves a value from the state.
     /// </summary>
     public object? Get(string key)
     {
@@ -38,7 +38,7 @@ public class Context
     }
 
     /// <summary>
-    /// Retrieves a typed value from the context.
+    /// Retrieves a typed value from the state.
     /// </summary>
     public T? Get<T>(string key)
     {
@@ -46,7 +46,7 @@ public class Context
     }
 
     /// <summary>
-    /// Checks if the context contains a key.
+    /// Checks if the state contains a key.
     /// </summary>
     public bool ContainsKey(string key)
     {
@@ -54,88 +54,88 @@ public class Context
     }
 
     /// <summary>
-    /// Returns a new context with the specified key-value pair inserted.
+    /// Returns a new state with the specified key-value pair inserted.
     /// </summary>
-    public Context Insert(string key, object value)
+    public State Insert(string key, object value)
     {
-        return new Context(_data.SetItem(key, value));
+        return new State(_data.SetItem(key, value));
     }
 
     /// <summary>
     /// Type Evolution: Insert with type transformation
-    /// Returns a new context with the specified key-value pair inserted, enabling clean type evolution.
-    /// This method allows transforming the context's type without explicit casting.
+    /// Returns a new state with the specified key-value pair inserted, enabling clean type evolution.
+    /// This method allows transforming the state's type without explicit casting.
     /// </summary>
-    public Context InsertAs(string key, object value)
+    public State InsertAs(string key, object value)
     {
-        return new Context(_data.SetItem(key, value));
+        return new State(_data.SetItem(key, value));
     }
 
     /// <summary>
-    /// Returns a new context with the specified key removed.
+    /// Returns a new state with the specified key removed.
     /// </summary>
-    public Context Remove(string key)
+    public State Remove(string key)
     {
-        return new Context(_data.Remove(key));
+        return new State(_data.Remove(key));
     }
 
     /// <summary>
-    /// Returns all keys in the context.
+    /// Returns all keys in the state.
     /// </summary>
     public IEnumerable<string> Keys => _data.Keys;
 
     /// <summary>
-    /// Returns all values in the context.
+    /// Returns all values in the state.
     /// </summary>
     public IEnumerable<object> Values => _data.Values;
 
     /// <summary>
-    /// Returns the number of items in the context.
+    /// Returns the number of items in the state.
     /// </summary>
     public int Count => _data.Count;
 
     /// <summary>
-    /// Returns a string representation of the context.
+    /// Returns a string representation of the state.
     /// </summary>
     public override string ToString()
     {
-        return $"Context({string.Join(", ", _data.Select(kv => $"{kv.Key}: {kv.Value}"))})";
+        return $"State({string.Join(", ", _data.Select(kv => $"{kv.Key}: {kv.Value}"))})";
     }
 }
 
 /// <summary>
-/// Generic Context: Opt-in Type Safety
-/// Strongly-typed version of Context for static type checking while maintaining runtime flexibility.
+/// Generic State: Opt-in Type Safety
+/// Strongly-typed version of State for static type checking while maintaining runtime flexibility.
 /// Supports clean type evolution through InsertAs<U>() method.
 /// Follows the universal pattern across all CodeUChain languages.
 /// </summary>
-public class Context<T> where T : class
+public class State<T> where T : class
 {
     private readonly ImmutableDictionary<string, object> _data;
 
-    private Context(ImmutableDictionary<string, object> data)
+    private State(ImmutableDictionary<string, object> data)
     {
         _data = data;
     }
 
     /// <summary>
-    /// Creates a new empty generic context.
+    /// Creates a new empty generic state.
     /// </summary>
-    public static Context<T> Create()
+    public static State<T> Create()
     {
-        return new Context<T>(ImmutableDictionary<string, object>.Empty);
+        return new State<T>(ImmutableDictionary<string, object>.Empty);
     }
 
     /// <summary>
-    /// Creates a new generic context with initial data.
+    /// Creates a new generic state with initial data.
     /// </summary>
-    public static Context<T> Create(IDictionary<string, object> data)
+    public static State<T> Create(IDictionary<string, object> data)
     {
-        return new Context<T>(data.ToImmutableDictionary());
+        return new State<T>(data.ToImmutableDictionary());
     }
 
     /// <summary>
-    /// Retrieves a typed value from the context.
+    /// Retrieves a typed value from the state.
     /// </summary>
     public T? Get(string key)
     {
@@ -143,7 +143,7 @@ public class Context<T> where T : class
     }
 
     /// <summary>
-    /// Retrieves a value of any type from the context.
+    /// Retrieves a value of any type from the state.
     /// </summary>
     public object? GetAny(string key)
     {
@@ -151,7 +151,7 @@ public class Context<T> where T : class
     }
 
     /// <summary>
-    /// Checks if the context contains a key.
+    /// Checks if the state contains a key.
     /// </summary>
     public bool ContainsKey(string key)
     {
@@ -160,51 +160,51 @@ public class Context<T> where T : class
 
     /// <summary>
     /// Type Preservation: Insert that maintains current type T
-    /// Returns a new context with the specified key-value pair inserted.
+    /// Returns a new state with the specified key-value pair inserted.
     /// </summary>
-    public Context<T> Insert(string key, object value)
+    public State<T> Insert(string key, object value)
     {
-        return new Context<T>(_data.SetItem(key, value));
+        return new State<T>(_data.SetItem(key, value));
     }
 
     /// <summary>
     /// Type Evolution: Insert with type transformation
-    /// Returns a new context with the specified key-value pair inserted, enabling clean type evolution.
-    /// This method allows transforming the context's type to U without explicit casting.
+    /// Returns a new state with the specified key-value pair inserted, enabling clean type evolution.
+    /// This method allows transforming the state's type to U without explicit casting.
     /// </summary>
-    public Context<U> InsertAs<U>(string key, object value) where U : class
+    public State<U> InsertAs<U>(string key, object value) where U : class
     {
-        return new Context<U>(_data.SetItem(key, value));
+        return new State<U>(_data.SetItem(key, value));
     }
 
     /// <summary>
-    /// Returns a new context with the specified key removed.
+    /// Returns a new state with the specified key removed.
     /// </summary>
-    public Context<T> Remove(string key)
+    public State<T> Remove(string key)
     {
-        return new Context<T>(_data.Remove(key));
+        return new State<T>(_data.Remove(key));
     }
 
     /// <summary>
-    /// Returns all keys in the context.
+    /// Returns all keys in the state.
     /// </summary>
     public IEnumerable<string> Keys => _data.Keys;
 
     /// <summary>
-    /// Returns all values in the context.
+    /// Returns all values in the state.
     /// </summary>
     public IEnumerable<object> Values => _data.Values;
 
     /// <summary>
-    /// Returns the number of items in the context.
+    /// Returns the number of items in the state.
     /// </summary>
     public int Count => _data.Count;
 
     /// <summary>
-    /// Returns a string representation of the generic context.
+    /// Returns a string representation of the generic state.
     /// </summary>
     public override string ToString()
     {
-        return $"Context<{typeof(T).Name}>({string.Join(", ", _data.Select(kv => $"{kv.Key}: {kv.Value}"))})";
+        return $"State<{typeof(T).Name}>({string.Join(", ", _data.Select(kv => $"{kv.Key}: {kv.Value}"))})";
     }
 }

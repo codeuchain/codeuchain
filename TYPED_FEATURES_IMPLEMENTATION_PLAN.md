@@ -7,29 +7,29 @@ Python now has advanced opt-in generics with TypedDict support and clean type ev
 ## 📋 Current Status
 
 ### ✅ Python (Complete - Reference Implementation)
-- **Opt-in Generics**: `Link[Input, Output]`, `Context[T]`
+- **Opt-in Generics**: `Link[Input, Output]`, `State[T]`
 - **TypedDict Support**: Static type checking with runtime flexibility
 - **Type Evolution**: `insert_as()` method for clean transformations
-- **Covariant Generics**: `Context[T]` supports subtype relationships
+- **Covariant Generics**: `State[T]` supports subtype relationships
 - **Comprehensive Tests**: Both typed and untyped test suites
 
 ### ✅ Go (Complete - Production Ready)
 - **97.5% Test Coverage**: Comprehensive edge case handling
-- **Generic Interfaces**: `Link[TInput, TOutput]`, `Context[T]`
+- **Generic Interfaces**: `Link[TInput, TOutput]`, `State[T]`
 - **Type Evolution**: `InsertAs[U]()` method implemented
-- **Middleware ABC Pattern**: No-op defaults with selective implementation
+- **Hook ABC Pattern**: No-op defaults with selective implementation
 - **Production Quality**: Battle-tested with extensive error handling
 
 ### ✅ JavaScript/TypeScript (Complete)
 - **Structural Typing**: TypeScript with runtime flexibility
-- **Generic Interfaces**: `Link<TInput, TOutput>`, `Context<T>`
+- **Generic Interfaces**: `Link<TInput, TOutput>`, `State<T>`
 - **Type Evolution**: `insertAs<U>()` method implemented
 - **Mixed Usage**: Supports both typed and untyped components
 - **Gradual Adoption**: Easy migration from vanilla JavaScript
 
 ### ✅ C# (Complete)
 - **Strong Static Typing**: Full generic type safety
-- **Covariant Generics**: `Context<out T>` for flexibility
+- **Covariant Generics**: `State<out T>` for flexibility
 - **Type Evolution**: `InsertAs<U>()` method implemented
 - **LINQ Integration**: Seamless integration with C# ecosystem
 - **Enterprise Ready**: Production-grade type safety
@@ -64,25 +64,25 @@ Python now has advanced opt-in generics with TypedDict support and clean type ev
 ```python
 # Python Reference
 class Link[Input, Output]:
-    async def call(self, ctx: Context[Input]) -> Context[Output]:
+    async def call(self, ctx: State[Input]) -> State[Output]:
         pass
 ```
 
 **Universal Requirements:**
 - Generic type parameters for Input/Output types
 - Async execution pattern (or language equivalent)
-- Context transformation capability
+- State transformation capability
 - Error handling support
-- Optional: Middleware compatibility
+- Optional: Hook compatibility
 
-### Context Interface (Universal)
+### State Interface (Universal)
 ```python
 # Python Reference
-class Context[T]:
-    def insert(self, key: str, value: Any) -> Context[T]:  # Preserve type
+class State[T]:
+    def insert(self, key: str, value: Any) -> State[T]:  # Preserve type
         pass
 
-    def insert_as(self, key: str, value: Any) -> Context[Any]:  # Type evolution
+    def insert_as(self, key: str, value: Any) -> State[Any]:  # Type evolution
         pass
 ```
 
@@ -91,7 +91,7 @@ class Context[T]:
 - Immutable transformation methods
 - Runtime Dict[str, Any] equivalent storage
 - Type-safe access methods
-- Optional: Mutable context for performance-critical sections
+- Optional: Mutable state for performance-critical sections
 
 ## 🔧 Language-Specific Implementation Guidelines
 
@@ -101,13 +101,13 @@ class Context[T]:
 ```csharp
 public interface ILink<TInput, TOutput>
 {
-    Task<Context<TOutput>> CallAsync(Context<TInput> context);
+    Task<State<TOutput>> CallAsync(State<TInput> state);
 }
 
-public class Context<out T> : IContext  // Covariant for flexibility
+public class State<out T> : IState  // Covariant for flexibility
 {
-    public Context Insert(string key, object value) => this;
-    public Context<U> InsertAs<U>(string key, object value) => new Context<U>(...);
+    public State Insert(string key, object value) => this;
+    public State<U> InsertAs<U>(string key, object value) => new State<U>(...);
 }
 ```
 **Guidelines:**
@@ -121,12 +121,12 @@ public class Context<out T> : IContext  // Covariant for flexibility
 **Key Patterns:**
 ```typescript
 interface Link<TInput = any, TOutput = any> {
-  call(ctx: Context<TInput>): Promise<Context<TOutput>>;
+  call(ctx: State<TInput>): Promise<State<TOutput>>;
 }
 
-class Context<T = any> {
-  insert(key: string, value: any): Context<T>;
-  insertAs<U>(key: string, value: any): Context<U>;
+class State<T = any> {
+  insert(key: string, value: any): State<T>;
+  insertAs<U>(key: string, value: any): State<U>;
 }
 ```
 **Guidelines:**
@@ -140,12 +140,12 @@ class Context<T = any> {
 **Key Patterns:**
 ```java
 public interface Link<TInput, TOutput> {
-    CompletableFuture<Context<TOutput>> call(Context<TInput> context);
+    CompletableFuture<State<TOutput>> call(State<TInput> state);
 }
 
-public class Context<T> {
-    public Context<T> insert(String key, Object value);
-    public <U> Context<U> insertAs(String key, Object value);
+public class State<T> {
+    public State<T> insert(String key, Object value);
+    public <U> State<U> insertAs(String key, Object value);
 }
 ```
 **Guidelines:**
@@ -159,12 +159,12 @@ public class Context<T> {
 **Key Patterns:**
 ```go
 type Link[TInput any, TOutput any] interface {
-    Call(ctx Context[TInput]) (Context[TOutput], error)
+    Call(ctx State[TInput]) (State[TOutput], error)
 }
 
-type Context[T any] struct {
-    Insert(key string, value any) Context[T]
-    InsertAs[U any](key string, value any) Context[U]
+type State[T any] struct {
+    Insert(key string, value any) State[T]
+    InsertAs[U any](key string, value any) State[U]
 }
 ```
 **Guidelines:**
@@ -179,12 +179,12 @@ type Context[T any] struct {
 ```rust
 #[async_trait]
 pub trait Link<Input, Output>: Send + Sync {
-    async fn call(&self, ctx: Context<Input>) -> Result<Context<Output>, Error>;
+    async fn call(&self, ctx: State<Input>) -> Result<State<Output>, Error>;
 }
 
-pub struct Context<T = serde_json::Value> {
+pub struct State<T = serde_json::Value> {
     pub fn insert(self, key: String, value: serde_json::Value) -> Self;
-    pub fn insert_as<U>(self, key: String, value: serde_json::Value) -> Context<U>;
+    pub fn insert_as<U>(self, key: String, value: serde_json::Value) -> State<U>;
 }
 ```
 **Guidelines:**
@@ -224,7 +224,7 @@ pub struct Context<T = serde_json::Value> {
 
 ### Functional Completeness
 - ✅ Generic `Link[Input, Output]` interfaces implemented
-- ✅ Generic `Context[T]` with type evolution implemented
+- ✅ Generic `State[T]` with type evolution implemented
 - ✅ TypedDict/struct equivalents for data shapes
 - ✅ Clean `insert_as()` method implemented
 - ✅ Comprehensive test coverage achieved

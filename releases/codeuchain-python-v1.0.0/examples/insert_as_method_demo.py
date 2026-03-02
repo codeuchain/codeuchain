@@ -2,22 +2,22 @@
 CodeUChain: insert_as() Method Demonstration
 
 This example demonstrates the insert_as() method which enables clean type evolution
-in typed contexts. The insert_as() method allows you to:
+in typed states. The insert_as() method allows you to:
 
-1. Add new fields to a TypedDict context without casting
-2. Maintain type safety during context evolution
+1. Add new fields to a TypedDict state without casting
+2. Maintain type safety during state evolution
 3. Enable progressive data enrichment in chains
 4. Support the "evolution pattern" for typed workflows
 
 Key Benefits:
-- Type-safe context evolution
+- Type-safe state evolution
 - No casting required
 - Compile-time guarantees
 - Clean separation of concerns
 """
 
 from typing import TypedDict
-from codeuchain.core import Context
+from codeuchain.core import State
 
 # =============================================================================
 # TYPED DICTS FOR DEMONSTRATION
@@ -83,12 +83,12 @@ def get_user_preferences(user_id: str) -> dict:
 # EVOLUTION PATTERN DEMONSTRATION
 # =============================================================================
 
-def demonstrate_context_evolution():
+def demonstrate_state_evolution():
     """
-    Demonstrate how insert_as() enables clean context evolution.
+    Demonstrate how insert_as() enables clean state evolution.
 
     This shows the "evolution pattern" where each step adds new fields
-    to the context while maintaining type safety.
+    to the state while maintaining type safety.
     """
 
     print("=== CodeUChain: insert_as() Method Demonstration ===\n")
@@ -107,7 +107,7 @@ def demonstrate_context_evolution():
     # Step 1: Validate email and add validation result
     print("2. AFTER EMAIL VALIDATION (UserWithValidation):")
 
-    ctx1 = Context[UserInput](initial_data)
+    ctx1 = State[UserInput](initial_data)
     is_valid = validate_email(ctx1.get("email") or "")
 
     # insert_as() allows type evolution without casting!
@@ -178,7 +178,7 @@ def demonstrate_error_handling():
 
     print("1. HANDLING VALIDATION ERRORS:")
 
-    ctx = Context[UserInput](invalid_data)
+    ctx = State[UserInput](invalid_data)
     is_valid = validate_email(ctx.get("email") or "")
 
     if not is_valid:
@@ -215,7 +215,7 @@ def demonstrate_method_chaining():
 
     # Chain multiple insert_as() calls for fluent API
     result_ctx = (
-        Context[UserInput](initial)
+        State[UserInput](initial)
         .insert_as("is_valid", True)
         .insert_as("profile_complete", True)
         .insert_as("age", 25)
@@ -246,13 +246,13 @@ def demonstrate_traditional_vs_insert_as():
 
     print("1. TRADITIONAL APPROACH (without insert_as()):")
 
-    # Traditional approach requires casting or creating new contexts
-    ctx = Context[UserInput](initial_data)
+    # Traditional approach requires casting or creating new states
+    ctx = State[UserInput](initial_data)
 
     # This would require casting to add new fields
-    # ctx_with_validation = Context[UserWithValidation]({**ctx.to_dict(), "is_valid": True})
+    # ctx_with_validation = State[UserWithValidation]({**ctx.to_dict(), "is_valid": True})
 
-    print("   • Requires casting: Context[NewType]({**old_dict, new_field: value})")
+    print("   • Requires casting: State[NewType]({**old_dict, new_field: value})")
     print("   • Error-prone and verbose")
     print("   • No type safety during transition")
     print()
@@ -280,7 +280,7 @@ def main():
     print("=" * 50)
     print()
 
-    demonstrate_context_evolution()
+    demonstrate_state_evolution()
     demonstrate_error_handling()
     demonstrate_method_chaining()
     demonstrate_traditional_vs_insert_as()
@@ -292,7 +292,7 @@ def main():
     print("✅ Progressive data enrichment")
     print("✅ Full type safety at compile time")
     print("✅ Fluent API for method chaining")
-    print("✅ Error handling with additional context")
+    print("✅ Error handling with additional state")
     print("✅ IDE IntelliSense support throughout")
     print()
     print("This is the foundation for typed workflows in CodeUChain!")

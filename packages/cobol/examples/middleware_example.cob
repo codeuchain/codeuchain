@@ -1,21 +1,21 @@
       *================================================================*
-      * CodeUChain COBOL Example - Middleware Demonstration          *
+      * CodeUChain COBOL Example - Hook Demonstration          *
       *                                                                *
-      * Demonstrates middleware functionality with logging.           *
+      * Demonstrates hook functionality with logging.           *
       *================================================================*
 
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. MIDDLEWARE-EXAMPLE.
+       PROGRAM-ID. HOOK-EXAMPLE.
 
        ENVIRONMENT DIVISION.
 
        DATA DIVISION.
        WORKING-STORAGE SECTION.
 
-       01  WS-CONTEXT-DATA          PIC X(10000).
-       01  WS-MIDDLEWARE-NAME.
-           05  WS-MIDDLEWARE-NAME-LEN    PIC S9(4) COMP.
-           05  WS-MIDDLEWARE-NAME-DATA   PIC X(30).
+       01  WS-STATE-DATA          PIC X(10000).
+       01  WS-HOOK-NAME.
+           05  WS-HOOK-NAME-LEN    PIC S9(4) COMP.
+           05  WS-HOOK-NAME-DATA   PIC X(30).
        01  WS-OPERATION.
            05  WS-OPERATION-LEN          PIC S9(4) COMP.
            05  WS-OPERATION-DATA         PIC X(20).
@@ -26,35 +26,35 @@
 
        MAIN-PROCEDURE.
            DISPLAY "=========================================="
-           DISPLAY "CodeUChain COBOL - Middleware Example"
+           DISPLAY "CodeUChain COBOL - Hook Example"
            DISPLAY "=========================================="
 
-           MOVE "Sample data" TO WS-CONTEXT-DATA
-           DISPLAY "Context data: " WS-CONTEXT-DATA
+           MOVE "Sample data" TO WS-STATE-DATA
+           DISPLAY "State data: " WS-STATE-DATA
 
-           DISPLAY "Getting middleware name..."
+           DISPLAY "Getting hook name..."
            MOVE 8 TO WS-OPERATION-LEN
            MOVE "GET-NAME" TO WS-OPERATION-DATA
 
-           CALL "LOGGING-MIDDLEWARE" USING
-               WS-MIDDLEWARE-NAME,
-               WS-CONTEXT-DATA,
+           CALL "LOGGING-HOOK" USING
+               WS-HOOK-NAME,
+               WS-STATE-DATA,
                WS-OPERATION,
                WS-RESULT
 
            IF WS-RESULT = "SUCCESS"
-               DISPLAY "Middleware name: " WS-MIDDLEWARE-NAME-DATA
+               DISPLAY "Hook name: " WS-HOOK-NAME-DATA
            ELSE
-               DISPLAY "Failed to get middleware name"
+               DISPLAY "Failed to get hook name"
            END-IF
 
-           DISPLAY "Executing 'before' middleware operation..."
+           DISPLAY "Executing 'before' hook operation..."
            MOVE 6 TO WS-OPERATION-LEN
            MOVE "BEFORE" TO WS-OPERATION-DATA
 
-           CALL "LOGGING-MIDDLEWARE" USING
-               WS-MIDDLEWARE-NAME,
-               WS-CONTEXT-DATA,
+           CALL "LOGGING-HOOK" USING
+               WS-HOOK-NAME,
+               WS-STATE-DATA,
                WS-OPERATION,
                WS-RESULT
 
@@ -70,13 +70,13 @@
            DISPLAY "Processing step 2..."
            DISPLAY "Processing step 3..."
 
-           DISPLAY "Executing 'after' middleware operation..."
+           DISPLAY "Executing 'after' hook operation..."
            MOVE 5 TO WS-OPERATION-LEN
            MOVE "AFTER" TO WS-OPERATION-DATA
 
-           CALL "LOGGING-MIDDLEWARE" USING
-               WS-MIDDLEWARE-NAME,
-               WS-CONTEXT-DATA,
+           CALL "LOGGING-HOOK" USING
+               WS-HOOK-NAME,
+               WS-STATE-DATA,
                WS-OPERATION,
                WS-RESULT
 
@@ -88,10 +88,10 @@
            END-IF
 
            DISPLAY "=========================================="
-           DISPLAY "Middleware example completed!"
+           DISPLAY "Hook example completed!"
            DISPLAY "Note: Check codeuchain.log for audit trail"
            DISPLAY "=========================================="
 
            STOP RUN.
 
-       END PROGRAM MIDDLEWARE-EXAMPLE.
+       END PROGRAM HOOK-EXAMPLE.

@@ -1,7 +1,7 @@
       *================================================================*
       * CodeUChain COBOL Example - Simple Chain                       *
       *                                                                *
-      * Demonstrates basic chain execution with context passing.      *
+      * Demonstrates basic chain execution with state passing.      *
       *================================================================*
 
        IDENTIFICATION DIVISION.
@@ -12,7 +12,7 @@
        DATA DIVISION.
        WORKING-STORAGE SECTION.
 
-       01  WS-CONTEXT-DATA          PIC X(10000).
+       01  WS-STATE-DATA          PIC X(10000).
        01  WS-RESULT                PIC X(10000).
        01  WS-LINK-RESULT           PIC X(10).
        01  WS-CHAIN-RESULT          PIC X(10).
@@ -30,8 +30,8 @@
            DISPLAY "CodeUChain COBOL - Simple Chain Example"
            DISPLAY "=========================================="
 
-           MOVE "Hello from COBOL Chain Example!" TO WS-CONTEXT-DATA
-           DISPLAY "Initial context: " WS-CONTEXT-DATA
+           MOVE "Hello from COBOL Chain Example!" TO WS-STATE-DATA
+           DISPLAY "Initial state: " WS-STATE-DATA
 
       *     Set up link name structure
            MOVE 11 TO WS-LINK-NAME-LEN
@@ -44,7 +44,7 @@
            DISPLAY "Executing link processing..."
            CALL "LINK-INTERFACE" USING
                WS-LINK-NAME,
-               WS-CONTEXT-DATA,
+               WS-STATE-DATA,
                WS-RESULT,
                WS-LINK-RESULT
 
@@ -58,7 +58,7 @@
            DISPLAY "Executing chain orchestration..."
            CALL "CHAIN-ORCHESTRATOR" USING
                WS-CHAIN-NAME,
-               WS-CONTEXT-DATA,
+               WS-STATE-DATA,
                WS-RESULT,
                WS-CHAIN-RESULT
 

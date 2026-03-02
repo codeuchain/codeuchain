@@ -3,13 +3,13 @@ using System.Threading.Tasks;
 /// <summary>
 /// Test Link: Processes data with multiplier
 /// </summary>
-public class DataProcessorLink : IContextLink<string, string>
+public class DataProcessorLink : IStateLink<string, string>
 {
-    public async Task<Context<string>> CallAsync(Context<string> context)
+    public async Task<State<string>> CallAsync(State<string> state)
     {
-        var data = context.GetAny("data")?.ToString() ?? "";
-        var multiplier = (int?)context.GetAny("multiplier") ?? 1;
-        return Context<string>.Create(new Dictionary<string, object>
+        var data = state.GetAny("data")?.ToString() ?? "";
+        var multiplier = (int?)state.GetAny("multiplier") ?? 1;
+        return State<string>.Create(new Dictionary<string, object>
         {
             ["processed"] = data.ToUpper(),
             ["calculated"] = multiplier * 2

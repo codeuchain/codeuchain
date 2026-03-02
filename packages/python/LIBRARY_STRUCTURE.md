@@ -17,7 +17,7 @@ CodeUChain embraces **extreme modularity** with a clear separation of concerns, 
 |----------------|------------|---------------|
 | Components | Links | Reusable processing units |
 | Pages/Features | Chains | Orchestrated workflows |
-| Utils | Middleware | Cross-cutting concerns |
+| Utils | Hook | Cross-cutting concerns |
 | Business Logic | Components | Domain-specific implementations |
 
 ## Directory Structure
@@ -26,10 +26,10 @@ CodeUChain embraces **extreme modularity** with a clear separation of concerns, 
 codeuchain/
 ├── core/           # 🤖 AI Territory - Protocols & Base Classes
 │   ├── __init__.py
-│   ├── context.py  # Context protocol & immutable base
+│   ├── state.py  # State protocol & immutable base
 │   ├── link.py     # Link processing protocol
 │   ├── chain.py    # Chain orchestration protocol
-│   └── middleware.py # Middleware enhancement protocol
+│   └── hook.py # Hook enhancement protocol
 ├── utils/          # 🛠️ Shared Territory - Common Utilities
 │   ├── __init__.py
 │   └── error_handling.py # Error handling mixins & utilities
@@ -39,28 +39,28 @@ codeuchain/
         ├── __init__.py
         ├── links.py    # Project-specific link implementations
         ├── chains.py   # Project-specific chain compositions
-        └── middleware.py # Project-specific middleware
+        └── hook.py # Project-specific hook
 ```
 
 ## Usage Patterns
 
 ### 1. Basic Usage (Library Components)
 ```python
-from codeuchain import Context, BasicChain, MathLink, LoggingMiddleware
+from codeuchain import State, BasicChain, MathLink, LoggingHook
 
 # Use library-provided components
 chain = BasicChain()
 chain.add_link("sum", MathLink("sum"))
-chain.use_middleware(LoggingMiddleware())
+chain.use_hook(LoggingHook())
 ```
 
 ### 2. Custom Components (Project-Specific)
 ```python
 # In your project: examples/my_project/links.py
-from codeuchain.core import Context, Link
+from codeuchain.core import State, Link
 
 class MyCustomLink(Link):
-    async def call(self, ctx: Context) -> Context:
+    async def call(self, ctx: State) -> State:
         # Your custom logic
         return ctx.insert("result", "custom_value")
 ```
@@ -70,12 +70,12 @@ class MyCustomLink(Link):
 # In your project: examples/my_project/chains.py
 from codeuchain.components import BasicChain
 from .links import MyCustomLink
-from .middleware import MyCustomMiddleware
+from .hook import MyCustomHook
 
 def create_my_workflow():
     chain = BasicChain()
     chain.add_link("custom", MyCustomLink())
-    chain.use_middleware(MyCustomMiddleware())
+    chain.use_hook(MyCustomHook())
     return chain
 ```
 

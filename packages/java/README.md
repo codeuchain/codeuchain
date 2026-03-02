@@ -1,16 +1,16 @@
 # CodeUChain Java: Enterprise-Grade Implementation
 
-With selfless love, CodeUChain chains your code as links, observes with middleware, and flows through forgiving contexts.
+With selfless love, CodeUChain chains your code as links, observes with hook, and flows through forgiving states.
 
 ## 🤖 LLM Support
 
 This package supports the [llm.txt standard](https://codeuchain.github.io/codeuchain/java/llm.txt) for easy AI/LLM integration. See [llm-full.txt](https://codeuchain.github.io/codeuchain/java/llm-full.txt) for comprehensive documentation.
 
 ## Features
-- **Context**: Immutable by default with builder pattern—embracing Java's object-oriented model
+- **State**: Immutable by default with builder pattern—embracing Java's object-oriented model
 - **Link**: Functional interface for processing units
-- **Chain**: Fluent API orchestrator with middleware support
-- **Middleware**: Interface for cross-cutting concerns
+- **Chain**: Fluent API orchestrator with hook support
+- **Hook**: Interface for cross-cutting concerns
 - **Enterprise Ready**: Maven build, comprehensive error handling
 
 ## Installation
@@ -27,31 +27,31 @@ This package supports the [llm.txt standard](https://codeuchain.github.io/codeuc
 // Create chain with fluent API
 Chain chain = new Chain()
     .addLink("math", new MathLink("sum"))
-    .useMiddleware(new LoggingMiddleware());
+    .useHook(new LoggingHook());
 
-// Create context
+// Create state
 Map<String, Object> data = new HashMap<>();
 data.put("numbers", Arrays.asList(1.0, 2.0, 3.0));
-Context context = Context.create(data);
+State state = State.create(data);
 
 // Run chain
-Context result = chain.run(context);
+State result = chain.run(state);
 System.out.println("Result: " + result.get("result")); // 6.0
 ```
 
 ## Architecture
 
 ### Core Classes
-- **`Context`**: Immutable data container with fluent API
+- **`State`**: Immutable data container with fluent API
 - **`Link`**: Functional interface for processing
 - **`Chain`**: Orchestrator with fluent builder pattern
-- **`Middleware`**: Interface for cross-cutting concerns
+- **`Hook`**: Interface for cross-cutting concerns
 
 ### Enterprise Features
 - **Maven Build**: Standard Java project structure
 - **Jackson Integration**: JSON serialization support
 - **Exception Handling**: Comprehensive error management
-- **Thread Safety**: Immutable contexts by default
+- **Thread Safety**: Immutable states by default
 
 ## Usage Patterns
 
@@ -59,29 +59,29 @@ System.out.println("Result: " + result.get("result")); // 6.0
 ```java
 Chain chain = new Chain()
     .addLink("process", myLink)
-    .useMiddleware(loggingMiddleware);
+    .useHook(loggingHook);
 
-Context result = chain.run(initialContext);
+State result = chain.run(initialState);
 ```
 
 ### Custom Components
 ```java
 public class MyLink implements Link {
     @Override
-    public Context call(Context context) throws Exception {
+    public State call(State state) throws Exception {
         // Your processing logic
-        return context.insert("result", "processed");
+        return state.insert("result", "processed");
     }
 }
 ```
 
 ### Error Handling
 ```java
-public class ErrorHandlingMiddleware implements Middleware {
+public class ErrorHandlingHook implements Hook {
     @Override
-    public Context onError(Link link, Exception error, Context context) {
+    public State onError(Link link, Exception error, State state) {
         System.err.println("Error: " + error.getMessage());
-        return context.insert("error", error.getMessage());
+        return state.insert("error", error.getMessage());
     }
 }
 ```

@@ -30,15 +30,15 @@ cmake --build . --target static_chain_demo -j
 ```
 StaticChain Demo (ns/op)
  direct    : <baseline arithmetic>
- static    : <near-baseline if context overhead dominates>
+ static    : <near-baseline if state overhead dominates>
  dynamic   : <higher due to virtual + coroutine + map copies>
 ```
 
-`static` should be closer to `direct` than `dynamic`. Remaining gap is dominated by context mutation + variant access.
+`static` should be closer to `direct` than `dynamic`. Remaining gap is dominated by state mutation + variant access.
 
 ## Optimization Decision Guide
 
-For guidance on **when** to apply advanced optimizations (StaticChain vs dynamic chain, mutability, slot caching, hybrid context) versus leaving code in the default dynamic form, see:
+For guidance on **when** to apply advanced optimizations (StaticChain vs dynamic chain, mutability, slot caching, hybrid state) versus leaving code in the default dynamic form, see:
 
 `OPTIMIZATION_DECISION_GUIDE.md`
 
@@ -46,12 +46,12 @@ Highlights:
 - Do NOT optimize unless profiling shows micro-scale hot spots.
 - Prefer dynamic chains for clarity and observability.
 - Escalate to StaticChain + mutability + slot caching only in high-frequency trivial workloads.
-- HybridContext + interning (planned) targets memory + lookup churn for further reductions.
+- HybridState + interning (planned) targets memory + lookup churn for further reductions.
 
 This README remains focused on the prototype mechanics; the decision guide captures strategy.
 
 ## Next Steps (Planned)
-- Hybrid context prototype (`HybridContext`) with inline storage
+- Hybrid state prototype (`HybridState`) with inline storage
 - Key interning & slot caching toggles
 - JSON metrics export integration with main benchmark harness
 

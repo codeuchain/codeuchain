@@ -1,6 +1,6 @@
 # CodeUChain Python: Agape-Optimized Implementation
 
-With selfless love, CodeUChain chains your code as links, observes with middleware, and flows through forgiving contexts.
+With selfless love, CodeUChain chains your code as links, observes with hook, and flows through forgiving states.
 
 ## 📦 Installation
 
@@ -15,24 +15,24 @@ pip install codeuchain
 This package supports the [llm.txt standard](https://codeuchain.github.io/codeuchain/python/llm.txt) for easy AI/LLM integration. See [llm-full.txt](https://codeuchain.github.io/codeuchain/python/llm-full.txt) for comprehensive documentation.
 
 ## Features
-- **Context:** Immutable by default, mutable for flexibility—embracing Python's dynamism.
+- **State:** Immutable by default, mutable for flexibility—embracing Python's dynamism.
 - **Link:** Selfless processors, async and ecosystem-rich.
 - **Chain:** Harmonious connectors with conditional flows.
-- **Middleware:** Gentle enhancers, optional and forgiving.
+- **Hook:** Gentle enhancers, optional and forgiving.
 - **Error Handling:** Compassionate routing and retries.
 - **Typed Features:** Optional static typing with TypedDict and generics for type safety.
 
 ## Quick Start
 ```python
 import asyncio
-from codeuchain import Context, Chain, MathLink, LoggingMiddleware
+from codeuchain import State, Chain, MathLink, LoggingHook
 
 async def main():
     chain = Chain()
     chain.add_link("math", MathLink("sum"))
-    chain.use_middleware(LoggingMiddleware())
+    chain.use_hook(LoggingHook())
     
-    ctx = Context({"numbers": [1, 2, 3]})
+    ctx = State({"numbers": [1, 2, 3]})
     result = await chain.run(ctx)
     print(result.get("result"))  # 6
 
@@ -46,7 +46,7 @@ CodeUChain supports optional static typing for enhanced type safety and better I
 ### Basic Typed Usage
 ```python
 from typing import TypedDict
-from codeuchain import Context, Link, Chain
+from codeuchain import State, Link, Chain
 
 class InputData(TypedDict):
     numbers: list[int]
@@ -56,7 +56,7 @@ class OutputData(InputData):
     result: float
 
 class SumLink(Link[InputData, OutputData]):
-    async def call(self, ctx: Context[InputData]) -> Context[OutputData]:
+    async def call(self, ctx: State[InputData]) -> State[OutputData]:
         numbers = ctx.get("numbers") or []
         total = sum(numbers)
         return ctx.insert_as("result", float(total))
@@ -67,9 +67,9 @@ async def main():
     chain.add_link(SumLink(), "sum")
     
     data: InputData = {"numbers": [1, 2, 3], "operation": "sum"}
-    ctx: Context[InputData] = Context(data)
+    ctx: State[InputData] = State(data)
     
-    result: Context[OutputData] = await chain.run(ctx)
+    result: State[OutputData] = await chain.run(ctx)
     print(result.get("result"))  # 6.0
 
 asyncio.run(main())
@@ -91,7 +91,7 @@ class UserWithProfile(TypedDict):
     preferences: dict
 
 # Clean type evolution
-ctx = Context[UserInput]({"name": "Alice", "email": "alice@example.com"})
+ctx = State[UserInput]({"name": "Alice", "email": "alice@example.com"})
 evolved_ctx = (
     ctx
     .insert_as("age", 30)

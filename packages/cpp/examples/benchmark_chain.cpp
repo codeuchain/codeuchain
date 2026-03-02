@@ -4,9 +4,9 @@
 // versus baseline / manual equivalents to validate "zero / minimal overhead" claims.
 //
 // Benchmarks Included:
-// 1. Immutable Context insert() vs std::unordered_map copy & insert
-// 2. Mutable Context insert_mut()/update_mut() vs direct std::unordered_map mutation
-// 3. TypedContext insert/get vs untyped Context insert/get
+// 1. Immutable State insert() vs std::unordered_map copy & insert
+// 2. Mutable State insert_mut()/update_mut() vs direct std::unordered_map mutation
+// 3. TypedState insert/get vs untyped State insert/get
 // 4. Type evolution insert_as() cost
 // 5. Link dispatch (virtual) vs direct function call
 // 6. Chain execution (N links) vs manual sequential functions
@@ -62,11 +62,11 @@ void operator delete(void* p) noexcept {
 void operator delete(void* p, std::size_t) noexcept { operator delete(p); }
 #endif // CODEUCHAIN_BENCH_TRACK_ALLOC
 
-#include "codeuchain/context.hpp"
-#include "codeuchain/typed_context.hpp"
+#include "codeuchain/state.hpp"
+#include "codeuchain/typed_state.hpp"
 #include "codeuchain/link.hpp"
 #include "codeuchain/chain.hpp"
-#include "codeuchain/timing_middleware.hpp"
+#include "codeuchain/timing_hook.hpp"
 
 using Clock = std::chrono::steady_clock;
 using ns = std::chrono::nanoseconds;
@@ -164,7 +164,7 @@ inline int square_fn(int v) { return v * v; }
 // ---- Linear Nested Evaluation (Compile-Time Structured) ----
 // We construct a nested set of function calls equivalent in transformation
 // to the chain (double -> add_ten -> square) but expressed as nested
-// templates to show pure call overhead (no virtual, no context, fully inlinable).
+// templates to show pure call overhead (no virtual, no state, fully inlinable).
 
 // Attribute macro for optional noinline nested evaluation
 #if defined(_MSC_VER)
@@ -210,7 +210,7 @@ CODEUCHAIN_NESTED_NOINLINE int nested_eval_noinline(int v) {
 // Minimal link for chain benchmark
 class DoubleLink : public codeuchain::ILink {
 public:
-    codeuchain::LinkAwaitable call(codeuchain::Context ctx) override {
+    codeuchain::LinkAwaitable call(codeuchain::State ctx) override {
         auto v = ctx.get("v");
         if (v && std::holds_alternative<int>(*v)) {
             int x = std::get<int>(*v);
@@ -224,7 +224,7 @@ public:
 
 class AddTenLink : public codeuchain::ILink {
 public:
-    codeuchain::LinkAwaitable call(codeuchain::Context ctx) override {
+    codeuchain::LinkAwaitable call(codeuchain::State ctx) override {
         auto v = ctx.get("v");
         if (v && std::holds_alternative<int>(*v)) {
             int x = std::get<int>(*v);
@@ -238,7 +238,7 @@ public:
 
 class SquareLink : public codeuchain::ILink {
 public:
-    codeuchain::LinkAwaitable call(codeuchain::Context ctx) override {
+    codeuchain::LinkAwaitable call(codeuchain::State ctx) override {
         auto v = ctx.get("v");
         if (v && std::holds_alternative<int>(*v)) {
             int x = std::get<int>(*v);
@@ -268,11 +268,11 @@ struct SyncLinkWrapper {
     std::shared_ptr<codeuchain::ILink> link;
 };
 
-inline codeuchain::Context run_chain_sync(std::vector<SyncLinkWrapper>& links, codeuchain::Context ctx) {
+inline codeuchain::State run_chain_sync(std::vector<SyncLinkWrapper>& links, codeuchain::State ctx) {
     for (auto& lw : links) {
         auto awaitable = lw.link->call(ctx); // pass by value copy of ctx
         auto result = awaitable.get_result();
-        ctx = std::move(result.context);
+        ctx = std::move(result.state);
     }
     return ctx;
 }
@@ -288,7 +288,7 @@ int main(int argc, char** argv) {
     enum class NestedMode { Inline, Noinline };
     NestedMode nested_mode = NestedMode::Inline; // default
     bool validate = false; // correctness validation
-    bool timing_mw = false; // attach timing middleware to async chain runs
+    bool timing_mw = false; // attach timing hook to async chain runs
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -332,7 +332,7 @@ int main(int argc, char** argv) {
     std::cout << " scaling section   : " << (scaling_section ? "on" : "off") << "\n";
     std::cout << " nested-mode       : " << (nested_mode == NestedMode::Inline ? "inline" : "noinline") << "\n";
     std::cout << " validation        : " << (validate ? "on" : "off") << "\n";
-    std::cout << " timing middleware : " << (timing_mw ? "on" : "off") << "\n";
+    std::cout << " timing hook : " << (timing_mw ? "on" : "off") << "\n";
     std::cout << "Build: EXPECT RELEASE (-O2/-O3) for meaningful results\n";
 
     // -----------------------------
@@ -359,7 +359,7 @@ int main(int argc, char** argv) {
         validate_chain_links.push_back({"square", std::make_shared<SquareLink>()});
         if (mode_sync) {
             for (int seed : {0,3,7,11}) {
-                codeuchain::Context ctx; ctx = ctx.insert("v", seed);
+                codeuchain::State ctx; ctx = ctx.insert("v", seed);
                 auto out = run_chain_sync(validate_chain_links, ctx); auto v = out.get("v");
                 if (!v) { std::cerr << "Chain sync validation: missing v\n"; ok = false; }
                 else if (!std::holds_alternative<int>(*v)) { std::cerr << "Chain sync validation: wrong type\n"; ok = false; }
@@ -375,11 +375,11 @@ int main(int argc, char** argv) {
             chain_obj.add_link("double", std::make_shared<DoubleLink>());
             chain_obj.add_link("add_ten", std::make_shared<AddTenLink>());
             chain_obj.add_link("square", std::make_shared<SquareLink>());
-            auto always = [](const codeuchain::Context&) { return true; };
+            auto always = [](const codeuchain::State&) { return true; };
             chain_obj.connect("double", "add_ten", always);
             chain_obj.connect("add_ten", "square", always);
             for (int seed : {0,4,9,13}) {
-                codeuchain::Context ctx; ctx = ctx.insert("v", seed);
+                codeuchain::State ctx; ctx = ctx.insert("v", seed);
                 auto fut = chain_obj.run(ctx); auto out = fut.get(); auto v = out.get("v");
                 if (!v) { std::cerr << "Chain async validation: missing v\n"; ok = false; }
                 else if (!std::holds_alternative<int>(*v)) { std::cerr << "Chain async validation: wrong type\n"; ok = false; }
@@ -398,12 +398,12 @@ int main(int argc, char** argv) {
     }
 
     // -----------------------------
-    // 1. Immutable Context insert
+    // 1. Immutable State insert
     // -----------------------------
-    print_header("Context Insert (Immutable)");
+    print_header("State Insert (Immutable)");
     warmup(1000, [&](auto i) {
         for (std::size_t b=0; b<batch; ++b) {
-            codeuchain::Context ctx;
+            codeuchain::State ctx;
             ctx = ctx.insert("k", static_cast<int>(i + b));
         }
     });
@@ -414,34 +414,34 @@ int main(int argc, char** argv) {
         }
     });
     auto fw_insert = median_per_op(iterations, repeats, [&](auto i){
-        for (std::size_t b=0; b<batch; ++b) { codeuchain::Context ctx; ctx = ctx.insert("k", static_cast<int>(i + b)); }
+        for (std::size_t b=0; b<batch; ++b) { codeuchain::State ctx; ctx = ctx.insert("k", static_cast<int>(i + b)); }
     });
     std::string note1; double overhead1 = compute_overhead(ctl_insert, fw_insert, note1);
-    BenchmarkResult br1{"Context.insert() vs manual copy", fw_insert * iterations / 1e6, fw_insert, overhead1, note1};
+    BenchmarkResult br1{"State.insert() vs manual copy", fw_insert * iterations / 1e6, fw_insert, overhead1, note1};
     print_result(br1);
 
     // -----------------------------
-    // 2. Mutable Context insert_mut/update_mut
+    // 2. Mutable State insert_mut/update_mut
     // -----------------------------
-    print_header("Context Mutable Insert");
-    warmup(1000, [&](auto i) { for (std::size_t b=0; b<batch; ++b) { codeuchain::Context ctx; ctx.insert_mut("k", static_cast<int>(i + b)); } });
+    print_header("State Mutable Insert");
+    warmup(1000, [&](auto i) { for (std::size_t b=0; b<batch; ++b) { codeuchain::State ctx; ctx.insert_mut("k", static_cast<int>(i + b)); } });
     auto ctl_mut = median_per_op(iterations, repeats, [&](auto i){
         for (std::size_t b=0; b<batch; ++b) { std::unordered_map<std::string,int> m; m["k"] = static_cast<int>(i + b); }
     });
     auto fw_mut = median_per_op(iterations, repeats, [&](auto i){
-        for (std::size_t b=0; b<batch; ++b) { codeuchain::Context ctx; ctx.insert_mut("k", static_cast<int>(i + b)); }
+        for (std::size_t b=0; b<batch; ++b) { codeuchain::State ctx; ctx.insert_mut("k", static_cast<int>(i + b)); }
     });
     std::string note2; double overhead2 = compute_overhead(ctl_mut, fw_mut, note2);
-    BenchmarkResult br2{"Context.insert_mut()", fw_mut * iterations / 1e6, fw_mut, overhead2, note2};
+    BenchmarkResult br2{"State.insert_mut()", fw_mut * iterations / 1e6, fw_mut, overhead2, note2};
     print_result(br2);
 
     // -----------------------------
-    // 3. TypedContext insert/get vs Context
+    // 3. TypedState insert/get vs State
     // -----------------------------
-    print_header("Typed vs Untyped Context");
+    print_header("Typed vs Untyped State");
     warmup(1000, [&](auto i) {
         for (std::size_t b=0; b<batch; ++b) {
-            auto tctx = codeuchain::make_typed_context<int>(codeuchain::Context{});
+            auto tctx = codeuchain::make_typed_state<int>(codeuchain::State{});
             auto t2 = tctx.insert("v", static_cast<int>(i + b));
             (void)t2.get_typed<int>("v");
         }
@@ -449,13 +449,13 @@ int main(int argc, char** argv) {
 
     auto untyped = median_per_op(iterations, repeats, [&](auto i){
         for (std::size_t b=0; b<batch; ++b) {
-            codeuchain::Context ctx; ctx = ctx.insert("v", static_cast<int>(i + b)); auto v = ctx.get("v"); if (v && !std::holds_alternative<int>(*v)) std::abort(); }
+            codeuchain::State ctx; ctx = ctx.insert("v", static_cast<int>(i + b)); auto v = ctx.get("v"); if (v && !std::holds_alternative<int>(*v)) std::abort(); }
     });
     auto typed = median_per_op(iterations, repeats, [&](auto i){
-        for (std::size_t b=0; b<batch; ++b) { auto tctx = codeuchain::make_typed_context<int>(codeuchain::Context{}); auto t2 = tctx.insert("v", static_cast<int>(i + b)); auto v = t2.get_typed<int>("v"); if(!v) std::abort(); }
+        for (std::size_t b=0; b<batch; ++b) { auto tctx = codeuchain::make_typed_state<int>(codeuchain::State{}); auto t2 = tctx.insert("v", static_cast<int>(i + b)); auto v = t2.get_typed<int>("v"); if(!v) std::abort(); }
     });
     std::string note3; double overhead3 = compute_overhead(untyped, typed, note3);
-    BenchmarkResult br3{"TypedContext insert/get", typed * iterations / 1e6, typed, overhead3, note3};
+    BenchmarkResult br3{"TypedState insert/get", typed * iterations / 1e6, typed, overhead3, note3};
     print_result(br3);
 
     // -----------------------------
@@ -463,12 +463,12 @@ int main(int argc, char** argv) {
     // -----------------------------
     print_header("Type Evolution (insert_as)");
     warmup(1000, [&](auto i) {
-        for (std::size_t b=0; b<batch; ++b) { auto tctx = codeuchain::make_typed_context<int>(codeuchain::Context{}); auto t2 = tctx.insert("v", static_cast<int>(i + b)); auto t3 = t2.insert_as<double>("d", static_cast<double>(i + b) * 1.5); (void)t3; }
+        for (std::size_t b=0; b<batch; ++b) { auto tctx = codeuchain::make_typed_state<int>(codeuchain::State{}); auto t2 = tctx.insert("v", static_cast<int>(i + b)); auto t3 = t2.insert_as<double>("d", static_cast<double>(i + b) * 1.5); (void)t3; }
     });
     auto evo_per_op = median_per_op(iterations, repeats, [&](auto i){
-        for (std::size_t b=0; b<batch; ++b) { auto tctx = codeuchain::make_typed_context<int>(codeuchain::Context{}); auto t2 = tctx.insert("v", static_cast<int>(i + b)); auto t3 = t2.insert_as<double>("d", static_cast<double>(i + b) * 1.5); (void)t3; }
+        for (std::size_t b=0; b<batch; ++b) { auto tctx = codeuchain::make_typed_state<int>(codeuchain::State{}); auto t2 = tctx.insert("v", static_cast<int>(i + b)); auto t3 = t2.insert_as<double>("d", static_cast<double>(i + b) * 1.5); (void)t3; }
     });
-    BenchmarkResult br4{"TypedContext insert_as()", evo_per_op * iterations / 1e6, evo_per_op, 0.0, ""};
+    BenchmarkResult br4{"TypedState insert_as()", evo_per_op * iterations / 1e6, evo_per_op, 0.0, ""};
     print_result(br4);
 
     // -----------------------------
@@ -485,7 +485,7 @@ int main(int argc, char** argv) {
     // Warmup
     warmup(200, [&](auto i){
         (void)direct_pipeline(static_cast<int>(i));
-        codeuchain::Context ctx; ctx = ctx.insert("v", static_cast<int>(i));
+        codeuchain::State ctx; ctx = ctx.insert("v", static_cast<int>(i));
         auto out = run_chain_sync(chain_links, ctx); (void)out.get("v");
     });
 
@@ -498,7 +498,7 @@ int main(int argc, char** argv) {
     BenchmarkResult br_chain_sync{"Chain sync (3 links)", 0, 0, 0, ""};
     if (mode_sync) {
         auto chain_sync_ns = median_per_op(iterations, repeats, [&](auto i){
-            for (std::size_t b=0; b<batch; ++b) { codeuchain::Context ctx; ctx = ctx.insert("v", static_cast<int>(i + b)); auto out = run_chain_sync(chain_links, ctx); auto v = out.get("v"); if(!v) std::abort(); }
+            for (std::size_t b=0; b<batch; ++b) { codeuchain::State ctx; ctx = ctx.insert("v", static_cast<int>(i + b)); auto out = run_chain_sync(chain_links, ctx); auto v = out.get("v"); if(!v) std::abort(); }
         });
         double overhead_sync = compute_overhead(direct_ns, chain_sync_ns, note_chain_sync);
         br_chain_sync = {"Chain sync (3 links)", chain_sync_ns * iterations / 1e6, chain_sync_ns, overhead_sync, note_chain_sync};
@@ -512,26 +512,26 @@ int main(int argc, char** argv) {
         chain_obj.add_link("double", std::make_shared<DoubleLink>());
         chain_obj.add_link("add_ten", std::make_shared<AddTenLink>());
         chain_obj.add_link("square", std::make_shared<SquareLink>());
-        std::shared_ptr<codeuchain::TimingMiddleware> timing;
+        std::shared_ptr<codeuchain::TimingHook> timing;
         if (timing_mw) {
             // per_invocation=true to collect each call; auto_print deferred so we control placement
-            timing = std::make_shared<codeuchain::TimingMiddleware>(true, false);
-            chain_obj.use_middleware(timing);
+            timing = std::make_shared<codeuchain::TimingHook>(true, false);
+            chain_obj.use_hook(timing);
         }
         // Connect sequentially (always true conditions)
-        auto always = [](const codeuchain::Context&) { return true; };
+        auto always = [](const codeuchain::State&) { return true; };
         chain_obj.connect("double", "add_ten", always);
         chain_obj.connect("add_ten", "square", always);
 
         // Warmup async path
         warmup(50, [&](auto i){
-            codeuchain::Context ctx; ctx = ctx.insert("v", static_cast<int>(i));
+            codeuchain::State ctx; ctx = ctx.insert("v", static_cast<int>(i));
             auto fut = chain_obj.run(ctx); auto out = fut.get(); (void)out.get("v");
         });
 
         auto chain_async_ns = median_per_op(iterations, repeats, [&](auto i){
             for (std::size_t b=0; b<batch; ++b) {
-                codeuchain::Context ctx; ctx = ctx.insert("v", static_cast<int>(i + b));
+                codeuchain::State ctx; ctx = ctx.insert("v", static_cast<int>(i + b));
                 auto fut = chain_obj.run(ctx);
                 auto out = fut.get(); auto v = out.get("v"); if(!v) std::abort();
             }
@@ -626,7 +626,7 @@ int main(int argc, char** argv) {
             }
             std::size_t iters = std::max<std::size_t>(50, iterations / 10);
             auto chain_len_ns = median_per_op(iters, std::max(1, repeats/2), [&](auto i){
-                codeuchain::Context ctx; ctx = ctx.insert("v", static_cast<int>(i) + 1);
+                codeuchain::State ctx; ctx = ctx.insert("v", static_cast<int>(i) + 1);
                 auto out = run_chain_sync(links_scaled, ctx); if(!out.get("v")) std::abort();
             });
             BenchmarkResult br_scale{"Chain sync length " + std::to_string(n), chain_len_ns * iters / 1e6, chain_len_ns, 0.0, ""};
@@ -644,6 +644,6 @@ int main(int argc, char** argv) {
     std::cout << "(Rebuild with -DCODEUCHAIN_BENCH_TRACK_ALLOC for allocation stats)\n";
 #endif
     std::cout << "Re-run examples:\n  ./examples/benchmark_chain --iters 100000 --repeat 7 --mode both\n  ./examples/benchmark_chain --iters 50000 --batch 4\n";
-    std::cout << "Segments: context ops, typed ops, evolution, chain vs direct (sync/async), nested eval, scaling.";
+    std::cout << "Segments: state ops, typed ops, evolution, chain vs direct (sync/async), nested eval, scaling.";
     return 0;
 }

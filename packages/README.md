@@ -1,6 +1,6 @@
 # CodeUChain: Universal Framework
 
-**Code-U-Chain**: Where code is chained as links, middleware observes, and contexts flow seamlessly.
+**Code-U-Chain**: Where code is chained as links, hook observes, and states flow seamlessly.
 
 A universal framework for building modular processing pipelines. Each language implementation optimizes for its community's strengths, united by shared design principles.
 

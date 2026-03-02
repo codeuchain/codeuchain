@@ -3,37 +3,37 @@ using System.Threading.Tasks;
 /// <summary>
 /// Test Link: Validates data presence
 /// </summary>
-public class ValidationLink : IContextLink<string, string>
+public class ValidationLink : IStateLink<string, string>
 {
-    public async Task<Context<string>> CallAsync(Context<string> context)
+    public async Task<State<string>> CallAsync(State<string> state)
     {
-        if (!context.ContainsKey("data"))
+        if (!state.ContainsKey("data"))
             throw new InvalidOperationException("Missing data");
-        return context.Insert("validated", true);
+        return state.Insert("validated", true);
     }
 }
 
 /// <summary>
 /// Test Link: Processes data to uppercase
 /// </summary>
-public class ProcessingLink : IContextLink<string, string>
+public class ProcessingLink : IStateLink<string, string>
 {
-    public async Task<Context<string>> CallAsync(Context<string> context)
+    public async Task<State<string>> CallAsync(State<string> state)
     {
-        var data = context.GetAny("data")?.ToString() ?? "";
-        return context.Insert("processed", data.ToUpper());
+        var data = state.GetAny("data")?.ToString() ?? "";
+        return state.Insert("processed", data.ToUpper());
     }
 }
 
 /// <summary>
 /// Test Link: Formats processed data
 /// </summary>
-public class FormattingLink : IContextLink<string, string>
+public class FormattingLink : IStateLink<string, string>
 {
-    public async Task<Context<string>> CallAsync(Context<string> context)
+    public async Task<State<string>> CallAsync(State<string> state)
     {
-        var data = context.GetAny("data")?.ToString() ?? "";
-        var processed = context.GetAny("processed")?.ToString() ?? "";
-        return context.Insert("formatted", $"[{processed}]");
+        var data = state.GetAny("data")?.ToString() ?? "";
+        var processed = state.GetAny("processed")?.ToString() ?? "";
+        return state.Insert("formatted", $"[{processed}]");
     }
 }

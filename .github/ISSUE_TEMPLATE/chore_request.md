@@ -10,7 +10,7 @@ assignees: ''
 A clear and concise description of the maintenance task.
 
 **Why is this necessary?**
-Context and motivation.
+State and motivation.
 
 **Acceptance criteria**
 - What must be completed for this to be considered done?

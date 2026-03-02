@@ -10,7 +10,7 @@
 **Authors:** CodeUChain contributors  
 **Language:** Python 3.8+ (async-first)  
 **Platform:** Cross-platform  
-**Paradigm Keywords:** Composable, Async, Generics, Immutable Context, Type Evolution, Selfless Links
+**Paradigm Keywords:** Composable, Async, Generics, Immutable State, Type Evolution, Selfless Links
 
 ---
 ## 1. Purpose & Philosophy
@@ -19,53 +19,53 @@ Python is the *reference* implementation: every concept is demonstrated here fir
 | Principle | Python Expression | Benefit |
 |-----------|-------------------|---------|
 | Selfless Links | `async def call(ctx)` | Pure async units |
-| Immutable Context | `ctx2 = ctx.insert(...)` | Predictable test state |
+| Immutable State | `ctx2 = ctx.insert(...)` | Predictable test state |
 | Type Evolution | `ctx3 = ctx.insert_as("key", value)` | Safe shape widening |
-| Mixed Typed/Untyped | `Context[Any]` default | Gradual adoption |
+| Mixed Typed/Untyped | `State[Any]` default | Gradual adoption |
 | Async Everywhere | `await chain.call()` | Natural concurrency |
 
 ---
 ## 2. Architectural Overview
 ```
-Raw Input --> Context[T0]
+Raw Input --> State[T0]
    │ then (validation_link)
    ▼
-Context[T1]
+State[T1]
    │ then (parse_link)
    ▼
-Context[T2]
-   │ then (enrich_link) + middleware(before/after/error)
+State[T2]
+   │ then (enrich_link) + hook(before/after/error)
    ▼
-Context[T3] (final)
+State[T3] (final)
 ```
 Advanced flows: branching, conditional execution, retry wrapping, error redirection.
 
 ---
 ## 3. Core Types (Conceptual Signatures)
 ```python
-class Context(Generic[T]):
+class State(Generic[T]):
     def get(self, key: str, default: Any = None) -> Any: ...
-    def insert(self, key: str, value: Any) -> "Context[T]": ...
-    def insert_as(self, key: str, value: Any) -> "Context[Any]": ...  # evolves type
+    def insert(self, key: str, value: Any) -> "State[T]": ...
+    def insert_as(self, key: str, value: Any) -> "State[Any]": ...  # evolves type
     def keys(self) -> list[str]: ...
     def to_dict(self) -> dict[str, Any]: ...
 
 class Link(Generic[TInput, TOutput]):
-    async def call(self, ctx: Context[TInput]) -> Context[TOutput]: ...
+    async def call(self, ctx: State[TInput]) -> State[TOutput]: ...
 
-class Middleware:  # All optional
-    async def before(self, name: str, ctx: Context[Any]) -> None: ...
-    async def after(self, name: str, ctx: Context[Any]) -> None: ...
-    async def on_error(self, name: str, ctx: Context[Any], err: Exception) -> None: ...
+class Hook:  # All optional
+    async def before(self, name: str, ctx: State[Any]) -> None: ...
+    async def after(self, name: str, ctx: State[Any]) -> None: ...
+    async def on_error(self, name: str, ctx: State[Any], err: Exception) -> None: ...
 ```
 
 ---
 ## 4. Creating Links
 ```python
-from codeuchain import Link, Context
+from codeuchain import Link, State
 
 class ValidateEmail(Link[Any, Any]):
-    async def call(self, ctx: Context[Any]) -> Context[Any]:
+    async def call(self, ctx: State[Any]) -> State[Any]:
         email = ctx.get("email")
         if not email or "@" not in email:
             raise ValueError("invalid_email")
@@ -86,7 +86,7 @@ class Parsed:
     tokens: list[str]
 
 class Parse(Link[RawInput, Parsed]):
-    async def call(self, ctx: Context[RawInput]) -> Context[Parsed]:
+    async def call(self, ctx: State[RawInput]) -> State[Parsed]:
         raw: RawInput = ctx.get("raw")
         parsed = Parsed(text=raw.text, tokens=raw.text.split())
         return ctx.insert_as("parsed", parsed)
@@ -102,7 +102,7 @@ chain = (Chain()
     .then(Parse())
     .catch(lambda link, err, ctx: ctx.insert("error_tag", str(err))))
 
-result = await chain.call(Context[Any]({"email": "a@b.com", "raw": RawInput("hello world")}))
+result = await chain.call(State[Any]({"email": "a@b.com", "raw": RawInput("hello world")}))
 ```
 Branching strategies: implement conditional link wrappers or pre-insert flags used by downstream links.
 
@@ -110,7 +110,7 @@ Retry decorator pattern:
 ```python
 def with_retry(link: Link[TInput, TOutput], attempts: int) -> Link[TInput, TOutput]:
     class Retry(Link[TInput, TOutput]):
-        async def call(self, ctx: Context[TInput]) -> Context[TOutput]:
+        async def call(self, ctx: State[TInput]) -> State[TOutput]:
             last = None
             for i in range(attempts):
                 try:
@@ -123,22 +123,22 @@ def with_retry(link: Link[TInput, TOutput], attempts: int) -> Link[TInput, TOutp
 ```
 
 ---
-## 6. Middleware Lifecycle
+## 6. Hook Lifecycle
 ```python
-class MetricsMiddleware:
-    async def before(self, name: str, ctx: Context[Any]) -> None:
+class MetricsHook:
+    async def before(self, name: str, ctx: State[Any]) -> None:
         ctx = ctx.insert("_t0", time.perf_counter())
-    async def after(self, name: str, ctx: Context[Any]) -> None:
+    async def after(self, name: str, ctx: State[Any]) -> None:
         t0 = ctx.get("_t0")
         if t0:
             dt = time.perf_counter() - t0
             print(f"{name} took {dt*1000:.2f}ms")
-    async def on_error(self, name: str, ctx: Context[Any], err: Exception) -> None:
+    async def on_error(self, name: str, ctx: State[Any], err: Exception) -> None:
         print(f"ERROR in {name}: {err}")
 ```
 Guidelines:
 - Side-effect work should be fast; offload heavy operations.
-- Middleware ordering = registration order.
+- Hook ordering = registration order.
 
 ---
 ## 7. Error Handling Patterns
@@ -147,11 +147,11 @@ Guidelines:
 | Central catch | Uniform tagging | `.catch(handler)` |
 | Retry wrapper | Transient failures | `with_retry(link, 3)` |
 | Classification | Route by error type | branching inside catch |
-| Enrichment | Attach context diagnostics | insert stack or counters |
+| Enrichment | Attach state diagnostics | insert stack or counters |
 
 Graceful classification snippet:
 ```python
-def classify_catch(link_name: str, err: Exception, ctx: Context[Any]) -> Context[Any]:
+def classify_catch(link_name: str, err: Exception, ctx: State[Any]) -> State[Any]:
     tag = "transient" if isinstance(err, TimeoutError) else "fatal"
     return ctx.insert("error_kind", tag).insert("error_msg", str(err))
 
@@ -162,7 +162,7 @@ chain = Chain().then(work_link).catch(classify_catch)
 ## 8. Testing & TDD
 Why ideal:
 - Pure async functions
-- Context = explicit contract
+- State = explicit contract
 - Type evolution clarifies transitions
 Recommended test style:
 ```python
@@ -170,13 +170,13 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_validate_email_ok():
-    ctx = Context[Any]({"email": "a@b.com"})
+    ctx = State[Any]({"email": "a@b.com"})
     out = await ValidateEmail().call(ctx)
     assert out.get("validated") is True
 
 @pytest.mark.asyncio
 async def test_validate_email_fail():
-    ctx = Context[Any]({"email": "broken"})
+    ctx = State[Any]({"email": "broken"})
     with pytest.raises(ValueError):
         await ValidateEmail().call(ctx)
 ```
@@ -188,7 +188,7 @@ cases = [
     ("invalid", False),
 ]
 for email, ok in cases:
-    ctx = Context[Any]({"email": email, "raw": RawInput("hi all")})
+    ctx = State[Any]({"email": email, "raw": RawInput("hi all")})
     try:
         await chain.call(ctx)
         assert ok
@@ -205,15 +205,15 @@ mypy codeuchain/
 ---
 ## 9. Observation & Debugging
 Tools:
-- Middleware logging
-- Context key introspection
+- Hook logging
+- State key introspection
 - Timing via perf_counter
 - Assertion helpers in tests
 
-Debug middleware example:
+Debug hook example:
 ```python
 class Debug:
-    async def after(self, name: str, ctx: Context[Any]) -> None:
+    async def after(self, name: str, ctx: State[Any]) -> None:
         print("DBG", name, "keys=", ctx.keys())
 ```
 
@@ -245,11 +245,11 @@ Examples:
 - FastAPI endpoint: call chain inside request handler
 - Celery task: each link is pure → easy unit test / idempotency
 - Pydantic models: used as typed payload shapes evolving through `insert_as`
-- Observability: integrate with OpenTelemetry in middleware
+- Observability: integrate with OpenTelemetry in hook
 
 ---
 ## 13. Migration & Mixed Typing
-Start with `Context[Any]`. Once stable, replace hotspots with domain dataclasses + generics. Intermix freely—no rewrite required.
+Start with `State[Any]`. Once stable, replace hotspots with domain dataclasses + generics. Intermix freely—no rewrite required.
 
 ---
 ## 14. Anti-Patterns
@@ -258,7 +258,7 @@ Start with `Context[Any]`. Once stable, replace hotspots with domain dataclasses
 | Storing huge blobs | Memory strain | External store + reference id |
 | Overuse of `insert_as` without typing | Loses clarity | Introduce dataclasses |
 | Catch-all `except` hiding bugs | Silent failures | Classify & rethrow critical |
-| Middleware doing business logic | Breaks separation | Move into a link |
+| Hook doing business logic | Breaks separation | Move into a link |
 
 ---
 ## 15. FAQ
@@ -268,7 +268,7 @@ A: Wrap them: `async def call(): return sync_link(ctx)` inside an async link.
 **Q: How to cancel?**  
 A: Pass an `asyncio.Task` cancellation upstream; chain surfaces errors naturally.
 
-**Q: Is context thread-safe?**  
+**Q: Is state thread-safe?**  
 A: It is immutable; each `insert` returns a new instance.
 
 **Q: Where to validate types?**  
@@ -279,24 +279,24 @@ A: A decorator/wrapper link for clarity.
 
 ---
 ## 16. Glossary
-- **Link**: Async transformer from Context[TIn] → Context[TOut].
+- **Link**: Async transformer from State[TIn] → State[TOut].
 - **Chain**: Ordered link composition.
-- **Context**: Immutable mapping with type evolution helpers.
-- **Middleware**: Observers for before/after/error phases.
-- **Type Evolution**: Safe widening via `insert_as` returning new generic context.
+- **State**: Immutable mapping with type evolution helpers.
+- **Hook**: Observers for before/after/error phases.
+- **Type Evolution**: Safe widening via `insert_as` returning new generic state.
 
 ---
 ## 17. TL;DR
 ```text
 Install: pip install codeuchain
-Model: Links (pure async) + Chain (composition) + Context (immutable) + Middleware (observability) + Type Evolution
+Model: Links (pure async) + Chain (composition) + State (immutable) + Hook (observability) + Type Evolution
 Typing: Start Any → introduce dataclasses → use insert_as to evolve
 Testing: Per-link async tests + chain table cases
-Observability: Lightweight middleware; avoid business logic there
+Observability: Lightweight hook; avoid business logic there
 Performance: Avoid deep copies; batch IO with asyncio.gather
 Error Handling: Central catch + targeted retry decorators
 Adoption: Gradual—mix typed/untyped seamlessly
-Avoid: giant blobs, silent excepts, coupling in middleware
+Avoid: giant blobs, silent excepts, coupling in hook
 ```
 
 ---

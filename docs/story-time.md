@@ -9,17 +9,17 @@ CodeUChain changes that. It’s a framework where your logic becomes scalable, v
 ## The Heart of the Chain
 
 At its core, CodeUChain is built on five primitives:
-- **Context**: The data that flows through the pipeline.
+- **State**: The data that flows through the pipeline.
 - **Link**: A single, atomic unit of work. One action, one link.
 - **Chain**: A sequence of links, forming a multi-step function or workflow.
-- **Middleware**: An observer that sits between links to gather metrics or add functionality without impacting performance.
+- **Hook**: An observer that sits between links to gather metrics or add functionality without impacting performance.
 - **Connections**: The ability to connect links and chains in any combination.
 
 This simple structure allows anyone to build robust systems. If you can outline a process—like "validate input, transform data, then output results"—you can build it with CodeUChain.
 
 ## Why Chains?
 
-The concept of a "chain" is universal, especially for AI. It comes with a deep, built-in context that language models intuitively understand without explanation. Two links connect. An object can sit between them (like middleware observing stress). Chains can be linear or branch.
+The concept of a "chain" is universal, especially for AI. It comes with a deep, built-in state that language models intuitively understand without explanation. Two links connect. An object can sit between them (like hook observing stress). Chains can be linear or branch.
 
 This built-in understanding is critical. By using the vocabulary of chains, we give the AI a mental model to work with, allowing it to grasp the architecture and its parts instantly.
 

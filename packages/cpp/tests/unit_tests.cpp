@@ -12,14 +12,14 @@ Validate our implementations through comprehensive testing.
 // Test Link implementation
 class TestLink : public codeuchain::ILink {
 public:
-    codeuchain::LinkAwaitable call(codeuchain::Context context) override {
+    codeuchain::LinkAwaitable call(codeuchain::State state) override {
         // Simple transformation: add 1 to any integer value
-        if (auto value_opt = context.get("input")) {
+        if (auto value_opt = state.get("input")) {
             if (auto* int_val = std::get_if<int>(&*value_opt)) {
-                context = context.insert("output", *int_val + 1);
+                state = state.insert("output", *int_val + 1);
             }
         }
-        co_return {context};
+        co_return {state};
     }
 
     std::string name() const override { return "test"; }
@@ -31,30 +31,30 @@ class OrderTrackingLink : public codeuchain::ILink {
 public:
     OrderTrackingLink(std::string link_id) : link_id_(link_id) {}
 
-    codeuchain::LinkAwaitable call(codeuchain::Context context) override {
+    codeuchain::LinkAwaitable call(codeuchain::State state) override {
         // Get current execution order
         int order = 0;
-        if (auto order_opt = context.get("execution_order")) {
+        if (auto order_opt = state.get("execution_order")) {
             if (order_opt && std::holds_alternative<int>(*order_opt)) {
                 order = std::get<int>(*order_opt);
             }
         }
 
         // Record this link's execution order
-        context = context.insert("executed_" + link_id_, order);
+        state = state.insert("executed_" + link_id_, order);
         std::string current_seq = "";
-        if (auto seq_opt = context.get("execution_sequence")) {
+        if (auto seq_opt = state.get("execution_sequence")) {
             if (seq_opt && std::holds_alternative<std::string>(*seq_opt)) {
                 current_seq = std::get<std::string>(*seq_opt);
             }
         }
-        context = context.insert("execution_sequence", 
+        state = state.insert("execution_sequence", 
             (order == 0 ? "" : current_seq) + link_id_);
 
         // Increment order for next link
-        context = context.insert("execution_order", order + 1);
+        state = state.insert("execution_order", order + 1);
 
-        co_return {context};
+        co_return {state};
     }
 
     std::string name() const override { return "order_" + link_id_; }
@@ -77,7 +77,7 @@ void test_execution_order_validation() {
 
     // Test 1: Sequential auto-connection execution order
     {
-        codeuchain::Context ctx;
+        codeuchain::State ctx;
 
         auto future = chain.run(ctx);
         auto result = future.get();
@@ -107,7 +107,7 @@ void test_execution_order_validation() {
         conditional_chain.add_link("alternate", std::make_shared<OrderTrackingLink>("alternate"));
 
         // Conditional: if "skip_middle" is true, go from start directly to alternate
-        auto condition_skip = [](const codeuchain::Context& ctx) -> bool {
+        auto condition_skip = [](const codeuchain::State& ctx) -> bool {
             if (auto skip = ctx.get("skip_middle")) {
                 if (skip && std::holds_alternative<bool>(*skip)) {
                     return std::get<bool>(*skip);
@@ -117,7 +117,7 @@ void test_execution_order_validation() {
         };
         conditional_chain.connect("start", "alternate", condition_skip);
 
-        codeuchain::Context ctx;
+        codeuchain::State ctx;
         ctx = ctx.insert("skip_middle", true);
 
         auto future = conditional_chain.run(ctx);
@@ -145,21 +145,21 @@ class BranchReturnLink : public codeuchain::ILink {
 public:
     BranchReturnLink(std::string id) : id_(id) {}
 
-    codeuchain::LinkAwaitable call(codeuchain::Context context) override {
-        context = context.insert("executed_" + id_, true);
+    codeuchain::LinkAwaitable call(codeuchain::State state) override {
+        state = state.insert("executed_" + id_, true);
         
         // Get current execution path
         std::string current_path = "";
-        if (auto path_opt = context.get("execution_path")) {
+        if (auto path_opt = state.get("execution_path")) {
             if (auto* str_val = std::get_if<std::string>(&*path_opt)) {
                 current_path = *str_val;
             }
         }
         
         std::string new_path = current_path + id_ + "→";
-        context = context.insert("execution_path", new_path);
+        state = state.insert("execution_path", new_path);
         
-        co_return {context};
+        co_return {state};
     }
 
     std::string name() const override { return "branch_" + id_; }
@@ -185,7 +185,7 @@ void test_branch_return_functionality() {
     chain.add_link("branch_done", std::make_shared<BranchReturnLink>("branch_done"));
 
     // Branch from main_b to branch_special, then return to main_c
-    auto needs_special = [](const codeuchain::Context& ctx) -> bool {
+    auto needs_special = [](const codeuchain::State& ctx) -> bool {
         if (auto special_opt = ctx.get("needs_special")) {
             if (auto* bool_val = std::get_if<bool>(&*special_opt)) {
                 return *bool_val;
@@ -197,7 +197,7 @@ void test_branch_return_functionality() {
 
     // Test 1: Normal path (no branching)
     {
-        codeuchain::Context ctx;
+        codeuchain::State ctx;
         ctx = ctx.insert("execution_path", std::string(""));
 
         auto future = chain.run(ctx);
@@ -215,7 +215,7 @@ void test_branch_return_functionality() {
 
     // Test 2: Branch path with return to main
     {
-        codeuchain::Context ctx;
+        codeuchain::State ctx;
         ctx = ctx.insert("needs_special", true);
         ctx = ctx.insert("execution_path", std::string(""));
 
@@ -241,7 +241,7 @@ void test_branch_return_functionality() {
         terminate_chain.add_link("branch_end", std::make_shared<BranchReturnLink>("branch_end"));
 
         // Branch from start to branch_end with no return (empty return target)
-        auto terminate_condition = [](const codeuchain::Context& ctx) -> bool {
+        auto terminate_condition = [](const codeuchain::State& ctx) -> bool {
             if (auto term_opt = ctx.get("terminate_branch")) {
                 if (auto* bool_val = std::get_if<bool>(&*term_opt)) {
                     return *bool_val;
@@ -251,7 +251,7 @@ void test_branch_return_functionality() {
         };
         terminate_chain.connect_branch("start", "branch_end", "", terminate_condition);
 
-        codeuchain::Context ctx;
+        codeuchain::State ctx;
         ctx = ctx.insert("terminate_branch", true);
         ctx = ctx.insert("execution_path", std::string(""));
 
@@ -272,10 +272,10 @@ void test_branch_return_functionality() {
 }
 
 // Test functions
-void test_context_operations() {
-    std::cout << "Testing Context operations..." << std::endl;
+void test_state_operations() {
+    std::cout << "Testing State operations..." << std::endl;
 
-    codeuchain::Context ctx;
+    codeuchain::State ctx;
 
     // Test insert and get
     ctx = ctx.insert("key1", 42);
@@ -301,7 +301,7 @@ void test_context_operations() {
     assert(!ctx.has("key1"));
     assert(ctx.empty());
 
-    std::cout << "✅ Context operations test passed!" << std::endl;
+    std::cout << "✅ State operations test passed!" << std::endl;
 }
 
 void test_chain_execution() {
@@ -311,7 +311,7 @@ void test_chain_execution() {
     auto test_link = std::make_shared<TestLink>();
     chain.add_link("test", test_link);
 
-    codeuchain::Context initial_ctx;
+    codeuchain::State initial_ctx;
     initial_ctx = initial_ctx.insert("input", 5);
 
     // For now, let's test the synchronous parts
@@ -326,10 +326,10 @@ void test_link_awaitable() {
     std::cout << "Testing Link awaitable..." << std::endl;
 
     auto link = std::make_shared<TestLink>();
-    codeuchain::Context ctx;
+    codeuchain::State ctx;
     ctx = ctx.insert("input", 10);
 
-    // For now, just test that we can create the link and context
+    // For now, just test that we can create the link and state
     assert(link->name() == "test");
     assert(ctx.has("input"));
 
@@ -340,13 +340,13 @@ void test_mutable_performance() {
     std::cout << "Testing mutable performance optimization..." << std::endl;
 
     // Test immutable approach (current default)
-    codeuchain::Context immutable_ctx;
+    codeuchain::State immutable_ctx;
     for (int i = 0; i < 1000; ++i) {
         immutable_ctx = immutable_ctx.insert("key" + std::to_string(i), i);
     }
 
     // Test mutable approach (performance optimization)
-    codeuchain::Context mutable_ctx;
+    codeuchain::State mutable_ctx;
     for (int i = 0; i < 1000; ++i) {
         mutable_ctx.insert_mut("key" + std::to_string(i), i);
     }
@@ -370,10 +370,10 @@ void test_mutable_performance() {
 // Test Links for auto-connection and conditional branching
 class PathALink : public codeuchain::ILink {
 public:
-    codeuchain::LinkAwaitable call(codeuchain::Context context) override {
-        context = context.insert("path", "A");
-        context = context.insert("executed_A", true);
-        co_return {context};
+    codeuchain::LinkAwaitable call(codeuchain::State state) override {
+        state = state.insert("path", "A");
+        state = state.insert("executed_A", true);
+        co_return {state};
     }
     std::string name() const override { return "path_a"; }
     std::string description() const override { return "Always executes path A"; }
@@ -381,10 +381,10 @@ public:
 
 class PathBLink : public codeuchain::ILink {
 public:
-    codeuchain::LinkAwaitable call(codeuchain::Context context) override {
-        context = context.insert("path", "B");
-        context = context.insert("executed_B", true);
-        co_return {context};
+    codeuchain::LinkAwaitable call(codeuchain::State state) override {
+        state = state.insert("path", "B");
+        state = state.insert("executed_B", true);
+        co_return {state};
     }
     std::string name() const override { return "path_b"; }
     std::string description() const override { return "Conditional path B"; }
@@ -392,15 +392,15 @@ public:
 
 class PathCLink : public codeuchain::ILink {
 public:
-    codeuchain::LinkAwaitable call(codeuchain::Context context) override {
-        context = context.insert("executed_C", true);
+    codeuchain::LinkAwaitable call(codeuchain::State state) override {
+        state = state.insert("executed_C", true);
         // Record which path was taken
-        if (auto path = context.get("path")) {
+        if (auto path = state.get("path")) {
             if (path && std::holds_alternative<std::string>(*path)) {
-                context = context.insert("final_path", std::get<std::string>(*path));
+                state = state.insert("final_path", std::get<std::string>(*path));
             }
         }
-        co_return {context};
+        co_return {state};
     }
     std::string name() const override { return "path_c"; }
     std::string description() const override { return "Final link that records path taken"; }
@@ -417,7 +417,7 @@ void test_auto_connection_and_conditionals() {
     chain.add_link("path_c", std::make_shared<PathCLink>());
 
     // Add conditional connection: if "use_path_b" is true, skip path_a and go to path_b
-    auto condition_use_b = [](const codeuchain::Context& ctx) -> bool {
+    auto condition_use_b = [](const codeuchain::State& ctx) -> bool {
         if (auto use_b = ctx.get("use_path_b")) {
             if (use_b && std::holds_alternative<bool>(*use_b)) {
                 return std::get<bool>(*use_b);
@@ -429,7 +429,7 @@ void test_auto_connection_and_conditionals() {
 
     // Test 1: Default auto-connection path (use_path_b = false or missing)
     {
-        codeuchain::Context ctx;
+        codeuchain::State ctx;
         ctx = ctx.insert("use_path_b", false);
 
         auto future = chain.run(ctx);
@@ -447,7 +447,7 @@ void test_auto_connection_and_conditionals() {
 
     // Test 2: Conditional path (use_path_b = true) - should trigger conditional connection
     {
-        codeuchain::Context ctx;
+        codeuchain::State ctx;
         ctx = ctx.insert("use_path_b", true);
 
         auto future = chain.run(ctx);
@@ -466,7 +466,7 @@ void test_auto_connection_and_conditionals() {
 
     // Test 3: No condition specified - should use auto-connection
     {
-        codeuchain::Context ctx;
+        codeuchain::State ctx;
         // No "use_path_b" key - condition should return false
 
         auto future = chain.run(ctx);
@@ -487,10 +487,10 @@ class BranchLink : public codeuchain::ILink {
 public:
     BranchLink(std::string branch_name) : branch_name_(branch_name) {}
 
-    codeuchain::LinkAwaitable call(codeuchain::Context context) override {
-        context = context.insert("branch_taken", branch_name_);
-        context = context.insert("executed_" + branch_name_, true);
-        co_return {context};
+    codeuchain::LinkAwaitable call(codeuchain::State state) override {
+        state = state.insert("branch_taken", branch_name_);
+        state = state.insert("executed_" + branch_name_, true);
+        co_return {state};
     }
 
     std::string name() const override { return "branch_" + branch_name_; }
@@ -512,7 +512,7 @@ void test_advanced_branching() {
     chain.add_link("end", std::make_shared<PathCLink>());
 
     // Conditional: if "take_x" is true, go from start to branch_x
-    auto condition_take_x = [](const codeuchain::Context& ctx) -> bool {
+    auto condition_take_x = [](const codeuchain::State& ctx) -> bool {
         if (auto take_x = ctx.get("take_x")) {
             if (take_x && std::holds_alternative<bool>(*take_x)) {
                 return std::get<bool>(*take_x);
@@ -523,7 +523,7 @@ void test_advanced_branching() {
     chain.connect("start", "branch_x", condition_take_x);
 
     // Conditional: if "take_y" is true, go from branch_x to branch_y
-    auto condition_take_y = [](const codeuchain::Context& ctx) -> bool {
+    auto condition_take_y = [](const codeuchain::State& ctx) -> bool {
         if (auto take_y = ctx.get("take_y")) {
             if (take_y && std::holds_alternative<bool>(*take_y)) {
                 return std::get<bool>(*take_y);
@@ -535,7 +535,7 @@ void test_advanced_branching() {
 
     // Test 1: Default path (no conditions met) - should follow auto-connection
     {
-        codeuchain::Context ctx;
+        codeuchain::State ctx;
 
         auto future = chain.run(ctx);
         auto result = future.get();
@@ -550,7 +550,7 @@ void test_advanced_branching() {
 
     // Test 2: Take X branch only
     {
-        codeuchain::Context ctx;
+        codeuchain::State ctx;
         ctx = ctx.insert("take_x", true);
 
         auto future = chain.run(ctx);
@@ -566,7 +566,7 @@ void test_advanced_branching() {
 
     // Test 3: Take both X and Y branches
     {
-        codeuchain::Context ctx;
+        codeuchain::State ctx;
         ctx = ctx.insert("take_x", true);
         ctx = ctx.insert("take_y", true);
 
@@ -583,7 +583,7 @@ void test_advanced_branching() {
 
     // Test 4: Skip X but take Y (shouldn't happen due to auto-connection)
     {
-        codeuchain::Context ctx;
+        codeuchain::State ctx;
         ctx = ctx.insert("take_x", false);
         ctx = ctx.insert("take_y", true);
 
@@ -606,7 +606,7 @@ int main() {
     std::cout << "===========================" << std::endl;
 
     try {
-        test_context_operations();
+        test_state_operations();
         test_chain_execution();
         test_link_awaitable();
         test_mutable_performance();

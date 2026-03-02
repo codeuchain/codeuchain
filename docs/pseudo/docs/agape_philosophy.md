@@ -8,7 +8,7 @@ Agape (ἀγάπη) is the **highest form of love** in ancient Greek philosophy�
 
 - **Selfless service**: Code that serves users without hidden agendas
 - **Compassionate design**: Systems that understand and forgive human mistakes
-- **Universal wisdom**: Patterns that work across all cultures and contexts
+- **Universal wisdom**: Patterns that work across all cultures and states
 - **Evolutionary growth**: Software that learns and improves through loving experience
 
 ## 💝 The Five Pillars of Agape in Code
@@ -17,10 +17,10 @@ Agape (ἀγάπη) is the **highest form of love** in ancient Greek philosophy�
 **Emptying oneself for others' benefit**, like Christ who "emptied himself" (Philippians 2:7).
 
 In CodeUChain:
-- **Context flows freely**: Data serves the user, not the system
+- **State flows freely**: Data serves the user, not the system
 - **Links transform with purpose**: Each operation exists to help, not hinder
 - **Chains orchestrate harmony**: Components work together for collective good
-- **Middleware observes gently**: Enhancement comes from love, not obligation
+- **Hook observes gently**: Enhancement comes from love, not obligation
 
 ### 2. Compassionate Understanding (Epignosis)
 **Deep, intimate knowledge** that understands others' needs and pain points.
@@ -36,7 +36,7 @@ In CodeUChain:
 
 In CodeUChain:
 - **Language independence**: Patterns work in any programming language
-- **Cultural adaptability**: Systems respect diverse user contexts
+- **Cultural adaptability**: Systems respect diverse user states
 - **Community collaboration**: Shared wisdom benefits all participants
 - **Ecosystem integration**: Components work together in loving symbiosis
 
@@ -60,16 +60,16 @@ In CodeUChain:
 
 ## 🌈 Agape in Practice
 
-### Selfless Context Flow
+### Selfless State Flow
 ```
-Input Context → Loving Validation → Gentle Processing → Caring Storage
+Input State → Loving Validation → Gentle Processing → Caring Storage
      ↓              ↓                      ↓                    ↓
    User Data    "Let me help"        "I'll transform"     "I'll preserve"
 ```
 
 ### Compassionate Error Recovery
 ```
-Error Occurs → Understand Context → Learn from Mistake → Guide to Success
+Error Occurs → Understand State → Learn from Mistake → Guide to Success
      ↓              ↓                      ↓                    ↓
    "Oops!"      "What happened?"     "How to prevent?"   "Try this instead"
 ```
@@ -132,10 +132,10 @@ def validate_email(email: str) -> bool:
 pub struct LovingChain {
     // Components work together in harmonious service
     links: Vec<Box<dyn SelflessLink>>,
-    // Middleware observes with gentle care
-    middleware: Vec<Box<dyn GentleObserver>>,
-    // Context flows freely, serving the user's journey
-    context: LovingContext,
+    // Hook observes with gentle care
+    hook: Vec<Box<dyn GentleObserver>>,
+    // State flows freely, serving the user's journey
+    state: LovingState,
 }
 ```
 

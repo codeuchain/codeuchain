@@ -12,7 +12,7 @@ Provide a systematic examination of the overhead sources observed in the C++ ben
 |-------|-----------|------------|-------|
 | Virtual Dispatch | `ILink::call` per link | Indirect call prevents inlining | 3x per 3-link chain |
 | Coroutine Frame | `LinkAwaitable` + promise | Allocation (stack frame), state machine logic (may optimize to stack) | Even though resumed immediately |
-| Context Immutability | `Context` copy-on-insert pattern | New `unordered_map` copy on each `insert` | 1 per mutation unless `*_mut` used |
+| State Immutability | `State` copy-on-insert pattern | New `unordered_map` copy on each `insert` | 1 per mutation unless `*_mut` used |
 | Variant Access | `std::variant` visitation (`holds_alternative`/`get`) | Type check + branch | Per read/write of a key |
 | Small Map Churn | Creating maps with 1 key repeatedly | Alloc + hash bucket overhead | Dominant in micro benchmarks |
 | Future (Async mode) | `Chain::run` returning `std::future` | Promise/future pair, synchronization | Only async |
@@ -47,12 +47,12 @@ In micro workloads (simple arithmetic per link) framework overhead dwarfs useful
 | Custom Lightweight Awaitable | Flat struct + manual state | Medium | Smaller frames | Might help async only |
 | EBO Promise | Empty Base Optimization for promise_type fields | Low | Minor size reductions | Requires layout tuning |
 
-### 3.3 Context Mutation Cost
+### 3.3 State Mutation Cost
 | Approach | Idea | Feasibility | Impact | Notes |
 |----------|------|------------|--------|-------|
-| Hybrid Context | Immutable default, internal mutating buffer reused per chain execution | High | Eliminates alloc/copy per insert | Provide snapshot only at link boundaries |
+| Hybrid State | Immutable default, internal mutating buffer reused per chain execution | High | Eliminates alloc/copy per insert | Provide snapshot only at link boundaries |
 | Mut Transaction Block | `with_mut(ctx, [](auto& m){ ... });` collects mutations then applies once | Medium | Collapses N inserts to 1 copy | Transparent to user |
-| Small Map Inline Storage | SBO for <= 4 entries (flat array) | Medium | Avoid heap for tiny contexts | Switch to custom flat map |
+| Small Map Inline Storage | SBO for <= 4 entries (flat array) | Medium | Avoid heap for tiny states | Switch to custom flat map |
 | Intern Key Strings | Pre-hash / intern frequently used keys | Medium | Cuts hashing cost | Optional pool |
 
 ### 3.4 Variant Access Overhead
@@ -71,7 +71,7 @@ In micro workloads (simple arithmetic per link) framework overhead dwarfs useful
 ### 3.6 Batching & Throughput
 | Approach | Idea | Feasibility | Impact | Notes |
 |----------|------|------------|--------|-------|
-| Vectorized Context | Process slices of inputs per link (`SpanContext<N>`) | Medium | Amortizes dispatch, alloc | Requires bulk link interface |
+| Vectorized State | Process slices of inputs per link (`SpanState<N>`) | Medium | Amortizes dispatch, alloc | Requires bulk link interface |
 | Adaptive Batching | Auto detect tiny ops, suggest batching hint | Low | Advisory | Developer guidance tooling |
 
 ### 3.7 Link Graph Execution Planner
@@ -86,12 +86,12 @@ In micro workloads (simple arithmetic per link) framework overhead dwarfs useful
 |-------|---------|-----------|-----------|------------|
 | 1 | Sync Fast Path (public) | Formalize existing manual runner | S | None |
 | 1 | Static Chain Template (opt-in) | Establish zero-virtual baseline | M | Sync path |
-| 2 | Hybrid Context Buffer | Biggest alloc/copy win | M | Bench harness to measure |
+| 2 | Hybrid State Buffer | Biggest alloc/copy win | M | Bench harness to measure |
 | 2 | Key Interning (opt-in) | Hash reduction for hot keys | S | None |
-| 3 | Small Map Inline Storage | Heap elimination for small contexts | M | Hybrid buffer |
+| 3 | Small Map Inline Storage | Heap elimination for small states | M | Hybrid buffer |
 | 3 | Direct Slot API | Cut variant branching | M | Stable schema detection |
 | 4 | Planner: Linear Fusion | Automatic multi-link collapsing | M/H | Static metadata from links |
-| 5 | Vectorized / Batch Context | Throughput scaling | H | Refactored link interface |
+| 5 | Vectorized / Batch State | Throughput scaling | H | Refactored link interface |
 
 ---
 ## 5. Design Sketches
@@ -100,7 +100,7 @@ In micro workloads (simple arithmetic per link) framework overhead dwarfs useful
 template<class... Links>
 class StaticChain {
 public:
-    codeuchain::Context run(codeuchain::Context ctx) const {
+    codeuchain::State run(codeuchain::State ctx) const {
         (void)std::initializer_list<int>{ (ctx = std::get<Links>(links_).call_sync(ctx), 0)... };
         return ctx;
     }
@@ -108,12 +108,12 @@ private:
     std::tuple<Links...> links_{}; // All concrete types known
 };
 ```
-- Each `Link` adds a `call_sync(Context&)` that mutates/appends.
+- Each `Link` adds a `call_sync(State&)` that mutates/appends.
 - All calls inlined; no variant cost if specialized path used.
 
-### 5.2 Hybrid Context
+### 5.2 Hybrid State
 ```cpp
-class HybridContext {
+class HybridState {
     // Small buffer inline
     struct Entry { uint32_t key_id; codeuchain::DataValue value; };
     static constexpr size_t InlineCap = 4;
@@ -122,7 +122,7 @@ class HybridContext {
     // Fallback map for overflow / large
     std::unordered_map<uint32_t, codeuchain::DataValue> *overflow_ = nullptr;
 public:
-    HybridContext& insert(uint32_t key_id, codeuchain::DataValue v);
+    HybridState& insert(uint32_t key_id, codeuchain::DataValue v);
 };
 ```
 - Key strings become interned IDs (`uint32_t`).
@@ -140,7 +140,7 @@ Version increments on structure mutation (spill or rehash event).
 ## 6. Measurement Strategy Additions
 | Addition | Metric | Purpose |
 |----------|--------|---------|
-| Context Alloc Count | allocations per op | Validate hybrid improvements |
+| State Alloc Count | allocations per op | Validate hybrid improvements |
 | Bytes Moved | estimate copy size | Show copy removal effect |
 | Dispatch Count | virtual calls per chain | Show fusion/static chain effect |
 | Inlining Ratio | (estimated) | Compare static vs dynamic chain |
@@ -149,7 +149,7 @@ Version increments on structure mutation (spill or rehash event).
 Implement incremental toggles:
 ```
 --enable-static-chain
---enable-hybrid-context
+--enable-hybrid-state
 --enable-key-intern
 --enable-slot-cache
 ```
@@ -163,7 +163,7 @@ Each guarded by macros / build flags to isolate effects.
 | Template Bloat | Static chains blow up compile times | Provide small utility; recommend for hot paths only |
 | Premature Fusion | Incorrectly fusing stateful links changes semantics | Require link metadata: `pure`, `no_side_effects`, `idempotent` |
 | Debug Difficulty | Hybrid storage obscures data layout | Provide debug iterator view exporting logical map |
-| ABI Stability | Changing context representation | Keep `Context` public API stable; introduce new type (`HybridContext`) |
+| ABI Stability | Changing state representation | Keep `State` public API stable; introduce new type (`HybridState`) |
 
 ---
 ## 8. Feasibility Assessment (Summary)
@@ -171,7 +171,7 @@ Each guarded by macros / build flags to isolate effects.
 |-------------|-----------|----------------|--------------|------------------|
 | Sync Fast Path (formal) | Low | Medium | Medium | 1 |
 | StaticChain | Medium | High | Medium | 1 |
-| Hybrid Context | Medium | High | High | 2 |
+| Hybrid State | Medium | High | High | 2 |
 | Key Interning | Low | Medium | Medium | 2 |
 | Inline Small Buffer | Medium | High | High | 3 |
 | Slot Cache | Medium | Medium | Medium | 3 |
@@ -180,11 +180,11 @@ Each guarded by macros / build flags to isolate effects.
 
 ---
 ## 9. Suggested Immediate Action Plan
-1. Expose a public `run_sync(Context)` API to remove hand-written runner duplication.
+1. Expose a public `run_sync(State)` API to remove hand-written runner duplication.
 2. Add `StaticChain` prototype; benchmark vs current sync path and noinline nested baseline.
-3. Prototype `HybridContext` for <=4 elements + spill; measure allocation & per-op ns delta.
+3. Prototype `HybridState` for <=4 elements + spill; measure allocation & per-op ns delta.
 4. Implement key interning pool with optional `--intern-keys` benchmark toggle; record hash count.
-5. Introduce instrumentation counters (virtual dispatches, context copies) to provide *explanatory* metrics next to timings.
+5. Introduce instrumentation counters (virtual dispatches, state copies) to provide *explanatory* metrics next to timings.
 
 ---
 ## 10. Success Criteria
@@ -193,8 +193,8 @@ Each guarded by macros / build flags to isolate effects.
 | 3-link Sync Chain vs Direct Pipeline | < 3x overhead when each link does trivial arithmetic (current likely >>) |
 | 3-link Sync Chain w/ Hybrid + Intern + StaticChain | Approach within ~1.5x of direct pipeline |
 | Allocation Reduction (3-link, 1 key) | >90% fewer allocations |
-| Context Mutation Cost | Within 10-20% of raw `unordered_map` mutate for small key counts |
-| Async Overhead Isolation | Async adds only promise/future delta, not duplicate context cost |
+| State Mutation Cost | Within 10-20% of raw `unordered_map` mutate for small key counts |
+| Async Overhead Isolation | Async adds only promise/future delta, not duplicate state cost |
 
 ---
 ## 11. Open Questions
@@ -206,15 +206,15 @@ Each guarded by macros / build flags to isolate effects.
 
 ---
 ## 12. Executive Summary
-We can systematically reduce micro-operation overhead while preserving the chain abstraction through a layered strategy: (1) formalize a zero-extra sync path, (2) enable compile-time chain composition, (3) eliminate dominant alloc/copy churn via a hybrid inline context, and (4) apply optional specialization (key interning, slot caching, fusion). This path keeps the existing dynamic, flexible API intact while offering advanced users near-baseline performance for hot paths. The largest immediate wins are in context memory behavior and dispatch removal for predictable linear segments.
+We can systematically reduce micro-operation overhead while preserving the chain abstraction through a layered strategy: (1) formalize a zero-extra sync path, (2) enable compile-time chain composition, (3) eliminate dominant alloc/copy churn via a hybrid inline state, and (4) apply optional specialization (key interning, slot caching, fusion). This path keeps the existing dynamic, flexible API intact while offering advanced users near-baseline performance for hot paths. The largest immediate wins are in state memory behavior and dispatch removal for predictable linear segments.
 
-Recent empirical hot-key slot experiments (Section 14) validate that repeated per-step context lookups + variant churn dominate cost after removing virtual dispatch; caching a single hot value and performing only one final materialization recovers 68–83% of the remaining overhead in mutating and immutable paths respectively.
+Recent empirical hot-key slot experiments (Section 14) validate that repeated per-step state lookups + variant churn dominate cost after removing virtual dispatch; caching a single hot value and performing only one final materialization recovers 68–83% of the remaining overhead in mutating and immutable paths respectively.
 
 ---
 ## 13. Next Steps (Actionable)
 - [ ] Prototype `StaticChain` (header-only) + benchmark integration flag.
 - [ ] Add instrumentation counters (copies, inserts, variant gets).
-- [ ] Design `HybridContext` memory layout sketch + benchmark stub.
+- [ ] Design `HybridState` memory layout sketch + benchmark stub.
 - [ ] Implement key interning pool (string -> id) with transparent adapter.
 - [ ] Extend benchmark harness with new toggles & metrics export.
 
@@ -233,7 +233,7 @@ Quantify how much of the remaining per-link overhead (after considering `StaticC
 | Variant | Description | Key Characteristics |
 |---------|-------------|---------------------|
 | direct | Plain scalar lambda | Zero framework overhead |
-| static | Immutable `StaticChain` ops | 3 context inserts + 3 lookups |
+| static | Immutable `StaticChain` ops | 3 state inserts + 3 lookups |
 | static_mut | Mutating `StaticChain` ops | 3 lookups + 3 in-place inserts |
 | dynamic | Virtual links (immutable) | 3 virtual calls + immutable churn |
 | mutable | Manual mutating sequence | 3 lookups + 3 mut inserts (no abstraction) |
@@ -261,7 +261,7 @@ Quantify how much of the remaining per-link overhead (after considering `StaticC
 
 ### 14.5 Attribution (Qualitative Stack)
 Estimated fractions of original immutable static chain cost:
-1. Context copy + allocation churn (per immutable insert)
+1. State copy + allocation churn (per immutable insert)
 2. Repeated hash + key compare (`unordered_map` lookup)
 3. Variant construction & type branch
 4. Virtual dispatch (only in dynamic path)
@@ -272,7 +272,7 @@ The hot slot results effectively remove (2) and most of (3) for a single hot key
 ### 14.6 Implications for Roadmap
 | Roadmap Item | Empirical Support |
 |--------------|-------------------|
-| Hybrid Context | Will directly attack (1) alloc/copy churn seen dominating immutable cost |
+| Hybrid State | Will directly attack (1) alloc/copy churn seen dominating immutable cost |
 | Key Interning | Cuts hashing in (2); hot slot shows hashing is a major slice |
 | Slot Cache / Direct Slot API | Mirrors hot_slot_mut behavior; high ROI |
 | Operation Fusion | Minimizes intermediate materializations akin to hot_slot_imm |
@@ -280,8 +280,8 @@ The hot slot results effectively remove (2) and most of (3) for a single hot key
 
 ### 14.7 Recommended New Metrics
 Add counters to benchmark harness:
-- `context_lookups` (per run)
-- `context_mutations` (logical vs physical materializations)
+- `state_lookups` (per run)
+- `state_mutations` (logical vs physical materializations)
 - `variant_constructs` / `variant_assigns`
 - `hash_ops` (approx: lookups + inserts)
 
@@ -293,13 +293,13 @@ For macro-scale workloads (I/O, network, disk, complex CPU work), microsecond-le
 ### 14.9 Takeaways
 - Dispatch removal alone is insufficient; memory & lookup behavior dominate.
 - Mutability recovers part of the gap; slot caching recovers most of the rest.
-- Achievable target of ≤ ~1.5× direct arithmetic appears realistic with: hybrid context + slot caching + fusion for linear chains.
-- The data justifies prioritizing context/storage redesign before deeper coroutine or planner sophistication.
+- Achievable target of ≤ ~1.5× direct arithmetic appears realistic with: hybrid state + slot caching + fusion for linear chains.
+- The data justifies prioritizing state/storage redesign before deeper coroutine or planner sophistication.
 
 ### 14.10 Next Immediate Actions (Updated)
 1. Implement instrumentation counters (lookups, inserts, allocations) in current benchmark.
 2. Prototype a minimal `SlotHandle` API returning a typed pointer for stable key.
-3. Layer key interning to quantify hash elimination delta before hybrid context.
+3. Layer key interning to quantify hash elimination delta before hybrid state.
 4. Introduce `--emit-csv` flag to persist metrics trend line.
 5. Re-run after each prototype to populate a Section 15 (future) longitudinal table.
 

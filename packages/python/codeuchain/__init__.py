@@ -1,7 +1,7 @@
 """
 CodeUChain: Modular Python Implementation
 
-CodeUChain provides a modular framework for chaining processing links with middleware support.
+CodeUChain provides a modular framework for chaining processing links with hook support.
 Optimized for Python's prototyping capabilities—embracing dynamism, ecosystem, and flexibility.
 
 Library Structure:
@@ -10,7 +10,7 @@ Library Structure:
 """
 
 # Core protocols and base classes
-from .core import Context, MutableContext, Link, Chain, Middleware
+from .core import State, MutableState, Link, Chain, Hook
 
 # Utility helpers
 from .utils import ErrorHandlingMixin, RetryLink
@@ -18,7 +18,7 @@ from .utils import ErrorHandlingMixin, RetryLink
 __version__ = "1.1.0"
 __all__ = [
     # Core
-    "Context", "MutableContext", "Link", "Chain", "Middleware",
+    "State", "MutableState", "Link", "Chain", "Hook",
     # Utils
     "ErrorHandlingMixin", "RetryLink"
 ]

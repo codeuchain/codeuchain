@@ -12,14 +12,14 @@
  * and merge the results back together.
  */
 
-const { Context, Chain, Link, LoggingMiddleware } = require('../core');
+const { State, Chain, Link, LoggingHook } = require('../core');
 
 class DataFanOutLink extends Link {
   async call(ctx) {
     const data = ctx.get('inputData');
     console.log(`🔀 Fan-out: Splitting ${data} into parallel branches`);
 
-    // Create branch contexts
+    // Create branch states
     const branchA = ctx.insert('branch', 'A').insert('data', data.toUpperCase());
     const branchB = ctx.insert('branch', 'B').insert('data', data.toLowerCase());
 
@@ -112,8 +112,8 @@ async function main() {
   chain.connect('NormalizeBranchBLink', 'MergeResultsLink');
   chain.connect('MergeResultsLink', 'AggregateResultsLink');
 
-  // Add middleware
-  chain.useMiddleware(new LoggingMiddleware());
+  // Add hook
+  chain.useHook(new LoggingHook());
 
   // Test data
   const testInputs = [
@@ -130,7 +130,7 @@ async function main() {
     console.log('─'.repeat(40));
 
     try {
-      const initialCtx = new Context({ inputData: input });
+      const initialCtx = new State({ inputData: input });
       const resultCtx = await chain.run(initialCtx);
 
       const finalResult = resultCtx.get('finalResult');

@@ -17,33 +17,33 @@ void Chain::add_link(std::string name, std::shared_ptr<ILink> link) {
         const auto& current_name = link_order_.back();
         // Connect with always-true condition for sequential execution
         connections_.emplace_back(prev_name, current_name,
-            [](const Context&) { return true; });
+            [](const State&) { return true; });
     }
 }
 
 void Chain::connect(std::string source, std::string target,
-                   std::function<bool(const Context&)> condition) {
+                   std::function<bool(const State&)> condition) {
     connections_.emplace_back(std::move(source), std::move(target), std::move(condition));
 }
 
 void Chain::connect_branch(std::string source, std::string branch_target, 
                           std::string return_target,
-                          std::function<bool(const Context&)> condition) {
+                          std::function<bool(const State&)> condition) {
     // Store branch connections separately with return target
     branch_connections_.emplace_back(std::move(source), std::move(branch_target), 
                                    std::move(return_target), std::move(condition));
 }
 
-void Chain::use_middleware(std::shared_ptr<IMiddleware> middleware) {
-    middlewares_.emplace_back(std::move(middleware));
+void Chain::use_hook(std::shared_ptr<IHook> hook) {
+    hooks_.emplace_back(std::move(hook));
 }
 
-std::future<Context> Chain::run(Context initial_context) {
-    return std::async(std::launch::async, [this, initial_context = std::move(initial_context)]() mutable {
-        Context ctx = std::move(initial_context);
+std::future<State> Chain::run(State initial_state) {
+    return std::async(std::launch::async, [this, initial_state = std::move(initial_state)]() mutable {
+        State ctx = std::move(initial_state);
 
-        // Execute middleware before hooks
-        for (const auto& mw : middlewares_) {
+        // Execute hook before hooks
+        for (const auto& mw : hooks_) {
             auto handle = mw->before(nullptr, ctx);
             if (handle) {
                 handle.resume();
@@ -91,8 +91,8 @@ std::future<Context> Chain::run(Context initial_context) {
             if (should_execute_current && executed_links.find(link_name) == executed_links.end()) {
                 const auto& link = link_it->second;
 
-                // Execute middleware before each link
-                for (const auto& mw : middlewares_) {
+                // Execute hook before each link
+                for (const auto& mw : hooks_) {
                     auto handle = mw->before(link, ctx);
                     if (handle) {
                         handle.resume();
@@ -105,15 +105,15 @@ std::future<Context> Chain::run(Context initial_context) {
                     auto awaitable = link->call(ctx);
                     // Retrieve result (ensures single resume)
                     auto result = awaitable.get_result();
-                    ctx = std::move(result.context);
+                    ctx = std::move(result.state);
                 } catch (const std::exception& e) {
-                    // Handle error - could be enhanced with error middleware
+                    // Handle error - could be enhanced with error hook
                     std::cerr << "Error executing link '" << link_name << "': " << e.what() << std::endl;
                     break;
                 }
 
-                // Execute middleware after each link
-                for (const auto& mw : middlewares_) {
+                // Execute hook after each link
+                for (const auto& mw : hooks_) {
                     auto handle = mw->after(link, ctx);
                     if (handle) {
                         handle.resume();
@@ -144,8 +144,8 @@ std::future<Context> Chain::run(Context initial_context) {
             }
         }
 
-        // Execute final middleware after hooks
-        for (const auto& mw : middlewares_) {
+        // Execute final hook after hooks
+        for (const auto& mw : hooks_) {
             auto handle = mw->after(nullptr, ctx);
             if (handle) {
                 handle.resume();
@@ -160,16 +160,16 @@ const std::unordered_map<std::string, std::shared_ptr<ILink>>& Chain::links() co
     return links_;
 }
 
-const std::vector<std::tuple<std::string, std::string, std::function<bool(const Context&)>>>& Chain::connections() const {
+const std::vector<std::tuple<std::string, std::string, std::function<bool(const State&)>>>& Chain::connections() const {
     return connections_;
 }
 
-const std::vector<std::tuple<std::string, std::string, std::string, std::function<bool(const Context&)>>>& Chain::branch_connections() const {
+const std::vector<std::tuple<std::string, std::string, std::string, std::function<bool(const State&)>>>& Chain::branch_connections() const {
     return branch_connections_;
 }
 
-const std::vector<std::shared_ptr<IMiddleware>>& Chain::middlewares() const {
-    return middlewares_;
+const std::vector<std::shared_ptr<IHook>>& Chain::hooks() const {
+    return hooks_;
 }
 
 } // namespace codeuchain

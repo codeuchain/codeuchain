@@ -4,66 +4,66 @@
 export type TInput = any;
 export type TOutput = any;
 
-export declare class Context<T = any> {
+export declare class State<T = any> {
   constructor(data?: Record<string, any>);
-  static empty(): Context<T>;
-  static from<TData = any>(data: TData): Context<TData>;
+  static empty(): State<T>;
+  static from<TData = any>(data: TData): State<TData>;
   get(key: string): any;
-  insert(key: string, value: any): Context<T>;
-  insertAs<TNew = any>(key: string, value: any): Context<TNew>;
-  withMutation(): MutableContext<T>;
-  merge(other: Context<T>): Context<T>;
+  insert(key: string, value: any): State<T>;
+  insertAs<TNew = any>(key: string, value: any): State<TNew>;
+  withMutation(): MutableState<T>;
+  merge(other: State<T>): State<T>;
   toObject(): Record<string, any>;
   has(key: string): boolean;
   keys(): string[];
 }
 
-export declare class MutableContext<T = any> {
+export declare class MutableState<T = any> {
   constructor(data?: Record<string, any>);
   get(key: string): any;
   set(key: string, value: any): void;
-  toImmutable(): Context<T>;
+  toImmutable(): State<T>;
   has(key: string): boolean;
   keys(): string[];
 }
 
 export declare class Link<TInput = any, TOutput = any> {
-  call(ctx: Context<TInput>): Promise<Context<TOutput>>;
+  call(ctx: State<TInput>): Promise<State<TOutput>>;
   getName(): string;
-  validateContext(ctx: Context<TInput>, requiredFields?: string[]): void;
+  validateState(ctx: State<TInput>, requiredFields?: string[]): void;
 }
 
 export declare class Chain<TInput = any, TOutput = any> {
   constructor();
   addLink(link: Link<TInput, TOutput>, name?: string): Chain<TInput, TOutput>;
-  connect(source: string, target: string, condition?: (ctx: Context<TInput>) => boolean): Chain<TInput, TOutput>;
-  useMiddleware(middleware: Middleware): Chain<TInput, TOutput>;
-  onError(handler: (err: Error, ctx: Context<TInput>, linkName: string) => any): Chain<TInput, TOutput>;
-  run(initialCtx: Context<TInput>): Promise<Context<TOutput>>;
+  connect(source: string, target: string, condition?: (ctx: State<TInput>) => boolean): Chain<TInput, TOutput>;
+  useHook(hook: Hook): Chain<TInput, TOutput>;
+  onError(handler: (err: Error, ctx: State<TInput>, linkName: string) => any): Chain<TInput, TOutput>;
+  run(initialCtx: State<TInput>): Promise<State<TOutput>>;
   static createLinear<TInput = any, TOutput = any>(...links: Link<any, any>[]): Chain<TInput, TOutput>;
 }
 
-export declare class Middleware {
-  before?(link: Link, ctx: Context, linkName: string): Promise<void> | void;
-  after?(link: Link, ctx: Context, linkName: string): Promise<void> | void;
-  onError?(link: Link, error: Error, ctx: Context, linkName: string): Promise<void> | void;
+export declare class Hook {
+  before?(link: Link, ctx: State, linkName: string): Promise<void> | void;
+  after?(link: Link, ctx: State, linkName: string): Promise<void> | void;
+  onError?(link: Link, error: Error, ctx: State, linkName: string): Promise<void> | void;
 }
 
-export declare class LoggingMiddleware extends Middleware {}
-export declare class TimingMiddleware extends Middleware {}
-export declare class ValidationMiddleware extends Middleware {}
+export declare class LoggingHook extends Hook {}
+export declare class TimingHook extends Hook {}
+export declare class ValidationHook extends Hook {}
 
 export declare const version: string;
 
 export type DefaultExport = {
-  Context: typeof Context;
-  MutableContext: typeof MutableContext;
+  State: typeof State;
+  MutableState: typeof MutableState;
   Link: typeof Link;
   Chain: typeof Chain;
-  Middleware: typeof Middleware;
-  LoggingMiddleware: typeof LoggingMiddleware;
-  TimingMiddleware: typeof TimingMiddleware;
-  ValidationMiddleware: typeof ValidationMiddleware;
+  Hook: typeof Hook;
+  LoggingHook: typeof LoggingHook;
+  TimingHook: typeof TimingHook;
+  ValidationHook: typeof ValidationHook;
   version: string;
 };
 

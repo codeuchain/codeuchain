@@ -7,21 +7,21 @@ Full reference: `docs/javascript/llm-full.txt`
 npm install codeuchain
 ```
 ```ts
-import { Context, Chain } from 'codeuchain'
-const ctx = new Context({ payload: 'hi' })
+import { State, Chain } from 'codeuchain'
+const ctx = new State({ payload: 'hi' })
 const res = await chain.call(ctx)
 ```
 
 ## Primitives
-- Link: `call(ctx: Context<TIn>): Promise<Context<TOut>>`
-- Context: immutable-like; `insert`, `insertAs`
+- Link: `call(ctx: State<TIn>): Promise<State<TOut>>`
+- State: immutable-like; `insert`, `insertAs`
 - Chain: `.then(link)` + `.catch(handler)`
-- Middleware: `{ before, after, error }`
+- Hook: `{ before, after, error }`
 
 ## Minimal Link
 ```ts
 class Parse implements Link<any, any> {
-  async call(ctx: Context<any>) { return ctx.insert('parsed', true) }
+  async call(ctx: State<any>) { return ctx.insert('parsed', true) }
 }
 ```
 
@@ -52,6 +52,6 @@ Retry transient (HTTP 429/5xx, timeouts). Bubble validation/auth.
 ```
 
 ## TL;DR
-Promise links + evolving contexts + ergonomic middleware.
+Promise links + evolving states + ergonomic hook.
 
 © 2025 Orchestrate LLC – Apache 2.0

@@ -1,26 +1,26 @@
       *================================================================*
-      * COBOL Implementation - Context Module                        *
+      * COBOL Implementation - State Module                        *
       *                                                                *
-      * Simple file-based context storage for COBOL implementation.   *
+      * Simple file-based state storage for COBOL implementation.   *
       *================================================================*
 
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. CONTEXT.
+       PROGRAM-ID. STATE.
        AUTHOR. CodeUChain Team.
 
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT CONTEXT-FILE ASSIGN TO "context.dat"
+           SELECT STATE-FILE ASSIGN TO "state.dat"
                ORGANIZATION IS LINE SEQUENTIAL
                FILE STATUS IS FILE-STATUS.
 
        DATA DIVISION.
        FILE SECTION.
-       FD  CONTEXT-FILE.
-       01  CONTEXT-RECORD.
-           05  CONTEXT-KEY           PIC X(50).
-           05  CONTEXT-VALUE         PIC X(1000).
+       FD  STATE-FILE.
+       01  STATE-RECORD.
+           05  STATE-KEY           PIC X(50).
+           05  STATE-VALUE         PIC X(1000).
 
        WORKING-STORAGE SECTION.
        01  FILE-STATUS               PIC XX.
@@ -50,41 +50,41 @@
            GOBACK.
 
        INSERT-OPERATION.
-           OPEN EXTEND CONTEXT-FILE
+           OPEN EXTEND STATE-FILE
            IF FILE-STATUS = "00"
-               MOVE WS-ACTUAL-KEY TO CONTEXT-KEY
-               MOVE LS-VALUE TO CONTEXT-VALUE
-               WRITE CONTEXT-RECORD
+               MOVE WS-ACTUAL-KEY TO STATE-KEY
+               MOVE LS-VALUE TO STATE-VALUE
+               WRITE STATE-RECORD
                MOVE "SUCCESS" TO LS-RESULT
-               DISPLAY "CONTEXT: Record inserted"
+               DISPLAY "STATE: Record inserted"
            ELSE
-               CLOSE CONTEXT-FILE
-               OPEN OUTPUT CONTEXT-FILE
+               CLOSE STATE-FILE
+               OPEN OUTPUT STATE-FILE
                IF FILE-STATUS = "00"
-                   MOVE WS-ACTUAL-KEY TO CONTEXT-KEY
-                   MOVE LS-VALUE TO CONTEXT-VALUE
-                   WRITE CONTEXT-RECORD
+                   MOVE WS-ACTUAL-KEY TO STATE-KEY
+                   MOVE LS-VALUE TO STATE-VALUE
+                   WRITE STATE-RECORD
                    MOVE "SUCCESS" TO LS-RESULT
-                   DISPLAY "CONTEXT: Record inserted"
+                   DISPLAY "STATE: Record inserted"
                ELSE
                    MOVE "ERROR" TO LS-RESULT
-                   DISPLAY "CONTEXT: Failed to create file"
+                   DISPLAY "STATE: Failed to create file"
                END-IF
            END-IF
-           CLOSE CONTEXT-FILE.
+           CLOSE STATE-FILE.
 
        GET-OPERATION.
-           OPEN INPUT CONTEXT-FILE
+           OPEN INPUT STATE-FILE
            IF FILE-STATUS = "00"
                MOVE "NOTFOUND" TO LS-RESULT
                MOVE SPACES TO LS-VALUE
                PERFORM UNTIL FILE-STATUS NOT = "00"
-                   READ CONTEXT-FILE
+                   READ STATE-FILE
                    AT END
                        EXIT PERFORM
                    NOT AT END
-                       IF CONTEXT-KEY = WS-ACTUAL-KEY
-                           MOVE CONTEXT-VALUE TO LS-VALUE
+                       IF STATE-KEY = WS-ACTUAL-KEY
+                           MOVE STATE-VALUE TO LS-VALUE
                            MOVE "SUCCESS" TO LS-RESULT
                            EXIT PERFORM
                        END-IF
@@ -94,6 +94,6 @@
                MOVE "NOFILE" TO LS-RESULT
                MOVE SPACES TO LS-VALUE
            END-IF
-           CLOSE CONTEXT-FILE.
+           CLOSE STATE-FILE.
 
-       END PROGRAM CONTEXT.
+       END PROGRAM STATE.

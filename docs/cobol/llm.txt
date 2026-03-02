@@ -7,9 +7,9 @@ Conceptual adaptation for batch COBOL/JCL pipelines (no direct library yet).
 
 ## Primitives (Mapped)
 - Link => PROGRAM step (or paragraph)
-- Context => WORKING-STORAGE + temp dataset (key/value emulation)
+- State => WORKING-STORAGE + temp dataset (key/value emulation)
 - Chain => JCL sequence / PROC with ordered EXEC steps
-- Middleware => Wrapper step (pre/post), condition codes, logging exit
+- Hook => Wrapper step (pre/post), condition codes, logging exit
 
 ## Minimal Link (Sketch)
 ```

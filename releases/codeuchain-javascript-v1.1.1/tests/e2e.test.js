@@ -1,4 +1,4 @@
-const { Context, Chain, Link, LoggingMiddleware, TimingMiddleware } = require('../core');
+const { State, Chain, Link, LoggingHook, TimingHook } = require('../core');
 
 // E-commerce Order Processing Example
 class OrderValidationLink extends Link {
@@ -139,9 +139,9 @@ describe('End-to-End Tests', () => {
     orderProcessingChain.connect('payment', 'fulfill');
     orderProcessingChain.connect('fulfill', 'notify');
 
-    // Add middleware
-    orderProcessingChain.useMiddleware(new LoggingMiddleware());
-    orderProcessingChain.useMiddleware(new TimingMiddleware());
+    // Add hook
+    orderProcessingChain.useHook(new LoggingHook());
+    orderProcessingChain.useHook(new TimingHook());
 
     // Error handling
     orderProcessingChain.onError((error, ctx, linkName) => {
@@ -166,7 +166,7 @@ describe('End-to-End Tests', () => {
         }
       };
 
-      const initialCtx = new Context(orderData);
+      const initialCtx = new State(orderData);
       const result = await orderProcessingChain.run(initialCtx);
 
       // Verify order validation
@@ -211,7 +211,7 @@ describe('End-to-End Tests', () => {
         }
       };
 
-      const initialCtx = new Context(orderData);
+      const initialCtx = new State(orderData);
       const result = await orderProcessingChain.run(initialCtx);
 
       expect(result.get('orderTotal')).toBe(150); // (25 * 3) + 75
@@ -239,7 +239,7 @@ describe('End-to-End Tests', () => {
         }
       };
 
-      const initialCtx = new Context(orderData);
+      const initialCtx = new State(orderData);
       const result = await orderProcessingChain.run(initialCtx);
 
       // Should pass validation and inventory check
@@ -272,7 +272,7 @@ describe('End-to-End Tests', () => {
         }
       };
 
-      const initialCtx = new Context(invalidOrderData);
+      const initialCtx = new State(invalidOrderData);
 
       await expect(orderProcessingChain.run(initialCtx)).rejects.toThrow('Order must contain at least one item');
     });
@@ -289,7 +289,7 @@ describe('End-to-End Tests', () => {
         }
       };
 
-      const initialCtx = new Context(orderData);
+      const initialCtx = new State(orderData);
 
       await expect(orderProcessingChain.run(initialCtx)).rejects.toThrow('Unsupported payment method');
     });
@@ -312,7 +312,7 @@ describe('End-to-End Tests', () => {
         }
       };
 
-      const initialCtx = new Context(orderData);
+      const initialCtx = new State(orderData);
       const result = await orderProcessingChain.run(initialCtx);
 
       expect(result.get('canFulfill')).toBe(false);
@@ -384,7 +384,7 @@ describe('End-to-End Tests', () => {
         }
       };
 
-      const initialCtx = new Context(bulkOrderData);
+      const initialCtx = new State(bulkOrderData);
       const result = await bulkOrderChain.run(initialCtx);
 
       expect(result.get('orderTotal')).toBe(150); // 25 * 6
@@ -455,7 +455,7 @@ describe('End-to-End Tests', () => {
         }
       };
 
-      const initialCtx = new Context(internationalOrder);
+      const initialCtx = new State(internationalOrder);
       const result = await internationalChain.run(initialCtx);
 
       expect(result.get('orderTotal')).toBe(50); // 25 * 2
@@ -504,7 +504,7 @@ describe('End-to-End Tests', () => {
 
       // Process all orders concurrently
       const promises = orders.map(order => {
-        const ctx = new Context({ order });
+        const ctx = new State({ order });
         return highVolumeChain.run(ctx);
       });
 
@@ -554,7 +554,7 @@ describe('End-to-End Tests', () => {
         }))
       };
 
-      const initialCtx = new Context({ order: largeOrder });
+      const initialCtx = new State({ order: largeOrder });
       const result = await largeOrderChain.run(initialCtx);
 
       const processedItems = result.get('processedItems');

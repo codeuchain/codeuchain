@@ -55,8 +55,8 @@ Demonstrates splitting work into parallel branches and synchronizing results.
 - Result synchronization and joining
 - Performance metrics and load balancing
 
-#### 4. **Middleware Wrap** (`middleware_wrap_pipeline.js`)
-Shows how to wrap links with cross-cutting concerns using middleware.
+#### 4. **Hook Wrap** (`hook_wrap_pipeline.js`)
+Shows how to wrap links with cross-cutting concerns using hook.
 
 **Pattern:**
 ```
@@ -67,10 +67,10 @@ Shows how to wrap links with cross-cutting concerns using middleware.
 ```
 
 **Features:**
-- Timing middleware for performance monitoring
-- Validation middleware for pre/post conditions
-- Metrics collection middleware
-- Error handling middleware
+- Timing hook for performance monitoring
+- Validation hook for pre/post conditions
+- Metrics collection hook
+- Error handling hook
 
 #### 5. **Saga with Compensations** (`saga_compensations.js`)
 Implements distributed transactions with compensation logic for rollback.
@@ -116,7 +116,7 @@ Comprehensive demonstration of opt-in typed features in JavaScript.
 
 **Features:**
 - JSDoc annotations for TypeScript-like experience
-- Generic Context<T> with type evolution
+- Generic State<T> with type evolution
 - Generic Link<TInput, TOutput> interfaces
 - Type-safe insertAs() method
 - Backward compatibility with untyped code
@@ -138,7 +138,7 @@ Basic CodeUChain usage with user registration flow.
 **Features:**
 - Basic Link and Chain usage
 - Manual and automatic link naming
-- Middleware integration
+- Hook integration
 - Error handling
 
 ## 🚀 Running the Examples
@@ -150,7 +150,7 @@ Each example can be run independently:
 node examples/branch_merge_pipeline.js
 node examples/error_classification_pipeline.js
 node examples/parallel_fanout_join.js
-node examples/middleware_wrap_pipeline.js
+node examples/hook_wrap_pipeline.js
 node examples/saga_compensations.js
 node examples/retry_with_backoff.js
 node examples/typed_features_demo.js
@@ -165,7 +165,7 @@ npx ts-node examples/simple_type_evolution.ts
 - **Linear Processing**: Sequential link execution
 - **Branching**: Conditional and parallel processing paths
 - **Error Handling**: Classification, retry, and recovery patterns
-- **Middleware**: Cross-cutting concerns and aspect-oriented programming
+- **Hook**: Cross-cutting concerns and aspect-oriented programming
 
 ### Type System Features
 - **Opt-in Typing**: Optional type safety without breaking changes
@@ -183,7 +183,7 @@ npx ts-node examples/simple_type_evolution.ts
 
 1. **Start Here**: `simple_chain.js` - Basic concepts
 2. **Type System**: `typed_features_demo.js` + `simple_type_evolution.ts`
-3. **Pipeline Patterns**: Branch/merge, error handling, middleware
+3. **Pipeline Patterns**: Branch/merge, error handling, hook
 4. **Advanced Topics**: Saga, retry, parallel processing
 
 ## 🔧 Requirements

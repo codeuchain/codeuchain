@@ -16,7 +16,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-CodeUChain provides a universal, cross-language pattern for building software by composing individual units of work (`Links`) into a `Chain`. A shared `Context` flows through the chain, allowing each link to read from and write to a common state. This approach simplifies complex systems by breaking them down into a series of linear, predictable, and reusable steps.
+CodeUChain provides a universal, cross-language pattern for building software by composing individual units of work (`Links`) into a `Chain`. A shared `State` flows through the chain, allowing each link to read from and write to a common state. This approach simplifies complex systems by breaking them down into a series of linear, predictable, and reusable steps.
 
 ## Table of Contents
 
@@ -34,7 +34,7 @@ CodeUChain provides a universal, cross-language pattern for building software by
 
 CodeUChain is built on four fundamental concepts:
 
-### **Context**
+### **State**
 - Immutable key-value data structure
 - Carries state through the processing pipeline
 - Creates new instances instead of mutating existing data
@@ -43,19 +43,19 @@ CodeUChain is built on four fundamental concepts:
 
 ### **Link**
 - Individual processing unit with single responsibility
-- Accepts Context input → Returns modified Context output
+- Accepts State input → Returns modified State output
 - Encapsulates specific business logic or data transformations
 - Can be synchronous or asynchronous (framework handles both)
 - Should have one well-defined purpose
 
 ### **Chain**
 - Ordered sequence of Links in a pipeline
-- Manages Context flow between Links
+- Manages State flow between Links
 - Handles error propagation automatically
 - Provides orchestration (conditional branching, parallel execution)
-- Transforms initial Context through each Link to final result
+- Transforms initial State through each Link to final result
 
-### **Middleware**
+### **Hook**
 - Observes and enhances Chain execution
 - Operates outside main processing flow
 - Injects cross-cutting concerns:
@@ -70,37 +70,37 @@ CodeUChain is built on four fundamental concepts:
 CodeUChain provides optional features that enhance development without adding complexity:
 
 ### **Typed Features**
-- **Generic Types**: `Link<TInput, TOutput>` and `Context<T>` for compile-time safety
+- **Generic Types**: `Link<TInput, TOutput>` and `State<T>` for compile-time safety
 - **Type Evolution**: Transform between related types without casting
 - **Zero Performance Impact**: Identical runtime behavior with or without typing
 - **Gradual Adoption**: Add typing incrementally to existing code
 
 ### **Advanced Orchestration**
-- **Conditional Branching**: Route execution based on Context data
+- **Conditional Branching**: Route execution based on State data
 - **Parallel Execution**: Run multiple Links simultaneously
 - **Error Routing**: Redirect to specific error handling chains
 - **Retry Logic**: Retry mechanisms with backoff strategies
 
 ### **Development Tools**
 - **Chain Visualization**: Generate flowcharts from chain definitions
-- **Debug Tracing**: Step-through debugging with Context inspection
-- **Test Utilities**: Simplified testing with mock contexts and links
+- **Debug Tracing**: Step-through debugging with State inspection
+- **Test Utilities**: Simplified testing with mock states and links
 
 **Philosophy**: Start simple, add features when needed.
 
 ## Architecture
 
 
-The diagram below shows the high-level flow: a `Chain` contains ordered `Links`; a `Context` flows through each link, and `Middleware` can observe or modify the context as it moves along.
+The diagram below shows the high-level flow: a `Chain` contains ordered `Links`; a `State` flows through each link, and `Hook` can observe or modify the state as it moves along.
 
 ```mermaid
 %%{init: {'themeCSS': ".node.cctx circle, .node.cctx rect {fill:#0b5fff; stroke:#08306b;} .node.cctx text {fill:#fff;} .linkNode rect, .linkNode circle {fill:#f3f4f6; stroke:#111; stroke-width:2px;} .linkNode text{fill:#111;} .node.final circle, .node.final rect {fill:#06b875; stroke:#054a36;} .node.final text{fill:#fff;} .observer rect, .observer circle{fill:#fff3cd; stroke:#8a6d1f;} .observer text{fill:#000;}"}}%%
 flowchart LR
-    subgraph observers[Middleware Observers]
+    subgraph observers[Hook Observers]
     direction LR
-        MW1([Middleware 1])
-        MW2([Middleware 2])
-        MW3([Middleware 3])
+        MW1([Hook 1])
+        MW2([Hook 2])
+        MW3([Hook 3])
     end
 
     classDef mw fill:#717,stroke:#000,stroke-width:1px;
@@ -119,7 +119,7 @@ flowchart LR
     class MW2 observer;
     class MW3 observer;
     
-    %% Chain with links and context nodes
+    %% Chain with links and state nodes
     subgraph Chain[Chain]
         direction LR
         L1["link1"]
@@ -135,7 +135,7 @@ flowchart LR
     L2 -->|out| ctx2
     ctx2 -->|in| L3
 
-    %% Final emitted context node (end of chain)
+    %% Final emitted state node (end of chain)
     ctx3(("ctx"))
     L3 -->|out| ctx3
 
@@ -228,7 +228,7 @@ import (
 // Define a simple link that adds two numbers
 type AddLink struct{}
 
-func (l *AddLink) Execute(ctx *codeu.Context) (*codeu.Context, error) {
+func (l *AddLink) Execute(ctx *codeu.State) (*codeu.State, error) {
 	a, _ := ctx.Get("a")
 	b, _ := ctx.Get("b")
 	result := a.(int) + b.(int)
@@ -239,8 +239,8 @@ func main() {
 	// Create a chain and add the link
 	chain := codeu.NewChain().Add(&AddLink{})
 
-	// Create an initial context and run the chain
-	initialCtx := codeu.NewContext().Insert("a", 10).Insert("b", 20)
+	// Create an initial state and run the chain
+	initialCtx := codeu.NewState().Insert("a", 10).Insert("b", 20)
 	finalCtx, _ := chain.Run(initialCtx)
 
 	// Print the result
@@ -331,7 +331,7 @@ interface ProcessedOrder {
 const OrderChain: Chain<OrderInput, ProcessedOrder> = /* ... */
 ```
 
-**The Magic**: I understand exactly what goes in and what comes out. No more "Context is any" guessing games.
+**The Magic**: I understand exactly what goes in and what comes out. No more "State is any" guessing games.
 
 ### 🔗 Incremental AI Development  
 **Perfect for how AI actually works - iteratively:**
@@ -366,7 +366,7 @@ const UserRegistration = Chain
   .catch("cleanup", HandleFailure);     // Error: Clean up gracefully
 ```
 
-**AI Superpower**: I can debug, optimize, and extend this without any additional context.
+**AI Superpower**: I can debug, optimize, and extend this without any additional state.
 
 ### 🎨 Language-Agnostic Expertise
 **One mental model, infinite languages:**
@@ -417,7 +417,7 @@ Instead of generating complex, hard-to-understand code that might work, I genera
 1.  **Choose Your Language**: Pick the implementation that fits your ecosystem from the [packages](./packages) directory.
 2.  **Write Normal Methods**: Implement your logic as simple functions or methods. No special interfaces are required.
 3.  **Chain Them Together**: Use the `Chain` API to add your links in the desired execution order.
-4.  **Run the Chain**: Create an initial `Context` and pass it to the chain to get a final, transformed context.
+4.  **Run the Chain**: Create an initial `State` and pass it to the chain to get a final, transformed state.
 
 ### Documentation
 - **[Pseudocode Philosophy](./packages/pseudo/)** - The conceptual foundation

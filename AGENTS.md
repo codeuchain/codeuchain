@@ -1,13 +1,13 @@
 # CodeUChain Agent Instructions
 
-> **Context**: Polyglot Monorepo (Go, Py, TS/JS, C#, Rust, Java, C++, COBOL).
+> **State**: Polyglot Monorepo (Go, Py, TS/JS, C#, Rust, Java, C++, COBOL).
 > **Role**: Maintain consistency, quality, and user-centricity across all languages.
 
 ## 🧠 Core Mental Model
-*   **Context**: Immutable data container ("the box"). Thread-safe.
-*   **Link**: Single-responsibility processing unit ("the station"). Input Context → Output Context.
+*   **State**: Immutable data container ("the box"). Thread-safe.
+*   **Link**: Single-responsibility processing unit ("the station"). Input State → Output State.
 *   **Chain**: Ordered sequence of Links ("the conveyor belt"). Orchestrates flow & errors.
-*   **Middleware**: Parallel observation layer (Logging, Metrics). *Cannot modify business logic.*
+*   **Hook**: Parallel observation layer (Logging, Metrics). *Cannot modify business logic.*
 
 ## 📜 Universal Workflow
 1.  **Branch**: `feature/your-feature-name`
@@ -38,9 +38,9 @@
 ## 💎 Typed Features (Opt-In)
 *   **Goal**: Static safety, runtime flexibility.
 *   **Pattern**: `Link[Input, Output]`
-*   **Context**: `Context[T]`
-    *   `insert(k, v)` -> `Context[T]` (Type preserving)
-    *   `insert_as(k, v)` -> `Context[U]` (Type evolution/transformation)
+*   **State**: `State[T]`
+    *   `insert(k, v)` -> `State[T]` (Type preserving)
+    *   `insert_as(k, v)` -> `State[U]` (Type evolution/transformation)
 *   **Rule**: Untyped code must continue to work. Zero runtime cost.
 
 ## 📂 Key Paths

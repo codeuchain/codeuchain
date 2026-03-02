@@ -11,13 +11,13 @@ find_package(Threads REQUIRED)
 
 # Create library
 add_library(codeuchain
-    src/core/context.cpp
+    src/core/state.cpp
     src/core/link.cpp
     src/core/chain.cpp
-    src/core/middleware.cpp
-    src/core/timing_middleware.cpp
+    src/core/hook.cpp
+    src/core/timing_hook.cpp
     src/utils/error_handling.cpp
-    src/typed_context.cpp
+    src/typed_state.cpp
 )
 
 # Include directories

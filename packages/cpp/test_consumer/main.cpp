@@ -4,10 +4,10 @@
 
 class SimpleLink : public codeuchain::ILink {
 public:
-    codeuchain::LinkAwaitable call(codeuchain::Context context) override {
+    codeuchain::LinkAwaitable call(codeuchain::State state) override {
         std::cout << "Hello from Conan-installed CodeUChain!" << std::endl;
-        context = context.insert("message", std::string("Conan test successful"));
-        co_return {context};
+        state = state.insert("message", std::string("Conan test successful"));
+        co_return {state};
     }
 
     std::string name() const override { return "simple"; }
@@ -20,7 +20,7 @@ int main() {
     codeuchain::Chain chain;
     chain.add_link("test", std::make_shared<SimpleLink>());
 
-    codeuchain::Context ctx;
+    codeuchain::State ctx;
     auto result = chain.run(ctx).get();
 
     if (auto msg = result.get("message")) {

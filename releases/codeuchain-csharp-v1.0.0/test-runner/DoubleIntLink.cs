@@ -3,14 +3,14 @@ using System.Threading.Tasks;
 /// <summary>
 /// Test Link: Doubles int values
 /// </summary>
-public class DoubleIntLink : IContextLink<string, string>
+public class DoubleIntLink : IStateLink<string, string>
 {
-    public async Task<Context<string>> CallAsync(Context<string> context)
+    public async Task<State<string>> CallAsync(State<string> state)
     {
-        var valueStr = context.GetAny("result")?.ToString() ?? "0";
+        var valueStr = state.GetAny("result")?.ToString() ?? "0";
         if (int.TryParse(valueStr, out int value))
         {
-            return Context<string>.Create(new Dictionary<string, object>
+            return State<string>.Create(new Dictionary<string, object>
             {
                 ["final"] = (value * 2).ToString()
             });

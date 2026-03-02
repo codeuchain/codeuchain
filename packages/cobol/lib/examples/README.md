@@ -14,24 +14,24 @@ This directory contains concrete implementations of CodeUChain components that s
 
 **Usage**: Can be used as a reference for implementing custom financial calculation links or as a working example in applications.
 
-### `logging_middleware.cob`
-**Purpose**: Example implementation of a Middleware component for logging
+### `logging_hook.cob`
+**Purpose**: Example implementation of a Hook component for logging
 **Demonstrates**:
-- Middleware interface implementation
+- Hook interface implementation
 - File I/O operations in COBOL
 - Logging patterns and audit trails
 - Before/After operation handling
 - Variable-length name and operation handling
 
-**Usage**: Can be used as a reference for implementing custom middleware or as a working logging component in applications.
+**Usage**: Can be used as a reference for implementing custom hook or as a working logging component in applications.
 
 ## Architecture Notes
 
 These implementations follow the CodeUChain patterns:
 
 - **Links**: Process data and return results
-- **Middleware**: Intercept and enhance processing (logging, validation, etc.)
-- **Chains**: Orchestrate multiple links and middleware
+- **Hook**: Intercept and enhance processing (logging, validation, etc.)
+- **Chains**: Orchestrate multiple links and hook
 
 ## Integration
 
@@ -47,8 +47,8 @@ To use these implementations in your COBOL programs:
    * For financial calculations
    CALL "FINANCIAL-CALCULATOR" USING link-name, input-data, output-data, result
 
-   * For logging middleware
-   CALL "LOGGING-MIDDLEWARE" USING middleware-name, context-data, operation, result
+   * For logging hook
+   CALL "LOGGING-HOOK" USING hook-name, state-data, operation, result
    ```
 
 ## Building

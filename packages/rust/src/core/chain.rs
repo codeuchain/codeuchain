@@ -1,21 +1,21 @@
 /*!
 Chain: The Orchestrator
 
-The Chain orchestrates link execution with conditional flows and middleware.
+The Chain orchestrates link execution with conditional flows and hook.
 Core implementation that all chain implementations can build upon.
 */
 
 use std::collections::HashMap;
-use crate::core::context::Context;
+use crate::core::state::State;
 use crate::core::link::LegacyLink;
-use crate::core::middleware::Middleware;
+use crate::core::hook::Hook;
 
 /// Loving weaver of links—connects with conditions, runs with selfless execution.
 /// Core implementation that provides full chain functionality.
 pub struct Chain {
     links: HashMap<String, Box<dyn LegacyLink>>,
-    connections: Vec<(String, String, Box<dyn Fn(&Context) -> bool + Send + Sync>)>,
-    middlewares: Vec<Box<dyn Middleware>>,
+    connections: Vec<(String, String, Box<dyn Fn(&State) -> bool + Send + Sync>)>,
+    hooks: Vec<Box<dyn Hook>>,
 }
 
 impl Chain {
@@ -24,7 +24,7 @@ impl Chain {
         Self {
             links: HashMap::new(),
             connections: Vec::new(),
-            middlewares: Vec::new(),
+            hooks: Vec::new(),
         }
     }
 
@@ -36,44 +36,44 @@ impl Chain {
     /// With compassionate logic, add a connection.
     pub fn connect<F>(&mut self, source: String, target: String, condition: F)
     where
-        F: Fn(&Context) -> bool + Send + Sync + 'static,
+        F: Fn(&State) -> bool + Send + Sync + 'static,
     {
         self.connections.push((source, target, Box::new(condition)));
     }
 
-    /// Lovingly attach middleware.
-    pub fn use_middleware(&mut self, middleware: Box<dyn Middleware>) {
-        self.middlewares.push(middleware);
+    /// Lovingly attach hook.
+    pub fn use_hook(&mut self, hook: Box<dyn Hook>) {
+        self.hooks.push(hook);
     }
 
     /// With selfless execution, flow through links.
-    pub async fn run(&self, initial_ctx: Context) -> Result<Context, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn run(&self, initial_ctx: State) -> Result<State, Box<dyn std::error::Error + Send + Sync>> {
         let mut ctx = initial_ctx;
 
-        // Execute middleware before hooks
-        for mw in &self.middlewares {
+        // Execute hook before hooks
+        for mw in &self.hooks {
             mw.before(None, &ctx).await?;
         }
 
         // Simple linear execution for now
         // TODO: Implement conditional flow execution
         for (_name, link) in &self.links {
-            // Execute middleware before each link
-            for mw in &self.middlewares {
+            // Execute hook before each link
+            for mw in &self.hooks {
                 mw.before(Some(link.as_ref()), &ctx).await?;
             }
 
             // Execute the link
             ctx = link.call(ctx).await?;
 
-            // Execute middleware after each link
-            for mw in &self.middlewares {
+            // Execute hook after each link
+            for mw in &self.hooks {
                 mw.after(Some(link.as_ref()), &ctx).await?;
             }
         }
 
-        // Execute final middleware after hooks
-        for mw in &self.middlewares {
+        // Execute final hook after hooks
+        for mw in &self.hooks {
             mw.after(None, &ctx).await?;
         }
 
@@ -86,13 +86,13 @@ impl Chain {
     }
 
     /// Get a reference to the connections
-    pub fn connections(&self) -> &[(String, String, Box<dyn Fn(&Context) -> bool + Send + Sync>)] {
+    pub fn connections(&self) -> &[(String, String, Box<dyn Fn(&State) -> bool + Send + Sync>)] {
         &self.connections
     }
 
-    /// Get a reference to the middlewares
-    pub fn middlewares(&self) -> &[Box<dyn Middleware>] {
-        &self.middlewares
+    /// Get a reference to the hooks
+    pub fn hooks(&self) -> &[Box<dyn Hook>] {
+        &self.hooks
     }
 }
 

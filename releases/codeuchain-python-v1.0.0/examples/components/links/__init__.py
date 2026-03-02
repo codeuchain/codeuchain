@@ -6,7 +6,7 @@ These are the building blocks that get swapped between projects.
 """
 
 from typing import List
-from codeuchain.core.context import Context
+from codeuchain.core.state import State
 from codeuchain.core.link import Link
 
 __all__ = ["IdentityLink", "MathLink"]
@@ -15,7 +15,7 @@ __all__ = ["IdentityLink", "MathLink"]
 class IdentityLink(Link):
     """Forgiving link that does nothing—pure love."""
 
-    async def call(self, ctx: Context) -> Context:
+    async def call(self, ctx: State) -> State:
         return ctx
 
 
@@ -25,7 +25,7 @@ class MathLink(Link):
     def __init__(self, operation: str = "sum"):
         self.operation = operation
 
-    async def call(self, ctx: Context) -> Context:
+    async def call(self, ctx: State) -> State:
         numbers = ctx.get("numbers")
         if isinstance(numbers, list) and numbers:
             if self.operation == "sum":

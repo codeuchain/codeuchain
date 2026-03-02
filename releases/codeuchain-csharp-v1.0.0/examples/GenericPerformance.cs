@@ -24,13 +24,13 @@ public class GenericPerformanceComparison
             .AddLink("add", new NonGenericAddLink())
             .AddLink("multiply", new NonGenericMultiplyLink());
 
-        var genericInput = Context<object>.Create(new Dictionary<string, object>
+        var genericInput = State<object>.Create(new Dictionary<string, object>
         {
             ["a"] = 3,
             ["b"] = 4
         });
 
-        var nonGenericInput = Context.Create(new Dictionary<string, object>
+        var nonGenericInput = State.Create(new Dictionary<string, object>
         {
             ["a"] = 3,
             ["b"] = 4
@@ -87,42 +87,42 @@ public class GenericPerformanceComparison
 }
 
 // Generic implementations
-public class GenericAddLink : IContextLink<object>
+public class GenericAddLink : IStateLink<object>
 {
-    public async Task<Context<object>> CallAsync(Context<object> context)
+    public async Task<State<object>> CallAsync(State<object> state)
     {
-        var a = (int)context.Get("a")!;
-        var b = (int)context.Get("b")!;
-        return context.Insert("sum", a + b);
+        var a = (int)state.Get("a")!;
+        var b = (int)state.Get("b")!;
+        return state.Insert("sum", a + b);
     }
 }
 
-public class GenericMultiplyLink : IContextLink<object>
+public class GenericMultiplyLink : IStateLink<object>
 {
-    public async Task<Context<object>> CallAsync(Context<object> context)
+    public async Task<State<object>> CallAsync(State<object> state)
     {
-        var sum = (int)context.Get("sum")!;
-        return context.Insert("result", sum * 2);
+        var sum = (int)state.Get("sum")!;
+        return state.Insert("result", sum * 2);
     }
 }
 
 // Non-generic implementations
 public class NonGenericAddLink : ILink
 {
-    public async Task<Context> CallAsync(Context context)
+    public async Task<State> CallAsync(State state)
     {
-        var a = (int)context.Get("a")!;
-        var b = (int)context.Get("b")!;
-        return context.Insert("sum", a + b);
+        var a = (int)state.Get("a")!;
+        var b = (int)state.Get("b")!;
+        return state.Insert("sum", a + b);
     }
 }
 
 public class NonGenericMultiplyLink : ILink
 {
-    public async Task<Context> CallAsync(Context context)
+    public async Task<State> CallAsync(State state)
     {
-        var sum = (int)context.Get("sum")!;
-        return context.Insert("result", sum * 2);
+        var sum = (int)state.Get("sum")!;
+        return state.Insert("result", sum * 2);
     }
 }
 

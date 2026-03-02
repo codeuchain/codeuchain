@@ -3,22 +3,22 @@ using System.Threading.Tasks;
 /// <summary>
 /// Test Link: Untyped processor
 /// </summary>
-public class UntypedProcessorLink : IContextLink<string, string>
+public class UntypedProcessorLink : IStateLink<string, string>
 {
-    public async Task<Context<string>> CallAsync(Context<string> context)
+    public async Task<State<string>> CallAsync(State<string> state)
     {
-        var processed = context.GetAny("processed")?.ToString() ?? "";
-        return context.Insert("untyped", "processed");
+        var processed = state.GetAny("processed")?.ToString() ?? "";
+        return state.Insert("untyped", "processed");
     }
 }
 
 /// <summary>
 /// Test Link: Typed processor
 /// </summary>
-public class TypedProcessorLink : IContextLink<string, string>
+public class TypedProcessorLink : IStateLink<string, string>
 {
-    public async Task<Context<string>> CallAsync(Context<string> context)
+    public async Task<State<string>> CallAsync(State<string> state)
     {
-        return context.Insert("typed", "processed");
+        return state.Insert("typed", "processed");
     }
 }

@@ -6,10 +6,10 @@ Full reference: `docs/pseudo/llm-full.txt`
 Conceptual only – adapt to target language.
 
 ## Primitives
-- Link: `call(ctx: Context<Input>) -> Context<Output>`
-- Context: immutable map; `insert`, `insert_as`
+- Link: `call(ctx: State<Input>) -> State<Output>`
+- State: immutable map; `insert`, `insert_as`
 - Chain: sequence + `catch`
-- Middleware: `before/after/error`
+- Hook: `before/after/error`
 
 ## Minimal Link
 ```
@@ -44,6 +44,6 @@ Retry transient (network/backoff). Propagate validation/security.
 ```
 
 ## TL;DR
-Composable pure steps over an evolving immutable context.
+Composable pure steps over an evolving immutable state.
 
 © 2025 Orchestrate LLC – Apache 2.0

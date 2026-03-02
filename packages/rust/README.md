@@ -1,16 +1,16 @@
 # CodeUChain Rust: Memory-Safe Implementation
 
-CodeUChain provides a memory-safe framework for chaining processing links with middleware support and ownership guarantees.
+CodeUChain provides a memory-safe framework for chaining processing links with hook support and ownership guarantees.
 
 ## 🤖 LLM Support
 
 This package supports the [llm.txt standard](https://codeuchain.github.io/codeuchain/rust/llm.txt) for easy AI/LLM integration. See [llm-full.txt](https://codeuchain.github.io/codeuchain/rust/llm-full.txt) for comprehensive documentation.
 
 ## Features
-- **Context:** Immutable by default, mutable for flexibility—embracing Rust's ownership model.
+- **State:** Immutable by default, mutable for flexibility—embracing Rust's ownership model.
 - **Link:** Selfless processors, async and ecosystem-rich.
 - **Chain:** Harmonious connectors with conditional flows.
-- **Middleware:** Gentle enhancers, optional and forgiving.
+- **Hook:** Gentle enhancers, optional and forgiving.
 - **Error Handling:** Compassionate routing and retries.
 
 ## Installation
@@ -23,18 +23,18 @@ tokio = { version = "1.0", features = ["full"] }
 
 ## Quick Start
 ```rust
-use codeuchain::{Context, Chain, MathLink, LoggingMiddleware};
+use codeuchain::{State, Chain, MathLink, LoggingHook};
 use std::collections::HashMap;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut chain = Chain::new();
     chain.add_link("math".to_string(), Box::new(MathLink::new("sum".to_string())));
-    chain.use_middleware(Box::new(LoggingMiddleware::new()));
+    chain.use_hook(Box::new(LoggingHook::new()));
 
     let mut data = HashMap::new();
     data.insert("numbers".to_string(), serde_json::json!([1, 2, 3]));
-    let ctx = Context::new(data);
+    let ctx = State::new(data);
 
     let result = chain.run(ctx).await?;
     println!("Result: {:?}", result.get("result"));  // 6.0
@@ -45,10 +45,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ## Architecture
 
 ### Core Module (`src/core/`)
-- **`Context`**: Immutable data container with serde integration
+- **`State`**: Immutable data container with serde integration
 - **`Link`**: Async trait for processing units
 - **`Chain`**: Orchestrator for link execution
-- **`Middleware`**: Trait for cross-cutting concerns
+- **`Hook`**: Trait for cross-cutting concerns
 
 ### Utils Module (`src/utils/`)
 - **Error Handling**: Retry mechanisms and error routing
@@ -62,26 +62,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### 1. Basic Usage (Library Components)
 ```rust
-use codeuchain::{Context, Chain};
-use codeuchain::examples::components::{MathLink, LoggingMiddleware};
+use codeuchain::{State, Chain};
+use codeuchain::examples::components::{MathLink, LoggingHook};
 use std::collections::HashMap;
 
 let mut chain = Chain::new();
 chain.add_link("math".to_string(), Box::new(MathLink::new("sum".to_string())));
-chain.use_middleware(Box::new(LoggingMiddleware::new()));
+chain.use_hook(Box::new(LoggingHook::new()));
 ```
 
 ### 2. Custom Components (Project-Specific)
 ```rust
 use async_trait::async_trait;
-use codeuchain::core::{Context, Link};
+use codeuchain::core::{State, Link};
 use serde_json::Value;
 
 struct MyCustomLink;
 
 #[async_trait]
 impl Link for MyCustomLink {
-    async fn call(&self, ctx: Context) -> Result<Context, Box<dyn std::error::Error + Send + Sync>> {
+    async fn call(&self, ctx: State) -> Result<State, Box<dyn std::error::Error + Send + Sync>> {
         // Your custom logic
         Ok(ctx.insert("result".to_string(), Value::String("custom_value".to_string())))
     }
@@ -94,7 +94,7 @@ use codeuchain::examples::components::BasicChain;
 
 let mut chain = BasicChain::new();
 chain.add_link("custom".to_string(), Box::new(MyCustomLink));
-chain.use_middleware(Box::new(MyCustomMiddleware::new()));
+chain.use_hook(Box::new(MyCustomHook::new()));
 ```
 
 ## Design Approach
@@ -118,7 +118,7 @@ cargo build
 cargo test
 
 # Run specific test
-cargo test test_context_operations
+cargo test test_state_operations
 
 # Check code
 cargo check

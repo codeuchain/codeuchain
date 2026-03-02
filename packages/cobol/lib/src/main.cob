@@ -12,7 +12,7 @@
        DATA DIVISION.
        WORKING-STORAGE SECTION.
 
-       01  WS-CONTEXT-DATA          PIC X(10000).
+       01  WS-STATE-DATA          PIC X(10000).
        01  WS-RESULT                PIC X(10000).
 
        01  WS-LINK-NAME             PIC X(50).
@@ -25,10 +25,10 @@
            DISPLAY "CodeUChain COBOL Implementation Demo"
            DISPLAY "=========================================="
 
-           DISPLAY "Initializing simple context..."
-           MOVE "SAMPLE-DATA" TO WS-CONTEXT-DATA
+           DISPLAY "Initializing simple state..."
+           MOVE "SAMPLE-DATA" TO WS-STATE-DATA
 
-           DISPLAY "Context data: " WS-CONTEXT-DATA
+           DISPLAY "State data: " WS-STATE-DATA
 
            DISPLAY "=========================================="
            DISPLAY "Demo completed successfully!"

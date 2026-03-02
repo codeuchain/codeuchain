@@ -26,25 +26,25 @@ Imagine a Link as a **kind and skilled craftsman** who takes materials (data) as
 
 ### The Simple Contract
 ```
-Input: Context<TInput> (data from previous step)
+Input: State<TInput> (data from previous step)
 Processing: Transform the data with love and skill
-Output: Context<TOutput> (transformed data for next step)
+Output: State<TOutput> (transformed data for next step)
 ```
 
 ### Example: Math Link
 ```
-Input: Context<InputData>{"numbers": [1, 2, 3, 4, 5]}
+Input: State<InputData>{"numbers": [1, 2, 3, 4, 5]}
 Processing: Calculate sum = 1+2+3+4+5 = 15
-Output: Context<OutputData>{"numbers": [1, 2, 3, 4, 5], "sum": 15}
+Output: State<OutputData>{"numbers": [1, 2, 3, 4, 5], "sum": 15}
 ```
 
 **Think of it like a calculator**: You give it numbers, it does math, it gives you the result. Simple, reliable, and trustworthy.
 
 ### Example: Validation Link
 ```
-Input: Context<UserInput>{"email": "alice@example.com", "age": 25}
+Input: State<UserInput>{"email": "alice@example.com", "age": 25}
 Processing: Check if email is valid format
-Output: Context<ValidatedUser>{"email": "alice@example.com", "age": 25, "email_valid": true}
+Output: State<ValidatedUser>{"email": "alice@example.com", "age": 25, "email_valid": true}
 ```
 
 **Real-World Power**: This is like having a friendly doorman at a club who checks your ID and gives you a wristband if you're old enough to enter.
@@ -55,7 +55,7 @@ Output: Context<ValidatedUser>{"email": "alice@example.com", "age": 25, "email_v
 - **MathLink<InputData, OutputData>**: Performs calculations (sum, average, etc.) - like a calculator that adds value to your data
 - **FormatLink<FromFormat, ToFormat>**: Changes data format (JSON to XML, etc.) - like a translator who speaks multiple languages
 - **FilterLink<FullData, FilteredData>**: Removes unwanted data - like a quality control inspector who removes defective items
-- **EnrichLink<BaseData, EnrichedData>**: Adds additional information - like a librarian who adds context and references to a book
+- **EnrichLink<BaseData, EnrichedData>**: Adds additional information - like a librarian who adds state and references to a book
 
 ### External Service Links
 - **ApiLink<Request, Response>**: Calls external APIs - like a telephone operator who connects you to other services
@@ -104,7 +104,7 @@ Output: Context<ValidatedUser>{"email": "alice@example.com", "age": 25, "email_v
 
 ### Type-Safe Error Handling
 ```
-✅ Good: If processing fails, add error info to context with proper typing
+✅ Good: If processing fails, add error info to state with proper typing
 ❌ Avoid: Throw exceptions that break the chain
 ```
 
@@ -118,7 +118,7 @@ Output: Context<ValidatedUser>{"email": "alice@example.com", "age": 25, "email_v
 
 ### Conditional Links
 ```
-if context has "user_type" = "premium"
+if state has "user_type" = "premium"
 then use PremiumProcessingLink<PremiumInput, PremiumOutput>
 else use StandardProcessingLink<StandardInput, StandardOutput>
 ```

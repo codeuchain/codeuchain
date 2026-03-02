@@ -3,14 +3,14 @@ using System.Threading.Tasks;
 /// <summary>
 /// Test Link: Converts string to int
 /// </summary>
-public class StringToIntLink : IContextLink<string, string>
+public class StringToIntLink : IStateLink<string, string>
 {
-    public async Task<Context<string>> CallAsync(Context<string> context)
+    public async Task<State<string>> CallAsync(State<string> state)
     {
-        var value = context.GetAny("value")?.ToString();
+        var value = state.GetAny("value")?.ToString();
         if (int.TryParse(value, out int result))
         {
-            return Context<string>.Create(new Dictionary<string, object>
+            return State<string>.Create(new Dictionary<string, object>
             {
                 ["result"] = result.ToString()
             });

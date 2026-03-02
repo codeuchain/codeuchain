@@ -7,22 +7,22 @@ Full reference: `docs/rust/llm-full.txt`
 cargo add codeuchain
 ```
 ```rust
-let ctx = Context::new(json!({"payload":"hi"}));
+let ctx = State::new(json!({"payload":"hi"}));
 let res = chain.call(ctx).await?;
 ```
 
 ## Primitives
-- Trait Link: `async fn call(&self, ctx: Context<In>) -> Result<Context<Out>, Error>`
-- Context<T=Value>: immutable; `insert`, `insert_as` (serde_json::Value backed)
+- Trait Link: `async fn call(&self, ctx: State<In>) -> Result<State<Out>, Error>`
+- State<T=Value>: immutable; `insert`, `insert_as` (serde_json::Value backed)
 - Chain: builder + `.catch()`
-- Middleware: wrappers with pre/post/error around `call`
+- Hook: wrappers with pre/post/error around `call`
 
 ## Minimal Link
 ```rust
 struct Parse;
 #[async_trait]
 impl Link<Value, Value> for Parse {
-    async fn call(&self, ctx: Context<Value>) -> Result<Context<Value>, Error> {
+    async fn call(&self, ctx: State<Value>) -> Result<State<Value>, Error> {
         Ok(ctx.insert("parsed", json!(true)))
     }
 }
@@ -37,7 +37,7 @@ let chain = Chain::new()
 
 ## Type Evolution
 ```rust
-let evolved: Context<Parsed> = ctx.insert_as("parsed", Parsed { tokens });
+let evolved: State<Parsed> = ctx.insert_as("parsed", Parsed { tokens });
 ```
 
 ## Error Classification
@@ -54,6 +54,6 @@ Implement `ErrorKind` (Transient, Validation, Security). Retry only `Transient`.
 ```
 
 ## TL;DR
-Async traits + serde-backed evolving contexts + layered middleware.
+Async traits + serde-backed evolving states + layered hook.
 
 © 2025 Orchestrate LLC – Apache 2.0

@@ -1,28 +1,28 @@
 /**
- * Middleware: The Gentle Enhancer
+ * Hook: The Gentle Enhancer
  *
- * With agape gentleness, the Middleware provides optional enhancement hooks.
+ * With agape gentleness, the Hook provides optional enhancement hooks.
  * Base class that implementations can extend.
  * Enhanced with generic typing for type-safe workflows.
  *
  * @since 1.0.0
  */
 
-const { Context } = require('./context');
+const { State } = require('./state');
 const { Link } = require('./link');
 
 /**
- * @template T - The context type that this middleware operates on
+ * @template T - The state type that this hook operates on
  */
-class Middleware {
+class Hook {
   /**
    * Gentle enhancer—optional hooks with forgiving defaults.
-   * Base class that middleware implementations can inherit from.
+   * Base class that hook implementations can inherit from.
    * Subclasses can override any combination of before(), after(), and onError().
    * Enhanced with generic typing for type-safe workflows.
    *
    * @example
-   * class LoggingMiddleware extends Middleware {
+   * class LoggingHook extends Hook {
    *   async before(link, ctx, linkName) {
    *     console.log(`Starting ${linkName}`);
    *     return ctx.insert('startTime', Date.now());
@@ -36,12 +36,12 @@ class Middleware {
 
   /**
    * With selfless optionality, do nothing by default.
-   * Called before each link execution. Can return a modified context.
+   * Called before each link execution. Can return a modified state.
    *
    * @param {Link} link - The link about to be executed
-   * @param {Context<T>} ctx - The current context before link execution
+   * @param {State<T>} ctx - The current state before link execution
    * @param {string} linkName - The name of the link being executed
-   * @returns {Promise<Context<T>|undefined>} Optionally return modified context
+   * @returns {Promise<State<T>|undefined>} Optionally return modified state
    * @example
    * async before(link, ctx, linkName) {
    *   console.log(`About to execute ${linkName}`);
@@ -54,12 +54,12 @@ class Middleware {
 
   /**
    * Forgiving default called after successful link execution.
-   * Called after each successful link execution. Can return a modified context.
+   * Called after each successful link execution. Can return a modified state.
    *
    * @param {Link} link - The link that was executed
-   * @param {Context<T>} ctx - The context after link execution
+   * @param {State<T>} ctx - The state after link execution
    * @param {string} linkName - The name of the link that was executed
-   * @returns {Promise<Context<T>|undefined>} Optionally return modified context
+   * @returns {Promise<State<T>|undefined>} Optionally return modified state
    * @example
    * async after(link, ctx, linkName) {
    *   const duration = Date.now() - ctx.get('startTime');
@@ -77,25 +77,25 @@ class Middleware {
    *
    * @param {Link} link - The link that threw the error
    * @param {Error} error - The error that occurred
-   * @param {Context<T>} ctx - The context at the time of error
+   * @param {State<T>} ctx - The state at the time of error
    * @param {string} linkName - The name of the link that failed
    * @returns {Promise<void>}
    * @example
    * async onError(link, error, ctx, linkName) {
    *   console.error(`Error in ${linkName}:`, error.message);
    *   // Send to error reporting service
-   *   await errorReporting.report(error, { linkName, context: ctx.toObject() });
+   *   await errorReporting.report(error, { linkName, state: ctx.toObject() });
    * }
    */
   async onError(link, error, ctx, linkName) {
     // Default: log the error
-    console.error(`Middleware caught error in ${linkName}:`, error.message);
+    console.error(`Hook caught error in ${linkName}:`, error.message);
   }
 }
 
-// Common middleware implementations
+// Common hook implementations
 
-class LoggingMiddleware extends Middleware {
+class LoggingHook extends Hook {
   /**
    * Logs link execution with timestamps.
    */
@@ -112,7 +112,7 @@ class LoggingMiddleware extends Middleware {
   }
 }
 
-class TimingMiddleware extends Middleware {
+class TimingHook extends Hook {
   /**
    * Measures and logs execution time for each link.
    */
@@ -135,9 +135,9 @@ class TimingMiddleware extends Middleware {
   }
 }
 
-class ValidationMiddleware extends Middleware {
+class ValidationHook extends Hook {
   /**
-   * Validates context before and after link execution.
+   * Validates state before and after link execution.
    * @param {Object} options - Validation options
    * @param {Function} options.beforeValidator - Function to validate before execution
    * @param {Function} options.afterValidator - Function to validate after execution
@@ -170,8 +170,8 @@ class ValidationMiddleware extends Middleware {
 }
 
 module.exports = {
-  Middleware,
-  LoggingMiddleware,
-  TimingMiddleware,
-  ValidationMiddleware
+  Hook,
+  LoggingHook,
+  TimingHook,
+  ValidationHook
 };

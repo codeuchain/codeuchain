@@ -176,17 +176,17 @@ void main() {
     });
   });
 
-  group('Middleware Tests', () {
-    test('should execute logging middleware', () async {
+  group('Hook Tests', () {
+    test('should execute logging hook', () async {
       final logs = <String>[];
-      final middleware = LoggingMiddleware(
+      final hook = LoggingHook(
         logLevel: LogLevel.debug,
         logFunction: (message) => logs.add(message),
       );
       
       final chain = Chain<Map<String, dynamic>, Map<String, dynamic>>('TestChain')
         .add(AddLink(), 'AddLink')
-        .use(middleware);
+        .use(hook);
       
       final context = Context<Map<String, dynamic>>({'a': 10, 'b': 20});
       await chain.run(context);
@@ -202,24 +202,24 @@ void main() {
     });
 
     test('should track performance metrics', () async {
-      final performanceMiddleware = PerformanceMiddleware();
+      final performanceHook = PerformanceHook();
       
       final chain = Chain<Map<String, dynamic>, Map<String, dynamic>>('TestChain')
         .add(AddLink(), 'AddLink')
-        .use(performanceMiddleware);
+        .use(performanceHook);
       
       final context = Context<Map<String, dynamic>>({'a': 10, 'b': 20});
       await chain.run(context);
       
-      final metrics = performanceMiddleware.getMetrics();
+      final metrics = performanceHook.getMetrics();
       expect(metrics['chains']['TestChain']?['executions'], equals(1));
       expect(metrics['links']['AddLink']?['executions'], equals(1));
     });
 
-    test('should handle errors in middleware', () async {
+    test('should handle errors in hook', () async {
       final errorLogs = <String>[];
-      final middleware = FunctionMiddleware(
-        'TestMiddleware',
+      final hook = FunctionHook(
+        'TestHook',
         onError: (execution) async {
           errorLogs.add('Error in ${execution.linkName}: ${execution.error}');
         },
@@ -227,7 +227,7 @@ void main() {
       
       final chain = Chain<Map<String, dynamic>, Map<String, dynamic>>()
         .add(ErrorLink(), 'ErrorLink')
-        .use(middleware);
+        .use(hook);
       
       final context = Context<Map<String, dynamic>>();
       
