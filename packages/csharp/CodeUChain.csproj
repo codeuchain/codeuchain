@@ -6,11 +6,11 @@
     <Nullable>enable</Nullable>
     <LangVersion>12.0</LangVersion>
     <PackageId>CodeUChain</PackageId>
-    <Version>1.0.1</Version>
+    <Version>2.0.0</Version>
     <Authors>CodeUChain Team</Authors>
-    <Description>A modular framework for chaining processing links with middleware support, designed for robust .NET applications.</Description>
+    <Description>A modular framework for chaining processing links with hook support, designed for robust .NET applications.</Description>
     <RepositoryUrl>https://github.com/codeuchain/codeuchain</RepositoryUrl>
-    <PackageTags>chain,middleware,processing,framework</PackageTags>
+    <PackageTags>chain,hook,state,processing,framework</PackageTags>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 

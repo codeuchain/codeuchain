@@ -7,11 +7,11 @@
 
     <groupId>com.codeuchain</groupId>
     <artifactId>codeuchain-java</artifactId>
-    <version>1.0.0</version>
+    <version>0.3.0</version>
     <packaging>jar</packaging>
 
     <name>CodeUChain Java</name>
-    <description>Enterprise-grade implementation in Java with comprehensive middleware support</description>
+    <description>Enterprise-grade implementation in Java with comprehensive hook support</description>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

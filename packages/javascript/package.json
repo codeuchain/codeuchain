@@ -1,6 +1,6 @@
 {
   "name": "codeuchain",
-  "version": "1.1.1",
+  "version": "2.0.0",
   "description": "CodeUChain JavaScript implementation - Interactive playground with event-driven, ubiquitous patterns",
   "main": "core/index.js",
   "types": "index.d.ts",
@@ -16,7 +16,7 @@
   "keywords": [
     "codeuchain",
     "chain",
-    "context",
+    "state",
     "hook",
     "functional",
     "async",
